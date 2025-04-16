@@ -54,10 +54,10 @@ const BuilderMaster = () => {
   };
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-3">
     
-      <div className="row mb-2">
-        <div className="col-lg-5 m-auto">
+      <div className="row">
+        <div className="col-lg-5 mb-3">
           <div className="card shadow-lg">
 
             <form onSubmit={handleSubmit}>
@@ -85,37 +85,37 @@ const BuilderMaster = () => {
           </div>
         </div>
         
-        <div className="col-lg-7">
-          <table className="table table-bordered text-center">
+        <div className="col-lg-7 overflow-auto">
+          <table className="table table-sm table-bordered text-center">
             <thead className="table-dark">
               <tr>
                 <th>Builder Name</th>
-                <th colSpan="2">Actions</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {builders.map((Builder) => (
                 <tr key={Builder.id}>
                   <td>{Builder.builderMaster}</td>
-                  <td>
+                  <td className='d-flex justify-content-center'>
                     <button
-                      className="btn btn-sm btn-info me-2"
+                      className="btn btn-sm btn-info me-1"
                       onClick={() => handleEdit(Builder)}
                     >
-                      <i className="pi pi-pen-to-square me-1"> </i> Edit
+                      <i className="pi pi-pen-to-square"> Edit </i> 
                     </button>
                     <button
                       className="btn btn-sm btn-danger"
                       onClick={() => handleDelete(Builder.id)}
                     >
-                      <i className="pi pi-trash me-1"> </i> Delete
+                      <i className="pi pi-trash"> Delete </i> 
                     </button>
                   </td>
                 </tr>
               ))}
               {builders.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="text-center">No builders found</td>
+                  <td colSpan="2" className="text-center">No builders found</td>
                 </tr>
               )}
             </tbody>

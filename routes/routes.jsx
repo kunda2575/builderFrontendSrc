@@ -14,9 +14,14 @@ import Transaction from "../components/admin/Transaction";
 import BlockMaster from "../components/admin/masters/BlockMaster";
 import BuilderMaster from "../components/admin/masters/BuilderMaster";
 import BankMaster from "../components/admin/masters/BankMaster";
+import DepartmentMaster from "../components/admin/masters/DepartmentMaster";
 
 import NotFound from "../components/NotFound";
 import CustomerMaster from "../components/admin/masters/CustomerMaster";
+import EmployeeMaster from "../components/admin/masters/EmmployeeMaster";
+import ExpenseCategoryMaster from "../components/admin/masters/ExpenseCategoryMaster";
+import FundPurpose from "../components/admin/masters/FundPurpose";
+import FundSource from "../components/admin/masters/FundSource";
 
 const AppRoutes = () => (
   <Routes>
@@ -51,6 +56,11 @@ const AppRoutes = () => (
     <Route path="/builderMaster" element={<BuilderMaster/>}/>
     <Route path="/bankMaster" element={<BankMaster/>}/>
     <Route path="/customerMaster" element={<CustomerMaster/>} />
+    <Route path="/departmentMaster" element={<DepartmentMaster/>} />
+    <Route path="/employeeMaster" element={<EmployeeMaster/>}/>
+    <Route path="/expenseCategoryMaster" element={<ExpenseCategoryMaster/>}/>
+    <Route path="/fundPurpose" element={<FundPurpose/>}/>
+    <Route path="/fundSource" element={<FundSource/>}/>
 
 
 

@@ -1,34 +1,34 @@
 import { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
-import { getCustomerDetails, createCustomerDetails, updateCustomerDetails, deleteCustomerDetails } from '../../../api/customerApi'
+import { getEmployeeDetails, createEmployeeDetails, updateEmployeeDetails, deleteEmployeeDetails } from '../../../api/employeeApi'
 import { toast } from "react-toastify"
 
 
-const CustomerMaster = () => {
-    const [customers, setCustomers] = useState([])
+const EmployeeMaster = () => {
+    const [employees, setEmployees] = useState([])
     const [form, setForm] = useState({
-        customerName: '',
-        customerPhone: '',
-        customerEmail: '',
-        customerAddress: '',
-        customerProfession: '',
-        languagesKnown: '',
-        projectNameBlock: '',
-        flatNo: '',
-        customerId: null
+        employeeName: '',
+        employeePhone: '',
+        employeeEmail: '',
+        address: '',
+        idType: '',
+        idProof1: '',
+        employeeSalary: '',
+        department: '',
+        employeeID: null
     });
 
     useEffect(() => {
-        fetchCustomers();
+        fetchEmployees();
     }, []);
 
-    const fetchCustomers = async () => {
+    const fetchEmployees = async () => {
         try {
-            const res = await getCustomerDetails()
-            setCustomers(res.data)
+            const res = await getEmployeeDetails()
+            setEmployees(res.data)
         } catch (error) {
-            toast.error('Failed to fetch Customers');
+            toast.error('Failed to fetch Employees');
         }
     }
 
@@ -36,41 +36,41 @@ const CustomerMaster = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            if (form.customerId) {
-                await updateCustomerDetails(form.customerId, form);
-                toast.success(`Customer updated successfully`);
+            if (form.employeeID) {
+                await updateEmployeeDetails(form.employeeID, form);
+                toast.success(`Employee updated successfully`);
 
             } else {
-                await createCustomerDetails(form);
-                toast.success(`Customer created successfully`)
+                await createEmployeeDetails(form);
+                toast.success(`Employee created successfully`)
             }
             setForm({
-                customerName: '',
-                customerPhone: '',
-                customerEmail: '',
-                customerAddress: '',
-                customerProfession: '',
-                languagesKnown: '',
-                projectNameBlock: '',
-                flatNo: '',
-                customerId: null
+                employeeName: '',
+                employeePhone: '',
+                employeeEmail: '',
+                address: '',
+                idType: '',
+                idProof1: '',
+                employeeSalary: '',
+                department: '',
+                employeeID: null
             })
-            fetchCustomers()
+            fetchEmployees()
         } catch (error) {
             toast.error('Action Failed')
         }
     };
-    const handleEdit = (customer) => {
-        setForm(customer);
+    const handleEdit = (employee) => {
+        setForm(employee);
     };
 
 
-    const handleDelete = async (customerId) => {
-        if (!window.confirm('Are you sure to delete this Customer?')) return;
+    const handleDelete = async (employeeID) => {
+        if (!window.confirm('Are you sure to delete this Employee?')) return;
         try {
-            await deleteCustomerDetails(customerId);
-            toast.success('Customer deleted successfully');
-            fetchCustomers();
+            await deleteEmployeeDetails(employeeID);
+            toast.success('Employee deleted successfully');
+            fetchEmployees();
         } catch (error) {
             toast.error('Delete failed');
         }
@@ -86,7 +86,7 @@ const CustomerMaster = () => {
                     <div className="col-lg-12">
                         <div className="card mb-3">
                             <div className="card-header">
-                                <h4 className="text-center">  Customer Master</h4>
+                                <h4 className="text-center">  Employee Master</h4>
                             </div>
                             <div className="card-body">
                                 <form onSubmit={handleSubmit} className="row">
@@ -94,9 +94,9 @@ const CustomerMaster = () => {
                                         <input
                                             type="text"
                                             className="form-control"
-                                            placeholder="Customer Name"
-                                            onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-                                            value={form.customerName}
+                                            placeholder="Employee Name"
+                                            onChange={(e) => setForm({ ...form, employeeName: e.target.value })}
+                                            value={form.employeeName}
                                             required
                                         />
                                     </span>
@@ -104,9 +104,9 @@ const CustomerMaster = () => {
                                         <input
                                             type="number"
                                             className="form-control"
-                                            placeholder="Customer Phone"
-                                            onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
-                                            value={form.customerPhone}
+                                            placeholder="Employee Phone"
+                                            onChange={(e) => setForm({ ...form, employeePhone: e.target.value })}
+                                            value={form.employeePhone}
 
                                         />
                                     </div>
@@ -114,57 +114,57 @@ const CustomerMaster = () => {
                                         <input
                                             type="email"
                                             className="form-control"
-                                            placeholder="Customer Email"
-                                            onChange={(e) => setForm({ ...form, customerEmail: e.target.value })}
-                                            value={form.customerEmail}
+                                            placeholder="Employee Email"
+                                            onChange={(e) => setForm({ ...form, employeeEmail: e.target.value })}
+                                            value={form.employeeEmail}
                                         />
                                     </div>
                                     <div className="col-lg-4 mb-2">
                                         <input
                                             type="text"
                                             className="form-control"
-                                            placeholder="Customer Profession"
-                                            onChange={(e) => setForm({ ...form, customerProfession: e.target.value })}
-                                            value={form.customerProfession}
+                                            placeholder="Id Type"
+                                            onChange={(e) => setForm({ ...form, idType: e.target.value })}
+                                            value={form.idType}
                                         />
                                     </div>
                                     <div className="col-lg-4 mb-2">
                                         <input
                                             type="text"
                                             className="form-control"
-                                            placeholder="Languages Known"
-                                            onChange={(e) => setForm({ ...form, languagesKnown: e.target.value })}
-                                            value={form.languagesKnown}
-                                        />
-                                    </div>
-                                    <div className="col-lg-4 mb-2">
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Project Name Block"
-                                            onChange={(e) => setForm({ ...form, projectNameBlock: e.target.value })}
-                                            value={form.projectNameBlock}
+                                            placeholder="Id Proof"
+                                            onChange={(e) => setForm({ ...form, idProof1: e.target.value })}
+                                            value={form.idProof1}
                                         />
                                     </div>
                                     <div className="col-lg-4 mb-2">
                                         <input
                                             type="number"
                                             className="form-control"
-                                            placeholder="Flat No"
-                                            onChange={(e) => setForm({ ...form, flatNo: e.target.value })}
-                                            value={form.flatNo}
+                                            placeholder="Employee Salary"
+                                            onChange={(e) => setForm({ ...form, employeeSalary: e.target.value })}
+                                            value={form.employeeSalary}
+                                        />
+                                    </div>
+                                    <div className="col-lg-4 mb-2">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Department"
+                                            onChange={(e) => setForm({ ...form, department: e.target.value })}
+                                            value={form.department}
                                         />
                                     </div>
                                     <div className="col-lg-4 mb-2">
                                         <textarea
                                             type="text"
                                             className="form-control"
-                                            onChange={(e) => setForm({ ...form, customerAddress: e.target.value })}
-                                            value={form.customerAddress}
+                                            onChange={(e) => setForm({ ...form, address: e.target.value })}
+                                            value={form.address}
                                             placeholder="Enter Address"
                                             // rows={3}
                                         >
-                                            {/* CustomerAddress */}
+                                            {/* EmployeeAddress */}
                                         </textarea>
                                     </div>
                                     <div className="text-center">
@@ -180,47 +180,47 @@ const CustomerMaster = () => {
                         <table className="table table-sm table-bordered text-center flex-wrap">
                             <thead className="table-dark">
                                 <tr>
-                                    <th>Customer Name</th>
+                                    <th>Employee Name</th>
                                     <th>Mobile</th>
                                     <th>Email</th>
-                                    <th>Profession</th>
-                                    <th>Languages Known</th>
-                                    <th>Project Name Block</th>
-                                    <th>Flat No</th>
+                                    <th>Id Type</th>
+                                    <th>Id Proof</th>
+                                    <th>Salary</th>
+                                    <th>Department</th>
                                     <th>Address</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {customers.map((customer) => (
-                                    <tr key={customer.customerId}>
-                                        <td>{customer.customerName}</td>
-                                        <td>{customer.customerPhone}</td>
-                                        <td>{customer.customerEmail}</td>
-                                        <td>{customer.customerProfession}</td>
-                                        <td>{customer.languagesKnown}</td>
-                                        <td>{customer.projectNameBlock}</td>
-                                        <td>{customer.flatNo}</td>
-                                        <td>{customer.customerAddress}</td>
+                                {employees.map((employee) => (
+                                    <tr key={employee.employeeID}>
+                                        <td>{employee.employeeName}</td>
+                                        <td>{employee.employeePhone}</td>
+                                        <td>{employee.employeeEmail}</td>
+                                        <td>{employee.idType}</td>
+                                        <td>{employee.idProof1}</td>
+                                        <td>{employee.employeeSalary}</td>
+                                        <td>{employee.department}</td>
+                                        <td>{employee.address}</td>
                                         <td className="d-flex justify-content-center">
                                             <button
                                                 className="btn btn-sm btn-info me-1"
-                                                onClick={() => handleEdit(customer)}
+                                                onClick={() => handleEdit(employee)}
                                             >
                                                 <i className="pi pi-pen-to-square"> </i>
                                             </button>
                                             <button
                                                 className="btn btn-sm btn-danger"
-                                                onClick={() => handleDelete(customer.customerId)}
+                                                onClick={() => handleDelete(employee.employeeID)}
                                             >
                                                 <i className="pi pi-trash"> </i>
                                             </button>
                                         </td>
                                     </tr>
                                 ))}
-                                {customers.length === 0 && (
+                                {employees.length === 0 && (
                                     <tr>
-                                        <td colSpan="4" className="text-center">No banks found</td>
+                                        <td colSpan="8" className="text-center">No Employees found</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -231,4 +231,4 @@ const CustomerMaster = () => {
         </>
     )
 }
-export default CustomerMaster
+export default EmployeeMaster

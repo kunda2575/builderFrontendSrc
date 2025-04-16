@@ -1,23 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getBlocks, createBlock, updateBlock, deleteBlock } from '../../../api/blocksApi';
+import { getExpenseCategorys, createExpenseCategory, updateExpenseCategory, deleteExpenseCategory } from '../../../api/expenseCategoryApi';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const BlockMaster = () => {
-  const [blocks, setBlocks] = useState([]);
-  const [form, setForm] = useState({ blockNO: '', blockName: '', id: null });
+const ExpenseCategoryMaster = () => {
+  const [expenseCategorys, setExpenseCategorys] = useState([]);
+  const [form, setForm] = useState({ expenseCategory: '', expenseHead: '', id: null });
 
   useEffect(() => {
-    fetchBlocks();
+    fetchExpenseCategorys();
   }, []);
 
-  const fetchBlocks = async () => {
+  const fetchExpenseCategorys = async () => {
     try {
-      const res = await getBlocks();
-      setBlocks(res.data);
+      const res = await getExpenseCategorys();
+      setExpenseCategorys(res.data);
     } catch (error) {
-      toast.error('Failed to fetch blocks');
+      toast.error('Failed to fetch expenseCategorys');
     }
   };
 
@@ -25,29 +25,29 @@ const BlockMaster = () => {
     e.preventDefault();
     try {
       if (form.id) {
-        await updateBlock(form.id, form);
-        toast.success('Block updated successfully');
+        await updateExpenseCategory(form.id, form);
+        toast.success('ExpenseCategory updated successfully');
       } else {
-        await createBlock(form);
-        toast.success('Block created successfully');
+        await createExpenseCategory(form);
+        toast.success('ExpenseCategory created successfully');
       }
-      setForm({ blockNO: '', blockName: '', id: null });
-      fetchBlocks();
+      setForm({ expenseCategory: '', expenseHead: '', id: null });
+      fetchExpenseCategorys();
     } catch (error) {
       toast.error('Action failed');
     }
   };
 
-  const handleEdit = (block) => {
-    setForm(block);
+  const handleEdit = (expenseCategory) => {
+    setForm(expenseCategory);
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure to delete this block?')) return;
+    if (!window.confirm('Are you sure to delete this expenseCategory?')) return;
     try {
-      await deleteBlock(id);
-      toast.success('Block deleted successfully');
-      fetchBlocks();
+      await deleteExpenseCategory(id);
+      toast.success('ExpenseCategory deleted successfully');
+      fetchExpenseCategorys();
     } catch (error) {
       toast.error('Delete failed');
     }
@@ -63,23 +63,23 @@ const BlockMaster = () => {
         <div className="col-lg-4 mb-3">
           <div className="card">
             <div className="card-header">
-              <h4 className='text-center'>Block Master</h4>
+              <h4 className='text-center'>ExpenseCategory Master</h4>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="card-body">
                 <input
-                  type="number"
-                  placeholder="Block No"
-                  value={form.blockNO}
-                  onChange={(e) => setForm({ ...form, blockNO: e.target.value })}
+                  type="text"
+                  placeholder="Expense Category "
+                  value={form.expenseCategory}
+                  onChange={(e) => setForm({ ...form, expenseCategory: e.target.value })}
                   className="form-control mb-2"
                   required
                 />
                 <input
                   type="text"
-                  placeholder="Block Name"
-                  value={form.blockName}
-                  onChange={(e) => setForm({ ...form, blockName: e.target.value })}
+                  placeholder="Expense Category Head"
+                  value={form.expenseHead}
+                  onChange={(e) => setForm({ ...form, expenseHead: e.target.value })}
                   className="form-control mb-2"
                   required
                 />
@@ -96,35 +96,35 @@ const BlockMaster = () => {
           <table className="table table-sm table-bordered text-center" >
             <thead className="table-dark">
               <tr>
-                <th>Block No</th>
-                <th>Block Name</th>
+                <th>Expense Category </th>
+                <th>Expense Category Head</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {blocks.map((block) => (
-                <tr key={block.id}>
-                  <td>{block.blockNO}</td>
-                  <td>{block.blockName}</td>
+              {expenseCategorys.map((expenseCategory) => (
+                <tr key={expenseCategory.id}>
+                  <td>{expenseCategory.expenseCategory}</td>
+                  <td>{expenseCategory.expenseHead}</td>
                   <td className="d-flex justify-content-center">
                     <button
                       className="btn btn-sm btn-info me-1"
-                      onClick={() => handleEdit(block)}
+                      onClick={() => handleEdit(expenseCategory)}
                     >
                     <i className="pi pi-pen-to-square">  Edit </i>
                     </button>
                     <button
                       className="btn btn-sm btn-danger"
-                      onClick={() => handleDelete(block.id)}
+                      onClick={() => handleDelete(expenseCategory.id)}
                     >
                      <i className="pi pi-trash"> Delete </i> 
                     </button>
                   </td>
                 </tr>
               ))}
-              {blocks.length === 0 && (
+              {expenseCategorys.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="text-center">No blocks found</td>
+                  <td colSpan="4" className="text-center">No Expense Categorys found</td>
                 </tr>
               )}
             </tbody>
@@ -135,4 +135,4 @@ const BlockMaster = () => {
   );
 };
 
-export default BlockMaster;
+export default ExpenseCategoryMaster;

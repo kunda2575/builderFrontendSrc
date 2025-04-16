@@ -54,13 +54,13 @@ const BankMaster = () => {
     };
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-3">
             <div className='mb-2'>
                 <Link className="text-decoration-none text-primary" to="/updateData"> <i className="pi pi-arrow-left"></i>  Back </Link>
             </div>
 
             <div className="row">
-                <div className="col-lg-4 mb-2">
+                <div className="col-lg-4 mb-3">
                     <div className="card">
                         <div className="card-header">
                             <h4 className='text-center'>Bank Master</h4>
@@ -100,8 +100,8 @@ const BankMaster = () => {
                         </form>
                     </div>
                 </div>
-                <div className="col-lg-8  ">
-                    <table className="table table-bordered text-center">
+                <div className="col-lg-8 overflow-auto">
+                    <table className="table table-sm table-bordered text-center">
                         <thead className="table-dark">
                             <tr>
                                 <th>Bank Name</th>
@@ -116,18 +116,18 @@ const BankMaster = () => {
                                     <td>{bank.bankName}</td>
                                     <td>{bank.ifscCode}</td>
                                     <td>{bank.branch}</td>
-                                    <td>
+                                    <td className="d-flex justify-content-center">
                                         <button
-                                            className="btn btn-sm btn-info me-2"
+                                            className="btn btn-sm btn-info me-1"
                                             onClick={() => handleEdit(bank)}
                                         >
-                                            <i className="pi pi-pen-to-square me-1"> </i> Edit
+                                            <i className="pi pi-pen-to-square"> </i> 
                                         </button>
                                         <button
                                             className="btn btn-sm btn-danger"
                                             onClick={() => handleDelete(bank.id)}
                                         >
-                                            <i className="pi pi-trash me-1"> </i> Delete
+                                            <i className="pi pi-trash"> </i> 
                                         </button>
                                     </td>
                                 </tr>

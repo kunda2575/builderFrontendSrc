@@ -1,23 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getBlocks, createBlock, updateBlock, deleteBlock } from '../../../api/blocksApi';
+import { getFundPurposes, createFundPurpose, updateFundPurpose, deleteFundPurpose } from '../../../api/fundPurposeApi';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const BlockMaster = () => {
-  const [blocks, setBlocks] = useState([]);
-  const [form, setForm] = useState({ blockNO: '', blockName: '', id: null });
+const FundPurpose = () => {
+  const [fundPurposes, setFundPurposes] = useState([]);
+  const [form, setForm] = useState({ fundPurpose: '', id: null });
 
   useEffect(() => {
-    fetchBlocks();
+    fetchFundPurposes();
   }, []);
 
-  const fetchBlocks = async () => {
+  const fetchFundPurposes = async () => {
     try {
-      const res = await getBlocks();
-      setBlocks(res.data);
+      const res = await getFundPurposes();
+      setFundPurposes(res.data);
     } catch (error) {
-      toast.error('Failed to fetch blocks');
+      toast.error('Failed to fetch Fund Purposes');
     }
   };
 
@@ -25,29 +25,29 @@ const BlockMaster = () => {
     e.preventDefault();
     try {
       if (form.id) {
-        await updateBlock(form.id, form);
-        toast.success('Block updated successfully');
+        await updateFundPurpose(form.id, form);
+        toast.success('Fund Purpose updated successfully');
       } else {
-        await createBlock(form);
-        toast.success('Block created successfully');
+        await createFundPurpose(form);
+        toast.success('Fund Purpose created successfully');
       }
-      setForm({ blockNO: '', blockName: '', id: null });
-      fetchBlocks();
+      setForm({  fundPurpose: '', id: null });
+      fetchFundPurposes();
     } catch (error) {
       toast.error('Action failed');
     }
   };
 
-  const handleEdit = (block) => {
-    setForm(block);
+  const handleEdit = (fundPurpose) => {
+    setForm(fundPurpose);
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure to delete this block?')) return;
+    if (!window.confirm('Are you sure to delete this fund Purpose?')) return;
     try {
-      await deleteBlock(id);
-      toast.success('Block deleted successfully');
-      fetchBlocks();
+      await deleteFundPurpose(id);
+      toast.success('Fund Purpose deleted successfully');
+      fetchFundPurposes();
     } catch (error) {
       toast.error('Delete failed');
     }
@@ -63,23 +63,16 @@ const BlockMaster = () => {
         <div className="col-lg-4 mb-3">
           <div className="card">
             <div className="card-header">
-              <h4 className='text-center'>Block Master</h4>
+              <h4 className='text-center'>Fund Purpose Master</h4>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="card-body">
-                <input
-                  type="number"
-                  placeholder="Block No"
-                  value={form.blockNO}
-                  onChange={(e) => setForm({ ...form, blockNO: e.target.value })}
-                  className="form-control mb-2"
-                  required
-                />
+               
                 <input
                   type="text"
-                  placeholder="Block Name"
-                  value={form.blockName}
-                  onChange={(e) => setForm({ ...form, blockName: e.target.value })}
+                  placeholder="Fund Purpose"
+                  value={form.fundPurpose}
+                  onChange={(e) => setForm({ ...form, fundPurpose: e.target.value })}
                   className="form-control mb-2"
                   required
                 />
@@ -96,35 +89,33 @@ const BlockMaster = () => {
           <table className="table table-sm table-bordered text-center" >
             <thead className="table-dark">
               <tr>
-                <th>Block No</th>
-                <th>Block Name</th>
+                <th>Fund Purpose Name</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {blocks.map((block) => (
-                <tr key={block.id}>
-                  <td>{block.blockNO}</td>
-                  <td>{block.blockName}</td>
+              {fundPurposes.map((fundPurpose) => (
+                <tr key={fundPurpose.id}>
+                  <td>{fundPurpose.fundPurpose}</td>
                   <td className="d-flex justify-content-center">
                     <button
                       className="btn btn-sm btn-info me-1"
-                      onClick={() => handleEdit(block)}
+                      onClick={() => handleEdit(fundPurpose)}
                     >
                     <i className="pi pi-pen-to-square">  Edit </i>
                     </button>
                     <button
                       className="btn btn-sm btn-danger"
-                      onClick={() => handleDelete(block.id)}
+                      onClick={() => handleDelete(fundPurpose.id)}
                     >
                      <i className="pi pi-trash"> Delete </i> 
                     </button>
                   </td>
                 </tr>
               ))}
-              {blocks.length === 0 && (
+              {fundPurposes.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="text-center">No blocks found</td>
+                  <td colSpan="4" className="text-center">No Fund Purposes found</td>
                 </tr>
               )}
             </tbody>
@@ -135,4 +126,4 @@ const BlockMaster = () => {
   );
 };
 
-export default BlockMaster;
+export default FundPurpose;
