@@ -1,0 +1,129 @@
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { getBuilders, createBuilder, updateBuilder, deleteBuilder } from '../../../api/builderApi';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+const BuilderMaster = () => {
+  const [builders, setBuilders] = useState([]);
+  const [form, setForm] = useState({ builderMaster: '', id: null });
+
+  useEffect(() => {
+    fetchBuilders();
+  }, []);
+
+  const fetchBuilders = async () => {
+    try {
+      const res = await getBuilders();
+      setBuilders(res.data);
+    } catch (error) {
+      toast.error('Failed to fetch builders');
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (form.id) {
+        await updateBuilder(form.id, form);
+        toast.success('Builder updated successfully');
+      } else {
+        await createBuilder(form);
+        toast.success('Builder created successfully');
+      }
+      setForm({ builderMaster: '', id: null });
+      fetchBuilders();
+    } catch (error) {
+      toast.error('Action failed');
+    }
+  };
+
+  const handleEdit = (Builder) => {
+    setForm(Builder);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure to delete this Builder?')) return;
+    try {
+      await deleteBuilder(id);
+      toast.success('Builder deleted successfully');
+      fetchBuilders();
+    } catch (error) {
+      toast.error('Delete failed');
+    }
+  };
+
+  return (
+    <div className="container mt-4">
+    
+      <div className="row mb-2">
+        <div className="col-lg-5 m-auto">
+          <div className="card shadow-lg">
+
+            <form onSubmit={handleSubmit}>
+              <div className="card-body">
+
+                <h4 className='text-center'>Builder Master</h4>
+                <input
+                  type="text"
+                  placeholder="Builder Name"
+                  value={form.builderMaster}
+                  onChange={(e) => setForm({ ...form, builderMaster: e.target.value })}
+                  className="form-control mb-2"
+                  required
+                />
+              </div>
+              <div className="text-center">
+                <button type="submit" className="btn btn-primary btn-sm mb-3">
+                  {form.id ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </form>
+          <div className='mb-2 text-center'>
+        <Link className="text-decoration-none text-primary" to="/updateData"> <i className="pi pi-arrow-left"></i>  Back </Link>
+      </div>
+          </div>
+        </div>
+        
+        <div className="col-lg-7">
+          <table className="table table-bordered text-center">
+            <thead className="table-dark">
+              <tr>
+                <th>Builder Name</th>
+                <th colSpan="2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {builders.map((Builder) => (
+                <tr key={Builder.id}>
+                  <td>{Builder.builderMaster}</td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-info me-2"
+                      onClick={() => handleEdit(Builder)}
+                    >
+                      <i className="pi pi-pen-to-square me-1"> </i> Edit
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDelete(Builder.id)}
+                    >
+                      <i className="pi pi-trash me-1"> </i> Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {builders.length === 0 && (
+                <tr>
+                  <td colSpan="4" className="text-center">No builders found</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BuilderMaster;

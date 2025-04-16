@@ -1,0 +1,55 @@
+/* Full-screen container */
+.login-container {
+    max-width: 900px;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Left side (Welcome section) */
+.login-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+}
+
+/* Adjusting the login image */
+.login-image {
+    max-width: 80%;
+    height: auto;
+}
+
+/* Right side (Login form) */
+.login-right {
+    padding: 40px;
+}
+
+/* Input fields */
+.input-group .form-control {
+    padding: 12px;
+    font-size: 16px;
+}
+
+/* Mobile view adjustments */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+        border-radius: 10px;
+    }
+
+    .login-left {
+        border-radius: 10px 10px 0 0;
+        padding: 20px;
+    }
+
+    .login-right {
+        border-radius: 0 0 10px 10px;
+        padding: 20px;
+    }
+
+    .login-image {
+        max-width: 60%;
+    }
+}
