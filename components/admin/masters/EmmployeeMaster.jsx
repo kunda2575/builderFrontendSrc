@@ -77,7 +77,7 @@ const EmployeeMaster = () => {
     };
     return (
         <>
-            <div className="container mt-3">
+            <div className="container-fluid mt-3">
                 <div className='mb-2'>
                     <Link className="text-decoration-none text-primary" to="/updateData"> <i className="pi pi-arrow-left"></i>  Back </Link>
                 </div>
@@ -204,13 +204,13 @@ const EmployeeMaster = () => {
                                         <td>{employee.address}</td>
                                         <td className="d-flex justify-content-center">
                                             <button
-                                                className="btn btn-sm btn-info me-1"
+                                                className="btn btn-sm btn-info me-1 rounded-circle"
                                                 onClick={() => handleEdit(employee)}
                                             >
-                                                <i className="pi pi-pen-to-square"> </i>
+                                                <i className="pi pi-pen-to-square "> </i>
                                             </button>
                                             <button
-                                                className="btn btn-sm btn-danger"
+                                                className="btn btn-sm btn-danger rounded-circle"
                                                 onClick={() => handleDelete(employee.employeeID)}
                                             >
                                                 <i className="pi pi-trash"> </i>

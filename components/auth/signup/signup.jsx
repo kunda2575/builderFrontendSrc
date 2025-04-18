@@ -13,10 +13,6 @@ import signupLogo from "/src/assets/auth/builderView.jpg"
 
 import signup from "/src/assets/auth/signup.jpg"
 
-
-
-
-
 const Signup = () => {
     // Navigation
     const navigate = useNavigate();

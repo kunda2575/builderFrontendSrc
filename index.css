@@ -1,3 +1,9 @@
-
+.master-data:hover{
+    background-color: black !important;
+    color: white !important;
+}
+.master-data{
+    transition: background-color 0.2s ease 0.2s !important;
+}
 
 

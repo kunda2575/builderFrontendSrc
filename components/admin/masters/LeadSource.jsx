@@ -1,23 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getFundSources, createFundSource, updateFundSource, deleteFundSource } from '../../../api/fundSourceApi';
+import { getLeadSources, createLeadSource, updateLeadSource, deleteLeadSource } from '../../../api/leadSourceApi';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const FundSource = () => {
-  const [fundSources, setFundSources] = useState([]);
-  const [form, setForm] = useState({ fundSource: '', id: null });
+const LeadSource = () => {
+  const [leadSources, setLeadSources] = useState([]);
+  const [form, setForm] = useState({ leadSource: '', id: null });
 
   useEffect(() => {
-    fetchFundSources();
+    fetchLeadSources();
   }, []);
 
-  const fetchFundSources = async () => {
+  const fetchLeadSources = async () => {
     try {
-      const res = await getFundSources();
-      setFundSources(res.data);
+      const res = await getLeadSources();
+      setLeadSources(res.data);
     } catch (error) {
-      toast.error('Failed to fetch Fund Sources');
+      toast.error('Failed to fetch Lead Sources');
     }
   };
 
@@ -25,29 +25,29 @@ const FundSource = () => {
     e.preventDefault();
     try {
       if (form.id) {
-        await updateFundSource(form.id, form);
-        toast.success('Fund Source updated successfully');
+        await updateLeadSource(form.id, form);
+        toast.success('Lead Source updated successfully');
       } else {
-        await createFundSource(form);
-        toast.success('Fund Source created successfully');
+        await createLeadSource(form);
+        toast.success('Lead Source created successfully');
       }
-      setForm({  fundSource: '', id: null });
-      fetchFundSources();
+      setForm({  leadSource: '', id: null });
+      fetchLeadSources();
     } catch (error) {
       toast.error('Action failed');
     }
   };
 
-  const handleEdit = (fundSource) => {
-    setForm(fundSource);
+  const handleEdit = (leadSource) => {
+    setForm(leadSource);
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure to delete this fund Source?')) return;
+    if (!window.confirm('Are you sure to delete this lead Source?')) return;
     try {
-      await deleteFundSource(id);
-      toast.success('Fund Source deleted successfully');
-      fetchFundSources();
+      await deleteLeadSource(id);
+      toast.success('Lead Source deleted successfully');
+      fetchLeadSources();
     } catch (error) {
       toast.error('Delete failed');
     }
@@ -63,16 +63,16 @@ const FundSource = () => {
         <div className="col-lg-4 mb-3">
           <div className="card">
             <div className="card-header">
-              <h4 className='text-center'>Fund Source Master</h4>
+              <h4 className='text-center'>Lead Source Master</h4>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="card-body">
                
                 <input
                   type="text"
-                  placeholder="Fund Source"
-                  value={form.fundSource}
-                  onChange={(e) => setForm({ ...form, fundSource: e.target.value })}
+                  placeholder="Lead Source"
+                  value={form.leadSource}
+                  onChange={(e) => setForm({ ...form, leadSource: e.target.value })}
                   className="form-control mb-2"
                   required
                 />
@@ -89,33 +89,33 @@ const FundSource = () => {
           <table className="table table-sm table-bordered text-center" >
             <thead className="table-dark">
               <tr>
-                <th>Fund Source Name</th>
+                <th>Lead Source Name</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {fundSources.map((fundSource) => (
-                <tr key={fundSource.id}>
-                  <td>{fundSource.fundSource}</td>
+              {leadSources.map((leadSource) => (
+                <tr key={leadSource.id}>
+                  <td>{leadSource.leadSource}</td>
                   <td className="d-flex justify-content-center">
                     <button
                       className="btn btn-sm btn-info me-1 rounded-circle"
-                      onClick={() => handleEdit(fundSource)}
+                      onClick={() => handleEdit(leadSource)}
                     >
                     <i className="pi pi-pen-to-square">   </i>
                     </button>
                     <button
                       className="btn btn-sm btn-danger rounded-circle"
-                      onClick={() => handleDelete(fundSource.id)}
+                      onClick={() => handleDelete(leadSource.id)}
                     >
                      <i className="pi pi-trash">  </i> 
                     </button>
                   </td>
                 </tr>
               ))}
-              {fundSources.length === 0 && (
+              {leadSources.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="text-center">No Fund Sources found</td>
+                  <td colSpan="4" className="text-center">No Lead Sources found</td>
                 </tr>
               )}
             </tbody>
@@ -126,4 +126,4 @@ const FundSource = () => {
   );
 };
 
-export default FundSource;
+export default LeadSource;

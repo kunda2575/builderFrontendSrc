@@ -54,7 +54,7 @@ const DepartmentMaster = () => {
   };
 
   return (
-    <div className="container mt-3">
+    <div className="container-fluid mt-3">
       <div className='mb-2'>
         <Link className="text-decoration-none text-primary" to="/updateData"> <i className="pi pi-arrow-left"></i>  Back </Link>
       </div>
@@ -98,16 +98,16 @@ const DepartmentMaster = () => {
                   <td>{department.departmentName}</td>
                   <td className='d-flex justify-content-center'>
                     <button
-                      className="btn btn-sm btn-info me-1"
+                      className="btn btn-sm btn-info me-1 rounded-circle"
                       onClick={() => handleEdit(department)}
                     >
-                    <i className="pi pi-pen-to-square"> Edit </i> 
+                    <i className="pi pi-pen-to-square">  </i> 
                     </button>
                     <button
-                      className="btn btn-sm btn-danger"
+                      className="btn btn-sm btn-danger rounded-circle"
                       onClick={() => handleDelete(department.departmentID)}
                     >
-                     <i className="pi pi-trash "> Delete </i> 
+                     <i className="pi pi-trash ">  </i> 
                     </button>
                   </td>
                 </tr>

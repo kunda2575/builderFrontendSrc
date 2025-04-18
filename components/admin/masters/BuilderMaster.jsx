@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const BuilderMaster = () => {
   const [builders, setBuilders] = useState([]);
   const [form, setForm] = useState({ builderMaster: '', id: null });
-
+  
   useEffect(() => {
     fetchBuilders();
   }, []);
@@ -54,7 +54,7 @@ const BuilderMaster = () => {
   };
 
   return (
-    <div className="container mt-3">
+    <div className="container-fluid mt-3">
     
       <div className="row">
         <div className="col-lg-5 mb-3">
@@ -99,16 +99,16 @@ const BuilderMaster = () => {
                   <td>{Builder.builderMaster}</td>
                   <td className='d-flex justify-content-center'>
                     <button
-                      className="btn btn-sm btn-info me-1"
+                      className="btn btn-sm btn-info me-1 rounded-circle"
                       onClick={() => handleEdit(Builder)}
                     >
-                      <i className="pi pi-pen-to-square"> Edit </i> 
+                      <i className="pi pi-pen-to-square ">  </i> 
                     </button>
                     <button
-                      className="btn btn-sm btn-danger"
+                      className="btn btn-sm btn-danger rounded-circle"
                       onClick={() => handleDelete(Builder.id)}
                     >
-                      <i className="pi pi-trash"> Delete </i> 
+                      <i className="pi pi-trash">  </i> 
                     </button>
                   </td>
                 </tr>

@@ -22,6 +22,7 @@ import EmployeeMaster from "../components/admin/masters/EmmployeeMaster";
 import ExpenseCategoryMaster from "../components/admin/masters/ExpenseCategoryMaster";
 import FundPurpose from "../components/admin/masters/FundPurpose";
 import FundSource from "../components/admin/masters/FundSource";
+import LeadSource from "../components/admin/masters/leadSource";
 
 const AppRoutes = () => (
   <Routes>
@@ -61,6 +62,7 @@ const AppRoutes = () => (
     <Route path="/expenseCategoryMaster" element={<ExpenseCategoryMaster/>}/>
     <Route path="/fundPurpose" element={<FundPurpose/>}/>
     <Route path="/fundSource" element={<FundSource/>}/>
+    <Route path="/leadsource" element={<LeadSource/>}/>
 
 
 

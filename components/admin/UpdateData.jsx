@@ -47,7 +47,7 @@ const UpdateData = () => {
                   <div key={index} className="col-lg-4 mb-3">
 
                     <button
-                      className="btn btn-success w-100"
+                      className="btn btn-success master-data rounded-0 w-100"
                       onClick={() => navigate(item.path)}
                     >
                       {item.name}

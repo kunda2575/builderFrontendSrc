@@ -31,7 +31,7 @@ const Login = () => {
       };
   
       const userDetails = await postData(config.login, loginPayload);
-      console.log("🧪 Raw API Response:", userDetails);
+      // console.log("🧪 Raw API Response:", userDetails);
   
       const token = userDetails?.token;
       const user = userDetails?.user;
@@ -42,7 +42,7 @@ const Login = () => {
         localStorage.setItem("fullname", user?.fullname || "User");
         localStorage.setItem("profile", user?.profile || "");
   
-        toast.success(`Welcome! ${user?.fullname || "User"}`, { autoClose: 3000 });
+        toast.success(`Hi! ${user?.fullname || "User"}`, { autoClose: 3000 });
   
         setIdentifier("");
         setPassword("");
@@ -64,7 +64,7 @@ const Login = () => {
       
 
   return (
-    <div className="container min-vh-100 d-flex align-items-center justify-content-center py-4">
+    <div className="container min-vh-100 d-flex  align-items-center justify-content-center py-4">
       <div className="row shadow-lg rounded login-container d-flex flex-column flex-lg-row">
 
         {/* Left Section */}
