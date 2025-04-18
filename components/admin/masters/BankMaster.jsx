@@ -62,7 +62,7 @@ const BankMaster = () => {
             <div className="row">
                 <div className="col-lg-4 mb-3">
                     <div className="card">
-                        <div className="card-header">
+                    <div className="card-header">
                             <h4 className='text-center'>Bank Master</h4>
                         </div>
                         <form onSubmit={handleSubmit}>

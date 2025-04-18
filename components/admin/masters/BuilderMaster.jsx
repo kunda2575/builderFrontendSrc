@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const BuilderMaster = () => {
   const [builders, setBuilders] = useState([]);
   const [form, setForm] = useState({ builderMaster: '', id: null });
-  
+
   useEffect(() => {
     fetchBuilders();
   }, []);
@@ -55,15 +55,19 @@ const BuilderMaster = () => {
 
   return (
     <div className="container-fluid mt-3">
-    
+      <div className='mb-2 '>
+        <Link className="text-decoration-none text-primary" to="/updateData"> <i className="pi pi-arrow-left"></i>  Back </Link>
+      </div>
       <div className="row">
         <div className="col-lg-5 mb-3">
-          <div className="card shadow-lg">
-
+          <div className="card">
+            <div className="card-header">
+              <h4 className='text-center'>Builder Master</h4>
+            </div>
             <form onSubmit={handleSubmit}>
               <div className="card-body">
 
-                <h4 className='text-center'>Builder Master</h4>
+
                 <input
                   type="text"
                   placeholder="Builder Name"
@@ -72,19 +76,18 @@ const BuilderMaster = () => {
                   className="form-control mb-2"
                   required
                 />
+                
               </div>
-              <div className="text-center">
-                <button type="submit" className="btn btn-primary btn-sm mb-3">
+              <div className="text-center card-footer">
+                <button type="submit" className="btn btn-primary btn-sm">
                   {form.id ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>
-          <div className='mb-2 text-center'>
-        <Link className="text-decoration-none text-primary" to="/updateData"> <i className="pi pi-arrow-left"></i>  Back </Link>
-      </div>
+
           </div>
         </div>
-        
+
         <div className="col-lg-7 overflow-auto">
           <table className="table table-sm table-bordered text-center">
             <thead className="table-dark">
@@ -102,13 +105,13 @@ const BuilderMaster = () => {
                       className="btn btn-sm btn-info me-1 rounded-circle"
                       onClick={() => handleEdit(Builder)}
                     >
-                      <i className="pi pi-pen-to-square ">  </i> 
+                      <i className="pi pi-pen-to-square ">  </i>
                     </button>
                     <button
                       className="btn btn-sm btn-danger rounded-circle"
                       onClick={() => handleDelete(Builder.id)}
                     >
-                      <i className="pi pi-trash">  </i> 
+                      <i className="pi pi-trash">  </i>
                     </button>
                   </td>
                 </tr>

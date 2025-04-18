@@ -63,25 +63,14 @@ export const register = async (url, data, headers) => apiCall("post", url, data,
 export const fetchData = async (url, headers) => apiCall("get", url, null, headers);
 
 
-// export const postData = async (url, payload) => {
-//     try {
-//         const response = await axios.post(url, payload);
-//         return response.data;
-//     } catch (error) {
-
-//         const message =
-//             error?.response?.data?.error ||
-//             error?.response?.data?.message ||
-//             error.message ||
-//             "Something went wrong";
-//         throw new Error(message); 
-//     }}
-
 export const postData = async (url, payload) => {
+    const token = localStorage.getItem("loginToken");
+
     const res = await fetch(url, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+             'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload),
     });
