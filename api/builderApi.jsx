@@ -1,14 +1,14 @@
 import {
   fetchData,
   putData,
-  deleteData
+  deleteData,
+  postData
 } from './apiHandler';
 
-import { postData } from './api';
 
-const BASE_URL = 'http://localhost:2026/api/builders';
+import {host} from './config'
 
-
+const BASE_URL =` ${host}/api/builders`;
 export const getBuilders = () => fetchData(BASE_URL);
 export const createBuilder = (data) => postData(BASE_URL, data);
 export const updateBuilder = (id, data) => putData(`${BASE_URL}/${id}`, data);

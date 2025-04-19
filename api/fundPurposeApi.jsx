@@ -1,13 +1,14 @@
 import {
   fetchData,
   putData,
-  deleteData
+  deleteData,
+  postData
 } from './apiHandler';
 
-import { postData } from './api';
 
-const BASE_URL = 'http://localhost:2026/api/fundPurposes';
+import {host} from './config'
 
+const BASE_URL =` ${host}/api/fundPurposes`;
 
 export const getFundPurposes = () => fetchData(BASE_URL);
 export const createFundPurpose = (data) => postData(BASE_URL, data);

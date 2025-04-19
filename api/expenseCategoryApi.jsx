@@ -1,12 +1,15 @@
 import {
   fetchData,
   putData,
-  deleteData
+  deleteData,
+  postData
 } from './apiHandler';
 
-import { postData } from './api';
 
-const BASE_URL = 'http://localhost:2026/api/expenseCategorys';
+import {host} from './config'
+
+const BASE_URL =` ${host}/api/expenseCategorys`;
+
 
 export const getExpenseCategorys = () => fetchData(BASE_URL);
 export const createExpenseCategory = (data) => postData(BASE_URL, data);

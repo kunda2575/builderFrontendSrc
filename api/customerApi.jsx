@@ -1,12 +1,14 @@
 import {
   fetchData,
   putData,
-  deleteData
+  deleteData,
+  postData
 } from './apiHandler';
 
-import { postData } from './api';
 
-const BASE_URL = 'http://localhost:2026/api/customers';
+import {host} from './config'
+
+const BASE_URL =` ${host}/api/customers`;
 
 export const getCustomerDetails = () => fetchData(BASE_URL);
 export const createCustomerDetails = (data) => postData(BASE_URL, data);

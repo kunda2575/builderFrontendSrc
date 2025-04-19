@@ -1,12 +1,16 @@
 import {
   fetchData,
   putData,
-  deleteData
+  deleteData,
+  postData
 } from './apiHandler';
 
-import { postData } from './api';
 
-const BASE_URL = 'http://localhost:2026/api/blocks';
+import {host} from './config'
+
+const BASE_URL =` ${host}/api/blocks`;
+
+
 
 export const getBlocks = () => fetchData(BASE_URL );
 export const createBlock = (data) => postData(BASE_URL, data );

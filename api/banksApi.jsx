@@ -5,9 +5,9 @@ import {
   postData
 } from './apiHandler';
 
-// import { postData } from './api';
+import {host} from './config'
 
-const BASE_URL = 'http://localhost:2026/api/banks';
+const BASE_URL =` ${host}/api/banks`;
 
 
 export const getBankDetails = () => fetchData(BASE_URL);

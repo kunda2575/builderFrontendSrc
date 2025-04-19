@@ -1,12 +1,13 @@
 import {
   fetchData,
   putData,
-  deleteData
+  deleteData,
+  postData
 } from './apiHandler';
+import {host} from './config'
 
-import { postData } from './api';
+const BASE_URL =` ${host}/api/leadSources`;
 
-const BASE_URL = 'http://localhost:2026/api/leadSources';
 
 export const getLeadSources = () => fetchData(BASE_URL);
 export const createLeadSource = (data) => postData(BASE_URL, data);
