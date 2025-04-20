@@ -8,6 +8,9 @@ const BuilderMaster = () => {
   const [builders, setBuilders] = useState([]);
   const [form, setForm] = useState({ builderMaster: '', id: null });
 
+   const [loading, setLoading] = useState(false);
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  
   useEffect(() => {
     fetchBuilders();
   }, []);
@@ -20,9 +23,17 @@ const BuilderMaster = () => {
       toast.error('Failed to fetch builders');
     }
   };
+const resetForm =()=>{
+  setForm({ builderMaster: '', id: null });
 
+}
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if(!form.builderMaster){
+        toast.error('Please fill in all fields');
+        return;
+    }
+    setLoading(true);
     try {
       if (form.id) {
         await updateBuilder(form.id, form);
@@ -31,33 +42,56 @@ const BuilderMaster = () => {
         await createBuilder(form);
         toast.success('Builder created successfully');
       }
-      setForm({ builderMaster: '', id: null });
+      resetForm()
       fetchBuilders();
     } catch (error) {
-      toast.error('Action failed');
-    }
+          toast.error(error.response?.data?.error || 'Action failed');
+        } finally {
+          setLoading(false);
+        }
   };
 
   const handleEdit = (Builder) => {
     setForm(Builder);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure to delete this Builder?')) return;
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return;
+
     try {
-      await deleteBuilder(id);
-      toast.success('Builder deleted successfully');
+      await deleteBuilder(confirmDeleteId);
+      toast.success('Builder Details deleted successfully');
+      resetForm();
       fetchBuilders();
     } catch (error) {
       toast.error('Delete failed');
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
-
   return (
     <div className="container-fluid mt-3">
       <div className='mb-2 '>
         <Link className="text-decoration-none text-primary" to="/updateData"> <i className="pi pi-arrow-left"></i>  Back </Link>
       </div>
+      
+      {/* Confirmation Modal */}
+      {confirmDeleteId && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center z-3">
+          <div className="bg-white p-4 rounded shadow">
+            <p className="mb-3">Are you sure you want to delete this block?</p>
+            <div className="d-flex justify-content-end">
+              <button className="btn btn-secondary btn-sm me-2" onClick={() => setConfirmDeleteId(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-danger btn-sm" onClick={confirmDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="row">
         <div className="col-lg-5 mb-3">
           <div className="card">
@@ -78,9 +112,14 @@ const BuilderMaster = () => {
                 />
                 
               </div>
-              <div className="text-center card-footer">
-                <button type="submit" className="btn btn-primary btn-sm">
-                  {form.id ? 'Update' : 'Create'}
+             
+              <div className="card-footer text-center">
+                <button
+                  className="btn btn-primary btn-sm"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>
@@ -109,7 +148,7 @@ const BuilderMaster = () => {
                     </button>
                     <button
                       className="btn btn-sm btn-danger rounded-circle"
-                      onClick={() => handleDelete(Builder.id)}
+                      onClick={() => setConfirmDeleteId(Builder.id)}
                     >
                       <i className="pi pi-trash">  </i>
                     </button>

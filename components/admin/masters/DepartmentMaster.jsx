@@ -8,10 +8,16 @@ const DepartmentMaster = () => {
   const [departments, setDepartments] = useState([]);
   const [form, setForm] = useState({ departmentName: '', departmentID: null });
 
+  const [loading, setLoading] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  
   useEffect(() => {
     fetchDepartments();
   }, []);
+const resetForm = ()=>{
+  setForm({ departmentName: '', departmentID: null });
 
+}
   const fetchDepartments = async () => {
     try {
       const res = await getDepartmentsDetails();
@@ -23,6 +29,11 @@ const DepartmentMaster = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+if( !form.departmentName){
+    toast.error('Please fill in all fields');
+    return;
+}
+setLoading()
     try {
       if (form.departmentID) {
         await updateDepartmentDetails(form.departmentID, form);
@@ -31,25 +42,32 @@ const DepartmentMaster = () => {
         await createDepartmentDetails(form);
         toast.success('Department created successfully');
       }
-      setForm({ departmentName: '', departmentID: null });
+      resetForm()
       fetchDepartments();
     } catch (error) {
-      toast.error('Action failed');
-    }
+          toast.error(error.response?.data?.error || 'Action failed');
+        } finally {
+          setLoading(false);
+        }
   };
 
   const handleEdit = (department) => {
     setForm(department);
   };
 
-  const handleDelete = async (departmentID) => {
-    if (!window.confirm('Are you sure to delete this department?')) return;
+
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return;
+
     try {
-      await deleteDepartmentDetails(departmentID);
-      toast.success('Department deleted successfully');
+      await deleteDepartmentDetails(confirmDeleteId);
+      toast.success('Department Details deleted successfully');
+      resetForm();
       fetchDepartments();
     } catch (error) {
       toast.error('Delete failed');
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -58,7 +76,22 @@ const DepartmentMaster = () => {
       <div className='mb-2'>
         <Link className="text-decoration-none text-primary" to="/updateData"> <i className="pi pi-arrow-left"></i>  Back </Link>
       </div>
-
+  {/* Confirmation Modal */}
+  {confirmDeleteId && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center z-3">
+          <div className="bg-white p-4 rounded shadow">
+            <p className="mb-3">Are you sure you want to delete this block?</p>
+            <div className="d-flex justify-content-end">
+              <button className="btn btn-secondary btn-sm me-2" onClick={() => setConfirmDeleteId(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-danger btn-sm" onClick={confirmDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="row">
         <div className="col-lg-4">
           <div className="card">
@@ -77,8 +110,12 @@ const DepartmentMaster = () => {
                 />
               </div>
               <div className="card-footer text-center">
-                <button type="submit" className="btn btn-primary btn-sm">
-                  {form.departmentID ? 'Update' : 'Create'}
+                <button
+                  className="btn btn-primary btn-sm"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>
@@ -105,7 +142,7 @@ const DepartmentMaster = () => {
                     </button>
                     <button
                       className="btn btn-sm btn-danger rounded-circle"
-                      onClick={() => handleDelete(department.departmentID)}
+                      onClick={() => setConfirmDeleteId(department.departmentID)}
                     >
                      <i className="pi pi-trash ">  </i> 
                     </button>

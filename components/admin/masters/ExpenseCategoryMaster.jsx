@@ -7,10 +7,15 @@ import 'react-toastify/dist/ReactToastify.css';
 const ExpenseCategoryMaster = () => {
   const [expenseCategorys, setExpenseCategorys] = useState([]);
   const [form, setForm] = useState({ expenseCategory: '', expenseHead: '', id: null });
+const [loading, setLoading] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   useEffect(() => {
     fetchExpenseCategorys();
   }, []);
+const resetForm =()=>{
+  setForm({ expenseCategory: '', expenseHead: '', id: null });
+}
 
   const fetchExpenseCategorys = async () => {
     try {
@@ -23,6 +28,12 @@ const ExpenseCategoryMaster = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if(!form.expenseCategory || !form.expenseHead){
+        toast.error('Please fill in all fields');
+            return;
+    }
+    setLoading(true)
     try {
       if (form.id) {
         await updateExpenseCategory(form.id, form);
@@ -31,25 +42,31 @@ const ExpenseCategoryMaster = () => {
         await createExpenseCategory(form);
         toast.success('ExpenseCategory created successfully');
       }
-      setForm({ expenseCategory: '', expenseHead: '', id: null });
+     resetForm()
       fetchExpenseCategorys();
-    } catch (error) {
-      toast.error('Action failed');
-    }
+    }  catch (error) {
+          toast.error(error.response?.data?.error || 'Action failed');
+        } finally {
+          setLoading(false);
+        }
   };
 
   const handleEdit = (expenseCategory) => {
     setForm(expenseCategory);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure to delete this expenseCategory?')) return;
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return;
+
     try {
-      await deleteExpenseCategory(id);
-      toast.success('ExpenseCategory deleted successfully');
+      await deleteExpenseCategory(confirmDeleteId);
+      toast.success('Block deleted successfully');
+      resetForm();
       fetchExpenseCategorys();
     } catch (error) {
       toast.error('Delete failed');
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -58,7 +75,22 @@ const ExpenseCategoryMaster = () => {
       <div className='mb-2'>
         <Link className="text-decoration-none text-primary" to="/updateData"> <i className="pi pi-arrow-left"></i>  Back </Link>
       </div>
-
+  {/* Confirmation Modal */}
+  {confirmDeleteId && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center z-3">
+          <div className="bg-white p-4 rounded shadow">
+            <p className="mb-3">Are you sure you want to delete this block?</p>
+            <div className="d-flex justify-content-end">
+              <button className="btn btn-secondary btn-sm me-2" onClick={() => setConfirmDeleteId(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-danger btn-sm" onClick={confirmDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="row">
         <div className="col-lg-4 mb-3">
           <div className="card">
@@ -85,8 +117,12 @@ const ExpenseCategoryMaster = () => {
                 />
               </div>
               <div className="card-footer text-center">
-                <button type="submit" className="btn btn-primary btn-sm">
-                  {form.id ? 'Update' : 'Create'}
+                <button
+                  className="btn btn-primary btn-sm"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>
@@ -115,7 +151,7 @@ const ExpenseCategoryMaster = () => {
                     </button>
                     <button
                       className="btn btn-sm btn-danger rounded-circle"
-                      onClick={() => handleDelete(expenseCategory.id)}
+                      onClick={() => setConfirmDeleteId(expenseCategory.id)}
                     >
                      <i className="pi pi-trash">  </i> 
                     </button>
