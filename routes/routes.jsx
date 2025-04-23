@@ -5,7 +5,7 @@ import Login from "../components/auth/login/login";
 import Signup from "../components/auth/signup/signup";
 import ForgotPassword from "../components/auth/forgotPassword/forgotPassword";
 import Home from "../home/Home";
-import LeadStage from "../components/admin/masters/BlockMaster";
+
 import UpdateData from "../components/admin/UpdateData";
 
 
@@ -23,6 +23,8 @@ import ExpenseCategoryMaster from "../components/admin/masters/ExpenseCategoryMa
 import FundPurpose from "../components/admin/masters/FundPurpose";
 import FundSource from "../components/admin/masters/FundSource";
 import LeadSource from "../components/admin/masters/leadSource";
+import LeadStage from "../components/admin/masters/LeadStage";
+import LostReason from "../components/admin/masters/LostReasons";
 
 const AppRoutes = () => (
   <Routes>
@@ -63,6 +65,8 @@ const AppRoutes = () => (
     <Route path="/fundPurpose" element={<FundPurpose/>}/>
     <Route path="/fundSource" element={<FundSource/>}/>
     <Route path="/leadsource" element={<LeadSource/>}/>
+    <Route path="/leadStage" element={<LeadStage/>}/>
+    <Route path="/lostReasons" element={<LostReason/>}/>
 
 
 
