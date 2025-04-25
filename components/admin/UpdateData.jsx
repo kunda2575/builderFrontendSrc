@@ -9,7 +9,7 @@ const UpdateData = () => {
   const allData = [
     { name: "Lead Stage", path: "/leadStage" },
     { name: "Lead Source", path: "/leadsource" },
-    { name: "Team Members", path: "/team-members" },
+    { name: "Team Members", path: "/teamMembers" },
     { name: "Vendor Master", path: "/vendorMaster" },
     { name: "Material Master", path: "/materialMaster" },
     { name: "Customer Master", path: "/customerMaster" },

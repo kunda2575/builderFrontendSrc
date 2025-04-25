@@ -12,5 +12,5 @@ const BASE_URL =` ${host}/api/customers`;
 
 export const getCustomerDetails = () => fetchData(BASE_URL);
 export const createCustomerDetails = (data) => postData(BASE_URL, data);
-export const updateCustomerDetails = (customerId, data) => putData(`${BASE_URL}/${customerId}`, data);
-export const deleteCustomerDetails = (customerId) => deleteData(`${BASE_URL}/${customerId}`);
+export const updateCustomerDetails = (id, data) => putData(`${BASE_URL}/${id}`, data);
+export const deleteCustomerDetails = (id) => deleteData(`${BASE_URL}/${id}`);

@@ -1,8 +1,8 @@
 import React from 'react';
 import ReusableTableForm from './ReusableTableForm';
 import {
-    getLeadStages,
-    createLeadStage,
+  getLeadStages,
+  createLeadStage,
   updateLeadStage,
   deleteLeadStage
 } from '../../../api/leadStageApi'; // Your API functions
@@ -10,22 +10,24 @@ import {
 const fields = [
   { name: 'leadStage', label: 'Lead Stage', type: 'text', required: true },
 
-  
+
 ];
 
 
 const LeadStage = () => {
- 
+
   return (
-    <ReusableTableForm
+    <div className="container-fluid">
+      <ReusableTableForm
         title="Lead Stage"
         fields={fields}
         fetchData={getLeadStages}
         createData={createLeadStage}
         updateData={updateLeadStage}
         deleteData={deleteLeadStage}
-    />
-);
+      />
+    </div>
+  );
 };
 
 export default LeadStage;

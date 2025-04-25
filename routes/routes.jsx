@@ -25,6 +25,15 @@ import FundSource from "../components/admin/masters/FundSource";
 import LeadSource from "../components/admin/masters/leadSource";
 import LeadStage from "../components/admin/masters/LeadStage";
 import LostReason from "../components/admin/masters/LostReasons";
+import MaterialMaster from "../components/admin/masters/MaterialMaster";
+import PaymentMode from "../components/admin/masters/PaymentModeMaster";
+import PaymentType from "../components/admin/masters/PaymentTypeMaster";
+import ProjectMaster from "../components/admin/masters/ProjectMaster";
+import RoleMaster from "../components/admin/masters/RolesMaster";
+import TeamMemberMaster from "../components/admin/masters/TeamMemberMaster";
+import VendorMaster from "../components/admin/masters/VendorMaster";
+import UnitTypeMaster from "../components/admin/masters/UnitTypeMaster";
+import UserMaster from "../components/admin/masters/UserMaster";
 
 const AppRoutes = () => (
   <Routes>
@@ -67,6 +76,15 @@ const AppRoutes = () => (
     <Route path="/leadsource" element={<LeadSource/>}/>
     <Route path="/leadStage" element={<LeadStage/>}/>
     <Route path="/lostReasons" element={<LostReason/>}/>
+    <Route path="/materialMaster" element={<MaterialMaster/>}/>
+    <Route path="/paymentModeMaster" element={<PaymentMode/>}/>
+    <Route path="/paymentTypeMaster" element={<PaymentType/>}/>
+    <Route path="/projectMaster" element={<ProjectMaster/>}/>
+    <Route path="/rolesMaster" element={<RoleMaster/>}/>
+    <Route path="/teamMembers" element={<TeamMemberMaster/>}/>
+    <Route path="/unitType" element={<UnitTypeMaster/>}/>
+    <Route path="/vendorMaster" element={<VendorMaster/>}/>
+    <Route path="/userMaster" element={<UserMaster/>}/>
 
 
 

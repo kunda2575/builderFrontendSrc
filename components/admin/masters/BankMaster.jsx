@@ -10,7 +10,7 @@ import {
 const fields = [
     { name: 'bankName', label: 'Bank Name', type: 'text', required: true },
     { name: 'ifscCode', label: 'IFSC Code', type: 'text', required: true },
-    { name: 'branch', label: 'Branch', type: 'text' },
+    { name: 'branch', label: 'Branch', type: 'text', required: true },
     // {
     //     name: 'status',
     //     label: 'Status',
@@ -25,14 +25,16 @@ const fields = [
 
 const BankMaster = () => {
     return (
-        <ReusableTableForm
-            title="Bank"
-            fields={fields}
-            fetchData={getBankDetails}
-            createData={createBankDetails}
-            updateData={updateBankDetails}
-            deleteData={deleteBankDetails}
-        />
+        <div className="container-fluid">
+            <ReusableTableForm
+                title="Bank"
+                fields={fields}
+                fetchData={getBankDetails}
+                createData={createBankDetails}
+                updateData={updateBankDetails}
+                deleteData={deleteBankDetails}
+            />
+        </div>
     );
 };
 

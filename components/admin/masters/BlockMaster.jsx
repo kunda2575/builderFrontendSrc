@@ -9,23 +9,25 @@ import {
 
 const fields = [
   { name: 'blockNO', label: 'Block Number', type: 'number', required: true },
-    { name: 'blockName', label: 'Block Name', type: 'text', required: true },
-  
+  { name: 'blockName', label: 'Block Name', type: 'text', required: true },
+
 ];
 
 
 const BlockMaster = () => {
- 
+
   return (
-    <ReusableTableForm
+    <div className="container-fluid">
+      <ReusableTableForm
         title="Block"
         fields={fields}
         fetchData={getBlockDetails}
         createData={createBlockDetails}
         updateData={updateBlockDetails}
         deleteData={deleteBlockDetails}
-    />
-);
+      />
+    </div>
+  );
 };
 
 export default BlockMaster;

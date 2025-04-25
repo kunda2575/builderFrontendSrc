@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
-import { Button } from 'primereact/button';
+import { Link } from 'react-router-dom';
 
 const ReusableTableForm = ({
     title,
@@ -18,6 +16,10 @@ const ReusableTableForm = ({
     const [form, setForm] = useState({ ...initialFormState, id: null });
     const [selectedItems, setSelectedItems] = useState([]);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [loading, setLoading] = useState(false);
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+    const [deleteType, setDeleteType] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const rowsPerPageOptions = [
         { label: '5 Rows', value: 5 },
@@ -34,7 +36,6 @@ const ReusableTableForm = ({
         try {
             const res = await fetchData();
             setItems(res.data);
-            
         } catch (error) {
             toast.error(`Failed to fetch ${title}`);
         }
@@ -42,7 +43,6 @@ const ReusableTableForm = ({
 
     const handleChange = (e, field) => {
         const { name, value, checked, type, files } = e.target;
-
         if (type === 'checkbox') {
             setForm({ ...form, [name]: checked });
         } else if (type === 'file') {
@@ -54,6 +54,7 @@ const ReusableTableForm = ({
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
             const data = new FormData();
             fields.forEach(field => data.append(field.name, form[field.name]));
@@ -68,8 +69,10 @@ const ReusableTableForm = ({
 
             setForm({ ...initialFormState, id: null });
             getData();
-        } catch {
-            toast.error('Action failed');
+        } catch (error) {
+            toast.error(error.response?.data?.error || 'Action failed');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -77,36 +80,82 @@ const ReusableTableForm = ({
         const updatedForm = { ...item };
         fields.forEach(field => {
             if (field.type === 'file') updatedForm[field.name] = null;
+            if (field.type === 'date' && item[field.name]){
+                updatedForm[field.name]=item[field.name].slice(0,10)
+            }
         });
         setForm(updatedForm);
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Confirm delete?')) return;
-        try {
-            await deleteData(id);
-            toast.success(`${title} deleted`);
-            getData();
-        } catch {
-            toast.error('Delete failed');
-        }
+    const handleSingleDelete = (id) => {
+        setConfirmDeleteId(id);
+        setDeleteType("single");
+        setShowDeleteModal(true);
     };
 
-    const handleBulkDelete = async () => {
-        if (!selectedItems.length) return toast.warn('No items selected');
-        if (!window.confirm('Delete selected items?')) return;
+    const handleBulkDelete = () => {
+        if (!selectedItems.length) {
+            toast.warn('No items selected');
+            return;
+        }
+        setDeleteType("bulk");
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        setLoading(true);
         try {
-            for (let item of selectedItems) await deleteData(item.id);
-            toast.success('Selected items deleted');
-            setSelectedItems([]);
+            if (deleteType === "single") {
+                await deleteData(confirmDeleteId);
+                toast.success(`${title} deleted successfully`);
+            } else if (deleteType === "bulk") {
+                for (let item of selectedItems) {
+                    await deleteData(item.id);
+                }
+                toast.success('Selected items deleted');
+                setSelectedItems([]);
+            }
             getData();
-        } catch {
-            toast.error('Bulk delete failed');
+        } catch (error) {
+            toast.error('Delete failed');
+        } finally {
+            setConfirmDeleteId(null);
+            setDeleteType(null);
+            setShowDeleteModal(false);
+            setLoading(false);
         }
     };
 
     return (
         <div className="row">
+            <div className='mb-2'>
+                <Link className="text-decoration-none text-primary" to="/updateData">
+                    <i className="pi pi-arrow-left"></i> Back
+                </Link>
+            </div>
+
+            {/* Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center z-3">
+                    <div className="bg-white p-4 rounded shadow">
+                        <p className="mb-3">Are you sure you want to delete {deleteType === "bulk" ? "selected items?" : "this item?"}</p>
+                        <div className="d-flex justify-content-end">
+                            <button className="btn btn-secondary btn-sm me-2" onClick={() => {
+                                setConfirmDeleteId(null);
+                                setShowDeleteModal(false);
+                                setDeleteType(null);
+                            }}>
+                                Cancel
+                            </button>
+                            <button className="btn btn-danger btn-sm" onClick={()=>{confirmDelete()}} disabled={loading}>
+                                {/* Delete */}
+                                {loading ? 'Deleting...' : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Form Column */}
             <div className="col-lg-4 mb-3">
                 <div className="card">
@@ -191,8 +240,8 @@ const ReusableTableForm = ({
                             })}
                         </div>
                         <div className="card-footer text-center">
-                            <button type="submit" className="btn btn-primary btn-sm">
-                                {form.id ? 'Update' : 'Create'}
+                            <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
+                                {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
                             </button>
                         </div>
                     </form>
@@ -201,191 +250,110 @@ const ReusableTableForm = ({
 
             {/* Table Column */}
             <div className="col-lg-8">
-                <div className="card">
-                    <div className="card-header text-center">
-                        <h4>{title} Table</h4>
-                    </div>
-                    <div className="card-body">
-                        <DataTable
-                            value={items}
-                            selection={selectedItems}
-                            onSelectionChange={(e) => setSelectedItems(e.value)}
-                            dataKey="id"
-                            paginator
-                            rows={rowsPerPage}
-                            rowsPerPageOptions={[5, 10, 20, items.length]}
-                            responsiveLayout="scroll"
-                            selectionMode="checkbox"
-                        >
-                            <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
-                            {fields.map(field => (
-                                <Column
-                                    key={field.name}
-                                    field={field.name}
-                                    header={field.label}
-                                    body={(rowData) => {
-                                        if (field.type === 'checkbox') {
-                                            return rowData[field.name] ? 'Yes' : 'No';
-                                        } else if (field.type === 'file') {
-                                            return rowData[field.name] ? (
-                                                <a href={rowData[field.name]} target="_blank" rel="noreferrer">View</a>
-                                            ) : 'No File';
-                                        } else if (field.type === 'select') {
-                                            const opt = field.options.find(opt => opt.value === rowData[field.name]);
-                                            return opt ? opt.label : rowData[field.name];
-                                        } else {
-                                            return rowData[field.name];
-                                        }
-                                    }}
-                                />
-                            ))}
-                            <Column
-                                header="Actions"
-                                body={(rowData) => (
-                                    <div className="d-flex gap-2">
-                                        <Button
-                                            icon="pi pi-pencil"
-                                            className="p-button-sm p-button-info"
-                                            onClick={() => handleEdit(rowData)}
-                                            rounded
-                                            text
+                <div className="card p-2">
+                    <h4 className='text-center'>{title} Table</h4>
+                    <div className="card-body p-0" >
+                        <div className="table-responsive">
+                        <table className="table table-bordered">
+                            <thead className="table-secondary text-center" style={{whiteSpace:'nowrap'}}>
+                                <tr>
+                                    <th>
+                                        <input
+                                        title='Select All'
+                                            type="checkbox"
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedItems(items);
+                                                } else {
+                                                    setSelectedItems([]);
+                                                }
+                                            }}
+                                            checked={selectedItems.length === items.length && items.length > 0}
                                         />
-                                        <Button
-                                            icon="pi pi-trash"
-                                            className="p-button-sm p-button-danger"
-                                            onClick={() => handleDelete(rowData.id)}
-                                            rounded
-                                            text
-                                        />
-                                    </div>
-                                )}
-                            />
-                        </DataTable>
+                                    </th>
+                                    {fields.map(field => (
+                                        <th key={field.name}>{field.label}</th>
+                                    ))}
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody style={{whiteSpace:'nowrap'}}>
+                                {items.slice(0, rowsPerPage).map(item => (
+                                    <tr key={item.id}>
+                                        <td className='text-center'>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedItems.some(i => i.id === item.id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedItems(prev => [...prev, item]);
+                                                    } else {
+                                                        setSelectedItems(prev => prev.filter(i => i.id !== item.id));
+                                                    }
+                                                }}
+                                            />
+                                        </td>
+                                        {fields.map(field => (
+                                            <td key={field.name}>
+                                                {field.type === 'checkbox'
+                                                    ? item[field.name] ? 'Yes' : 'No'
+                                                    : field.type === 'file'
+                                                        ? item[field.name]
+                                                            ? <a href={item[field.name]} target="_blank" rel="noreferrer">View</a>
+                                                            : 'No File'
+                                                        : field.type === 'select'
+                                                            ? (field.options.find(opt => opt.value === item[field.name])?.label || item[field.name])
+                                                            : field.type === 'date' ? item[field.name] ? new Date(item[field.name]).toISOString().slice(0,10):''
+                                                            : item[field.name]}
+                                            </td>
+                                        ))}
+                                        <td className='d-flex justify-content-center'>
+                                            <button
+                                                id="btn-focus"
+                                                className="btn btn-sm btn-outline-info me-1 rounded-circle"
+                                                onClick={() => handleEdit(item)}
+                                            >
+                                                <i className='pi pi-pencil'></i>
+                                            </button>
+                                            <button
+                                                className="btn btn-sm btn-outline-danger rounded-circle"
+                                                onClick={() => handleSingleDelete(item.id)}
+                                            >
+                                                <i className='pi pi-trash'></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        </div>
                     </div>
-                    <div className="card-footer d-flex justify-content-between align-items-center">
-                        <Button
-                            label="Delete Selected"
-                            icon="pi pi-trash"
-                            severity="danger"
-                            onClick={handleBulkDelete}
-                            disabled={!selectedItems.length}
-                            className="p-button-sm"
-                        />
+                    <div className="d-flex justify-content-around align-items-center">
+                        <div>
+                            <button
+                                className="btn btn-danger btn-sm"
+                                onClick={handleBulkDelete}
+                                disabled={!selectedItems.length}
+                            >
+                                Delete Selected
+                            </button>
+                        </div>
                         <div className="d-flex align-items-center">
                             <span className="me-2">Rows per page:</span>
-                            <Dropdown
+                            <select
+                                className="form-select form-select-sm"
                                 value={rowsPerPage}
-                                options={rowsPerPageOptions}
-                                onChange={(e) => setRowsPerPage(e.value)}
-                                className="p-inputtext-sm"
-                            />
+                                onChange={(e) => setRowsPerPage(Number(e.target.value))}
+                                style={{ width: 'auto' }}
+                            >
+                                {rowsPerPageOptions.map(opt => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                 </div>
             </div>
-
-            {/* Table Column */}
-{/* <div className="col-lg-8">
-    <div className="card">
-        <div className="card-header text-center">
-            <h4>{title} Table</h4>
-        </div>
-        <div className="card-body table-responsive">
-            <table className="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>
-                            <input
-                                type="checkbox"
-                                onChange={(e) => {
-                                    if (e.target.checked) {
-                                        setSelectedItems(items);
-                                    } else {
-                                        setSelectedItems([]);
-                                    }
-                                }}
-                                checked={selectedItems.length === items.length && items.length > 0}
-                            />
-                        </th>
-                        {fields.map(field => (
-                            <th key={field.name}>{field.label}</th>
-                        ))}
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {items.slice(0, rowsPerPage).map(item => (
-                        <tr key={item.id}>
-                            <td>
-                                <input
-                                    type="checkbox"
-                                    checked={selectedItems.some(i => i.id === item.id)}
-                                    onChange={(e) => {
-                                        if (e.target.checked) {
-                                            setSelectedItems(prev => [...prev, item]);
-                                        } else {
-                                            setSelectedItems(prev => prev.filter(i => i.id !== item.id));
-                                        }
-                                    }}
-                                />
-                            </td>
-                            {fields.map(field => (
-                                <td key={field.name}>
-                                    {field.type === 'checkbox'
-                                        ? item[field.name] ? 'Yes' : 'No'
-                                        : field.type === 'file'
-                                            ? item[field.name]
-                                                ? <a href={item[field.name]} target="_blank" rel="noreferrer">View</a>
-                                                : 'No File'
-                                            : field.type === 'select'
-                                                ? (field.options.find(opt => opt.value === item[field.name])?.label || item[field.name])
-                                                : item[field.name]}
-                                </td>
-                            ))}
-                            <td>
-                                <button
-                                    className="btn btn-sm btn-info me-1"
-                                    onClick={() => handleEdit(item)}
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    className="btn btn-sm btn-danger"
-                                    onClick={() => handleDelete(item.id)}
-                                >
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-        <div className="card-footer d-flex justify-content-between align-items-center">
-            <button
-                className="btn btn-danger btn-sm"
-                onClick={handleBulkDelete}
-                disabled={!selectedItems.length}
-            >
-                Delete Selected
-            </button>
-            <div className="d-flex align-items-center">
-                <span className="me-2">Rows per page:</span>
-                <select
-                    className="form-select form-select-sm"
-                    value={rowsPerPage}
-                    onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                    style={{ width: 'auto' }}
-                >
-                    {rowsPerPageOptions.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                </select>
-            </div>
-        </div>
-    </div>
-</div> */}
-
         </div>
     );
 };
