@@ -5,11 +5,24 @@ import {
   createpaymentType,
   updatepaymentType,
   deletepaymentType
-} from '../../../api/paymentTypeApi'; // Your API functions
+} from '../../../api/updateApis/paymentTypeApi'; // Your API functions
 
 const fields = [
-  { name: 'paymentType', label: 'Payment Types', type: 'text', required: true },
-
+  {
+    name: 'paymentType',
+    label: 'Payment Type',
+    type: 'select',
+    required: true,
+    options: [
+      { label: 'Full Payment', value: 'Full' },
+      { label: 'Partial Payment', value: 'Partial' },
+      { label: 'Advance Payment', value: 'Advance' },
+      { label: 'Installment', value: 'Installment' },
+      { label: 'Refund', value: 'Refund' },
+      { label: 'Credit', value: 'Credit' }
+    ]
+  }
+  
 
 ];
 

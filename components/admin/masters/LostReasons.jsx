@@ -5,7 +5,7 @@ import {
   createLostReason,
   updateLostReason,
   deleteLostReason
-} from '../../../api/lostReasonsApi'; // Your API functions
+} from '../../../api/updateApis/lostReasonsApi'; // Your API functions
 
 const fields = [
   { name: 'lostReason', label: 'Lost Reason', type: 'text', required: true },

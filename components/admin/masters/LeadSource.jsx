@@ -5,7 +5,7 @@ import {
   createLeadSource,
   updateLeadSource,
   deleteLeadSource
-} from '../../../api/leadSourceApi'; // Your API functions
+} from '../../../api/updateApis/leadSourceApi'; // Your API functions
 
 const fields = [
   { name: 'leadSource', label: 'Lead Source', type: 'text', required: true },

@@ -10,3 +10,50 @@
     background-color: cyan !important;
     color: black !important;
 }
+
+.page-container {
+    padding: 2rem;
+}
+
+.filters-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.filter-dropdown {
+    min-width: 200px;
+}
+
+ul{
+    padding-left: 0px !important;
+}
+
+.table-container {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    border-radius: 6px;
+    background-color: #fff;
+}
+
+.table th, .table td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+th {
+    white-space: nowrap;
+}
+.p-multiselect .p-multiselect-label {
+    padding: 0.4rem 0.4rem !important;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.p-multiselect.p-multiselect-chip .p-multiselect-token {
+    padding: 0.1rem 0.4rem !important;
+    margin-right: 0.5rem;
+    background: #e5e7eb;
+    color: #4b5563;
+    border-radius: 16px;
+}

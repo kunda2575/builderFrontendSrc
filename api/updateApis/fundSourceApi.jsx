@@ -3,9 +3,9 @@ import {
   putData,
   deleteData,
   postData
-} from './apiHandler';
+} from '../apiHandler';
 
-import {host} from './config'
+import {host} from '../config'
 
 const BASE_URL =` ${host}/api/fundSources`;
 

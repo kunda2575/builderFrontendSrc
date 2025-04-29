@@ -5,7 +5,7 @@ import {
   createUnitType,
   updateUnitType,
   deleteUnitType
-} from '../../../api/unitTypeApi'; // Your API functions
+} from '../../../api/updateApis/unitTypeApi'; // Your API functions
 
 const fields = [
   { name: 'unit', label: 'Unit Name', type: 'text', required: true },

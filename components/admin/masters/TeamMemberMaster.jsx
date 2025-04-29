@@ -5,7 +5,7 @@ import {
   createTeamMember,
   updateTeamMember,
   deleteTeamMember
-} from '../../../api/teamMemberApi'; // Your API functions
+} from '../../../api/updateApis/teamMemberApi'; // Your API functions
 
 const fields = [
   { name: 'team_name', label: 'Team Name', type: 'text', required: true },

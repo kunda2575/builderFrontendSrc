@@ -5,7 +5,7 @@ import {
   createMaterialMaster,
   updateMaterialMaster,
   deleteMaterialMaster
-} from '../../../api/materialMasterApi'; // Your API functions
+} from '../../../api/updateApis/materialMasterApi'; // Your API functions
 
 const fields = [
   { name: 'material_id', label: 'Material Id', type: 'number', required: true },

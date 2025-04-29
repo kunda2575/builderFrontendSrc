@@ -5,11 +5,11 @@ import {
   createDepartmentDetails,
   updateDepartmentDetails,
   deleteDepartmentDetails
-} from '../../../api/departmentApi'; // Your API functions
+} from '../../../api/updateApis/departmentApi'; // Your API functions
 
 const fields = [
+  { name: 'departmentMaster', label: 'Department Master', type: 'text', required: true },
   { name: 'departmentID', label: 'Department Id', type: 'number', required: true },
-  { name: 'departmentName', label: 'Department Name', type: 'text', required: true }
 
 ];
 

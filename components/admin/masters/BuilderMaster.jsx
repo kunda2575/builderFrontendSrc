@@ -5,10 +5,10 @@ import {
   createBuilder,
   updateBuilder,
   deleteBuilder
-} from '../../../api/builderApi'; // Your API functions
+} from '../../../api/updateApis/builderApi'; // Your API functions
 
 const fields = [
-  { name: 'builderMaster', label: 'Builder Name', type: 'text', required: true },
+  { name: 'builderMaster', label: 'Builder Master', type: 'text', required: true },
 
 ];
 

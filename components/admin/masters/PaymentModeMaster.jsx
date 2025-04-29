@@ -5,11 +5,27 @@ import {
   createpaymentMode,
   updatepaymentMode,
   deletepaymentMode
-} from '../../../api/paymentModeApi'; // Your API functions
+} from '../../../api/updateApis/paymentModeApi'; // Your API functions
 
 const fields = [
-  { name: 'paymentMode', label: 'Payment Modes', type: 'text', required: true },
-
+  {
+    name: 'paymentMode',
+    label: 'Payment Mode',
+    type: 'select',
+    required: true,
+    options: [
+      { label: 'Cash', value: 'Cash' },
+      { label: 'Credit Card', value: 'Credit Card' },
+      { label: 'Debit Card', value: 'Debit Card' },
+      { label: 'Net Banking', value: 'Net Banking' },
+      { label: 'UPI', value: 'UPI' },
+      { label: 'Cheque', value: 'Cheque' },
+      { label: 'Bank Transfer', value: 'Bank Transfer' },
+      { label: 'Mobile Wallet', value: 'Mobile Wallet' }
+    ]
+  }
+  
+  
 
 ];
 

@@ -5,7 +5,7 @@ import {
   createExpenseCategory,
   updateExpenseCategory,
   deleteExpenseCategory
-} from '../../../api/expenseCategoryApi'; // Your API functions
+} from '../../../api/updateApis/expenseCategoryApi'; // Your API functions
 
 const fields = [
   { name: 'expenseCategory', label: 'Expense Category', type: 'text', required: true },

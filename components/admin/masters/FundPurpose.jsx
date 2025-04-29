@@ -5,7 +5,7 @@ import {
   createFundPurpose,
   updateFundPurpose,
   deleteFundPurpose
-} from '../../../api/fundPurposeApi'; // Your API functions
+} from '../../../api/updateApis/fundPurposeApi'; // Your API functions
 
 const fields = [
   { name: 'fundPurpose', label: 'Fund Purpose', type: 'text', required: true },

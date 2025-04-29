@@ -37,7 +37,7 @@ const UpdateData = () => {
       <div className="card">
         <div className="card-body rounded" style={{boxShadow : '0px 0px 15px black'}}>
 
-          <h2 className="mb-4 text-center text-primary"> Masters Data</h2>
+          <h2 className="mb-4 text-center text-primary"> Masters Data </h2>
 
           <div className="row justify-content-center">
             {

@@ -6,11 +6,11 @@ import Signup from "../components/auth/signup/signup";
 import ForgotPassword from "../components/auth/forgotPassword/forgotPassword";
 import Home from "../home/Home";
 
-import UpdateData from "../components/admin/UpdateData";
+import UpdateData from "../components/admin/masters/UpdateData";
 
 
 import ProtectedRoute from "./privateRoutes";
-import Transaction from "../components/admin/Transaction";
+import Transaction from "../components/admin/transactions/Transaction";
 import BlockMaster from "../components/admin/masters/BlockMaster";
 import BuilderMaster from "../components/admin/masters/BuilderMaster";
 import BankMaster from "../components/admin/masters/BankMaster";
@@ -34,6 +34,9 @@ import TeamMemberMaster from "../components/admin/masters/TeamMemberMaster";
 import VendorMaster from "../components/admin/masters/VendorMaster";
 import UnitTypeMaster from "../components/admin/masters/UnitTypeMaster";
 import UserMaster from "../components/admin/masters/UserMaster";
+import Leads from "../components/admin/transactions/Leads";
+import LeadsTable from "../components/admin/transactions/LeadsTable";
+import LeadsTableBoot from "../components/admin/transactions/LeadsTableBoot";
 
 const AppRoutes = () => (
   <Routes>
@@ -60,6 +63,7 @@ const AppRoutes = () => (
     <Route path="/signup" element={<Signup />} />
     
     <Route path="/updateData" element={<UpdateData />} />
+  
     <Route path="/transaction" element={<Transaction/>} />
     <Route path="/forgotPassword" element={<ForgotPassword />} />
 
@@ -86,7 +90,12 @@ const AppRoutes = () => (
     <Route path="/vendorMaster" element={<VendorMaster/>}/>
     <Route path="/userMaster" element={<UserMaster/>}/>
 
+          {/* transaction */}
 
+
+          <Route path="leads" element={<Leads/>}/>
+          <Route path="leadsTable" element={<LeadsTable/>}/>
+          <Route path="leadsTableBoot" element={<LeadsTableBoot/>}/>
 
 
   

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Dropdown } from 'primereact/dropdown';
 import { Link } from 'react-router-dom';
+import { MultiSelect } from 'primereact/multiselect';
 
-const ReusableTableForm = ({
+const ReusableForm_Table = ({
     title,
     fields,
     fetchData,
@@ -27,22 +28,7 @@ const ReusableTableForm = ({
         { label: '20 Rows', value: 20 },
         { label: 'All', value: items.length }
     ];
-    const bankBranches = {
-        HDFC: [
-          { label: 'Hyderabad Main', value: 'Hyderabad Main' },
-          { label: 'Mumbai Andheri', value: 'Mumbai Andheri' },
-          { label: 'Bangalore MG Road', value: 'Bangalore MG Road' }
-        ],
-        ICICI: [
-          { label: 'Chennai T Nagar', value: 'Chennai T Nagar' },
-          { label: 'Delhi Karol Bagh', value: 'Delhi Karol Bagh' }
-        ],
-        Axis: [
-          { label: 'Kolkata Salt Lake', value: 'Kolkata Salt Lake' },
-          { label: 'Pune Hinjewadi', value: 'Pune Hinjewadi' }
-        ]
-      };
-      
+
     useEffect(() => {
         getData();
     }, []);
@@ -91,17 +77,49 @@ const ReusableTableForm = ({
         }
     };
 
+    // const handleEdit = (item) => {
+    //     const updatedForm = { ...item };
+    //     fields.forEach(field => {
+    //         if (field.type === 'file') updatedForm[field.name] = null;
+    //         if (field.type === 'date' && item[field.name]) {
+    //             updatedForm[field.name] = item[field.name].slice(0, 10)
+    //         }
+    //     });
+    //     setForm(updatedForm);
+    // };
+
+
     const handleEdit = (item) => {
-        const updatedForm = { ...item };
+        const updatedForm = { ...form, ...item }; // merge to retain defaults
+    
         fields.forEach(field => {
-            if (field.type === 'file') updatedForm[field.name] = null;
-            if (field.type === 'date' && item[field.name]) {
-                updatedForm[field.name] = item[field.name].slice(0, 10)
+            const value = item[field.name];
+    
+            // For files, don't set value
+            if (field.type === 'file') {
+                updatedForm[field.name] = null;
+            }
+    
+            // For dates: format to 'YYYY-MM-DD'
+            else if (field.type === 'date' && value) {
+                updatedForm[field.name] = value.slice(0, 10);
+            }
+    
+            // For multiselect: ensure it's an array (split from CSV or parse JSON if saved like that)
+            else if (field.type === 'select' && field.multiple && typeof value === 'string') {
+                updatedForm[field.name] = value.split(','); // adjust this if value is JSON string
+            }
+    
+            // For textareas and other types: assign directly
+            else {
+                updatedForm[field.name] = value;
             }
         });
+    
+        updatedForm.id = item.id;
         setForm(updatedForm);
     };
-
+    
     const handleSingleDelete = (id) => {
         setConfirmDeleteId(id);
         setDeleteType("single");
@@ -172,17 +190,17 @@ const ReusableTableForm = ({
             )}
 
             {/* Form Column */}
-            <div className="col-lg-4 mb-3">
+            <div className="col-lg-12 mb-3">
                 <div className="card">
                     <div className="card-header text-center">
                         <h4>{title} Master</h4>
                     </div>
                     <form onSubmit={handleSubmit} encType="multipart/form-data">
                         <div className="card-body">
-                            {fields.map(field => {
+                            <div className="row">                            {fields.map(field => {
                                 if (field.type === 'radio') {
                                     return (
-                                        <div key={field.name} className="mb-2">
+                                        <div key={field.name} className="mb-2 col-lg-4">
                                             <label className="d-block">{field.label}</label>
                                             {field.options.map(option => (
                                                 <div className="form-check form-check-inline" key={option}>
@@ -201,7 +219,7 @@ const ReusableTableForm = ({
                                     );
                                 } else if (field.type === 'checkbox') {
                                     return (
-                                        <div key={field.name} className="form-check mb-2">
+                                        <div key={field.name} className="form-check mb-2 col-lg-4">
                                             <input
                                                 className="form-check-input"
                                                 type="checkbox"
@@ -212,11 +230,52 @@ const ReusableTableForm = ({
                                             <label className="form-check-label">{field.label}</label>
                                         </div>
                                     );
-                                } 
+                                } else if (field.type === 'file') {
+                                    return (
+                                        <div key={field.name} className="mb-2 col-lg-4">
+                                            <label className="form-label">{field.label}</label>
+                                            <input
+                                                className="form-control"
+                                                type="file"
+                                                name={field.name}
+                                                onChange={(e) => handleChange(e, field)}
+                                            />
+                                        </div>
+                                    );
+                                } else if (field.type === 'select') {
+                                    return (
+                                        <div key={field.name} className="mb-2 col-lg-4">
+                                            {/* <label className="form-label">{field.label}</label> */}
+                                            {field.multiple ? (
+                                                <MultiSelect
+                                                    value={form[field.name]}
+                                                    options={field.options}
+                                                    onChange={(e) => setForm({ ...form, [field.name]: e.value })}
+                                                    optionLabel="label"
+                                                    placeholder={`Select ${field.label}`}
+                                                    display="chip"
+                                                    className="w-100"
+                                                />
+                                            ) : (
+                                                <Dropdown
+                                                    value={form[field.name]}
+                                                    options={field.options}
+                                                    onChange={(e) => setForm({ ...form, [field.name]: e.value })}
+                                                    optionLabel="label"
+                                                    placeholder={`Select ${field.label}`}
+                                                    className="w-100"
+                                                />
+                                            )}
+                                        </div>
+                                    );
+
+
+                                }
+                                
                                 
                                 else if (field.type === 'textarea') {
                                     return (
-                                        <div  key={field.name}>
+                                        <div className="col-lg-4" key={field.name}>
                                             <textarea
                                                 placeholder={field.label}
                                                 name={field.name}
@@ -229,47 +288,28 @@ const ReusableTableForm = ({
                                         </div>
                                     );
                                 }
-                                else if (field.type === 'file') {
+                                else {
                                     return (
-                                        <div key={field.name} className="mb-2">
-                                            <label className="form-label">{field.label}</label>
+                                        <div className="col-lg-4" key={field.name}>
+                                            {field.type === 'date' && (
+                                                <label className="form-label">{field.label}</label>
+                                            )}
                                             <input
-                                                className="form-control"
-                                                type="file"
+                                                type={field.type || "text"}
+                                                placeholder={field.label}
                                                 name={field.name}
-                                                onChange={(e) => handleChange(e, field)}
-                                            />
-                                        </div>
-                                    );
-                                } else if (field.type === 'select') {
-                                    return (
-                                        <div key={field.name} className="mb-2">
-                                            <label className="form-label">{field.label}</label>
-                                            <Dropdown
                                                 value={form[field.name]}
-                                                options={field.options}
-                                                onChange={(e) => setForm({ ...form, [field.name]: e.value })}
-                                                optionLabel="label"
-                                                placeholder={`Select ${field.label}`}
-                                                className="w-100"
+                                                onChange={(e) => handleChange(e, field)}
+                                                className="form-control mb-2"
+                                                required={field.required}
                                             />
                                         </div>
-                                    );
-                                } else {
-                                    return (
-                                        <input
-                                            key={field.name}
-                                            type={field.type || "text"}
-                                            placeholder={field.label}
-                                            name={field.name}
-                                            value={form[field.name]}
-                                            onChange={(e) => handleChange(e, field)}
-                                            className="form-control mb-2"
-                                            required={field.required}
-                                        />
                                     );
                                 }
+                                
                             })}
+                            </div>
+
                         </div>
                         <div className="card-footer text-center">
                             <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
@@ -281,7 +321,7 @@ const ReusableTableForm = ({
             </div>
 
             {/* Table Column */}
-            <div className="col-lg-8">
+            <div className="col-lg-12">
                 <div className="card p-2">
                     <h4 className='text-center'>{title} Table</h4>
                     <div className="card-body p-0" >
@@ -397,4 +437,4 @@ const ReusableTableForm = ({
     );
 };
 
-export default ReusableTableForm;
+export default ReusableForm_Table;

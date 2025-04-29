@@ -5,12 +5,11 @@ import {
   createBlockDetails,
   updateBlockDetails,
   deleteBlockDetails
-} from '../../../api/blocksApi'; // Your API functions
+} from '../../../api/updateApis/blocksApi'; // Your API functions
 
 const fields = [
-  { name: 'blockNO', label: 'Block Number', type: 'number', required: true },
-  { name: 'blockName', label: 'Block Name', type: 'text', required: true },
-
+  { name: 'blockNoOrName', label: 'Block No/Name', type: 'text', required: true },
+  
 ];
 
 

@@ -5,7 +5,7 @@ import {
     createUser,
     updateUser,
     deleteUser
-} from '../../../api/userMasterApi'; // Your API functions
+} from '../../../api/updateApis/userMasterApi'; // Your API functions
 
 const fields = [
     { name: 'userName', label: 'User Name', type: 'text', required: true },

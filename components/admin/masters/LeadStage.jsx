@@ -5,7 +5,7 @@ import {
   createLeadStage,
   updateLeadStage,
   deleteLeadStage
-} from '../../../api/leadStageApi'; // Your API functions
+} from '../../../api/updateApis/leadStageApi'; // Your API functions
 
 const fields = [
   { name: 'leadStage', label: 'Lead Stage', type: 'text', required: true },

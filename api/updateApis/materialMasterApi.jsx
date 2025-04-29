@@ -3,8 +3,8 @@ import {
   putData,
   deleteData,
   postData
-} from './apiHandler';
-import {host} from './config'
+} from '../apiHandler';
+import {host} from '../config'
 
 const BASE_URL =` ${host}/api/materialMaster`;
 

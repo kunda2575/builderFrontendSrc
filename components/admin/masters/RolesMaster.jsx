@@ -5,7 +5,7 @@ import {
   createRole,
   updateRole,
   deleteRole
-} from '../../../api/rolesMasterApi'; // Your API functions
+} from '../../../api/updateApis/rolesMasterApi'; // Your API functions
 
 const fields = [
   { name: 'rolesName', label: 'Role Name', type: 'text', required: true },
@@ -19,7 +19,7 @@ const RoleMaster = () => {
   return (
     <div className="container-fluid">
       <ReusableTableForm
-        title="projects"
+        title="Role"
         fields={fields}
         fetchData={getRoles}
         createData={createRole}
