@@ -1,17 +1,18 @@
-.master-data:hover{
+.master-data:hover {
     background-color: black !important;
     color: white !important;
 }
-.master-data{
+
+.master-data {
     transition: background-color 0.2s ease 0.2s !important;
 }
 
-#btn-focus:focus{
+#btn-focus:focus {
     background-color: cyan !important;
     color: black !important;
 }
 
-.page-container {
+/* .page-container {
     padding: 2rem;
 }
 
@@ -26,7 +27,7 @@
     min-width: 200px;
 }
 
-ul{
+ul {
     padding-left: 0px !important;
 }
 
@@ -37,7 +38,8 @@ ul{
     background-color: #fff;
 }
 
-.table th, .table td {
+.table th,
+.table td {
     vertical-align: middle;
     font-size: 0.9rem;
 }
@@ -45,8 +47,9 @@ ul{
 th {
     white-space: nowrap;
 }
+
 .p-multiselect .p-multiselect-label {
-    padding: 0.4rem 0.4rem !important;
+    padding: 0.3rem 0.5rem !important;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -56,4 +59,94 @@ th {
     background: #e5e7eb;
     color: #4b5563;
     border-radius: 16px;
+} */
+
+label {
+    font-weight: 600;
+}
+
+
+
+
+/* PRIME REACT DATA TABLE */
+
+/* Apply borders to header cells */
+/* Apply border to header cells */
+.p-datatable-scrollable .p-datatable-thead th {
+    border: 1px solid #ccc !important;  /* Same color as the body borders */
+    background-color: #f9f9f9;          /* Optional background color for header */
+    vertical-align: middle;             /* Align content in the header */
+}
+
+/* Apply border to body cells */
+.p-datatable-scrollable .p-datatable-tbody td {
+    border: 1px solid #ccc !important;  /* Same color as the header borders */
+    vertical-align: middle;             /* Align content in the body */
+}
+
+/* Ensure proper alignment and spacing */
+.p-datatable-scrollable .p-datatable-thead,
+.p-datatable-scrollable .p-datatable-tbody {
+    display: table;
+    /* width: 100%; */
+    /* table-layout: fixed; */
+}
+
+/* Adjust padding for better alignment of header and body */
+.p-datatable .p-datatable-thead th,
+.p-datatable .p-datatable-tbody td {
+    padding: 8px 10px;  /* Adjust the padding to make them align */
+}
+
+/* Ensure no border gap between the body and header */
+.p-datatable-scrollable .p-datatable-thead th:first-child {
+    border-left: 1px solid #ccc !important;
+}
+
+.p-datatable-scrollable .p-datatable-tbody td:first-child {
+    border-left: 1px solid #ccc !important;
+}
+
+ 
+  
+  
+
+/* Compact header cells */
+.p-datatable .p-datatable-thead>tr>th {
+    padding: 2px 6px !important;
+    font-size: 13px;
+    line-height: 2.6;
+    vertical-align: middle;
+    border: 1px solid #ccc !important;
+}
+
+/* Compact body cells */
+.p-datatable .p-datatable-tbody>tr>td {
+    padding: 2px 6px !important;
+    font-size: 13px;
+    line-height: 1.2;
+    vertical-align: middle;
+}
+
+/* Reduce row height */
+.p-datatable .p-datatable-tbody>tr {
+    height: 30px;
+    /* You can go lower if needed */
+}
+
+.p-multiselect-clear-icon {
+    position: absolute;
+    top: 50%;
+    margin-top: -.5rem;
+    
+    right: 2rem !important;
+}
+
+
+[data-pc-name="datatable"][pr_id_150] > [data-pc-section="wrapper"] > [data-pc-section="table"] > [data-pc-section="thead"] > tr > th:nth-child(4),
+[data-pc-name="datatable"][pr_id_150] > [data-pc-section="wrapper"] > [data-pc-section="table"] > [data-pc-section="tbody"] > tr > td:nth-child(4),
+[data-pc-name="datatable"][pr_id_150] > [data-pc-section="wrapper"] > [data-pc-section="table"] > [data-pc-section="tfoot"] > tr > td:nth-child(4) {
+    width: 0px !important;
+    max-width: 0px !important;
+    text-align: center !important; /* ✅ Add this */
 }

@@ -4,6 +4,8 @@ import { getleadDetails, getleadSourceDetails, getleadStageDetails, getteamMembe
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { MultiSelect } from 'primereact/multiselect';
+import { Calendar } from 'primereact/calendar';
+import './calender.css'
 
 const Leads = () => {
     const [loading, setLoading] = useState(false)
@@ -79,18 +81,18 @@ const Leads = () => {
         try {
             // Prepare the form data for submission
             const formData = { ...form };
-    
+
             // Convert array values to comma-separated string (e.g., native_language)
             if (Array.isArray(formData.native_language)) {
                 formData.native_language = formData.native_language.join(',');
             }
-    
+
             // Add similar logic for other array fields if necessary
             // Example:
             // if (Array.isArray(formData.someOtherField)) {
             //     formData.someOtherField = formData.someOtherField.join(',');
             // }
-    
+
             if (form.id) {
                 await updateLeadsDetails(form.id, formData);
                 toast.success('Leads updated successfully');
@@ -98,7 +100,7 @@ const Leads = () => {
                 await createleadDetails(formData);
                 toast.success('Leads created successfully');
             }
-    
+
             // Reset the form fields after submit
             setForm({
                 contact_name: '',
@@ -119,7 +121,7 @@ const Leads = () => {
                 reason_for_lost_customers: '',
                 id: null
             });
-    
+
             // Fetch leads again after submit
             fetchLeads();
         } catch (error) {
@@ -128,7 +130,7 @@ const Leads = () => {
             setLoading(false);
         }
     };
-    
+
 
 
     return (
@@ -219,7 +221,7 @@ const Leads = () => {
                                             {
                                                 leadSource.map(source => {
                                                     return (
-                                                        <option key={source.id} value={source.id}>
+                                                        <option key={source.id} value={source.leadSource}>
                                                             {source.leadSource}
                                                         </option>
                                                     )
@@ -241,7 +243,7 @@ const Leads = () => {
                                             {
                                                 leadStage.map(source => {
                                                     return (
-                                                        <option key={source.id} value={source.id}>
+                                                        <option key={source.id} value={source.leadStage}>
                                                             {source.leadStage}
                                                         </option>
                                                     )
@@ -261,7 +263,7 @@ const Leads = () => {
                                             {
                                                 teamMember.map(source => {
                                                     return (
-                                                        <option key={source.id} value={source.id}>
+                                                        <option key={source.id} value={source.team_name}>
                                                             {source.team_name}
 
                                                         </option>
@@ -273,7 +275,7 @@ const Leads = () => {
 
                                     <div className="col-lg-3">
                                         <label className='mb-1'> Creation date</label>
-                                        <input
+                                        {/* <input
                                             type="date"
                                             placeholder="Creation date"
 
@@ -281,40 +283,62 @@ const Leads = () => {
                                             onChange={(e) => setForm({ ...form, creation_date: e.target.value })}
                                             className="form-control mb-2"
                                             required
+                                        /> */}
+
+                                        <Calendar
+                                            value={form.creation_date}
+                                            onChange={(e) => setForm({ ...form, creation_date: e.value })}
+                                            showIcon
+                                            dateFormat="dd-mm-yy"
+                                            placeholder="Select a Date"
+                                            className="w-100 mb-2 custom-calendar"  // Apply the custom class
+                                            panelClassName='popup'
+                                            required
                                         />
 
                                     </div>
                                     <div className="col-lg-3">
                                         <label className='mb-1'>Expected close date </label>
-                                        <input
-                                            type="date"
-                                            placeholder="Expected date"
+
+
+
+                                        <Calendar
                                             value={form.expected_date}
                                             onChange={(e) => setForm({ ...form, expected_date: e.target.value })}
-                                            className="form-control mb-2"
+                                            showIcon
+                                            dateFormat="dd-mm-yy"
+                                            placeholder="Select a Date"
+                                            className="w-100 mb-2 custom-calendar"  // Apply the custom class
+                                            panelClassName='popup'
                                             required
                                         />
                                     </div>
 
                                     <div className="col-lg-3">
                                         <label className='mb-1'> Last interacted on </label>
-                                        <input
-                                            type="date"
+                                       
+                                        <Calendar
                                             value={form.last_interacted_on}
                                             onChange={(e) => setForm({ ...form, last_interacted_on: e.target.value })}
-                                            className="form-control mb-2"
+                                            showIcon
+                                            dateFormat="dd-mm-yy"
+                                            placeholder="Select a Date"
+                                            className="w-100 mb-2 custom-calendar"  // Apply the custom class
+                                            panelClassName='popup'
                                             required
                                         />
                                     </div>
                                     <div className="col-lg-3">
                                         <label className='mb-1'>Next interacted date </label>
-                                        <input
-
-                                            type="date"
-
+                                      
+                                           <Calendar
                                             value={form.next_interacted_date}
                                             onChange={(e) => setForm({ ...form, next_interacted_date: e.target.value })}
-                                            className="form-control mb-2"
+                                            showIcon
+                                            dateFormat="dd-mm-yy"
+                                            placeholder="Select a Date"
+                                            className="w-100 mb-2 custom-calendar"  // Apply the custom class
+                                            panelClassName='popup'
                                             required
                                         />
                                     </div>
