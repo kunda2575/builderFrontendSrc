@@ -52,7 +52,7 @@ const InventoryEntryForm = () => {
     // Fetch material 
     const fetchMaterials = async () => {
         try {
-            const res = await fetchData(`${config.material}`);
+            const res = await fetchData(`${config.inventoryMaterial}`);
             console.log('Material Names Response:', res);  // Debugging API response
             if (res && res.data && Array.isArray(res.data)) {
                 setMaterials(res.data);
@@ -69,7 +69,7 @@ const InventoryEntryForm = () => {
     // Fetch unit types
     const fetchUnitTypes = async () => {
         try {
-            const res = await fetchData(`${config.unitType}`);
+            const res = await fetchData(`${config.inventoryUnitType}`);
             console.log('Unit Types Response:', res);  // Debugging API response
             if (res && res.data && Array.isArray(res.data)) {
                 setUnitTypes(res.data);
@@ -84,7 +84,7 @@ const InventoryEntryForm = () => {
     };
     const fetchVendors = async () => {
         try {
-            const res = await fetchData(`${config.vendor}`);
+            const res = await fetchData(`${config.inventoryVendor}`);
             console.log('vendor Response:', res);  // Debugging API response
             if (res && res.data && Array.isArray(res.data)) {
                 setVendors(res.data);
@@ -107,10 +107,10 @@ const InventoryEntryForm = () => {
             const formData = { ...form };
 
             if (form.id) {
-                await postData(`${config.create}`, formData); // Using create URL to add the Inventory
+                await postData(`${config.createInventory}`, formData); // Using create URL to add the Inventory
                 toast.success('Inventory updated successfully');
             } else {
-                await postData(`${config.create}`, formData); // Create new Inventory
+                await postData(`${config.createInventory}`, formData); // Create new Inventory
                 toast.success('Inventory created successfully');
             }
 
@@ -258,7 +258,7 @@ const InventoryEntryForm = () => {
                                         />
                                     </div>
                                     <div className="col-lg-6 mb-1">
-                                        <label></label>
+                                        <label className="mb-2"> </label>
                                         <input
                                             type="number"
                                             name="invoice_cost_incl_gst"

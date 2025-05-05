@@ -111,7 +111,7 @@ const StockAvailabilityTable = () => {
 
     return (
         <div className="container-fluid mt-4">
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex justify-content-between">
                 <Link className="text-decoration-none text-primary" to="/transaction">
                     <i className="pi pi-arrow-left"></i> Back
                 </Link>
@@ -143,11 +143,11 @@ const StockAvailabilityTable = () => {
                     scrollable
                     resizableColumns
                     emptyMessage={
-                        <h6 className="p-4" style={{ textAlign: 'center', width: '100%' }}>
+                        <h6 className="p-4 text-center" >
                             No stock data available.
                         </h6>
                     }
-                    
+                    showClear
                     style={{ textAlign: 'center' }}
                 >
                     <Column field="material_id" header={() => (
@@ -168,7 +168,7 @@ const StockAvailabilityTable = () => {
                                 className="small-multiselect w-100"
                                 maxSelectedLabels={0}
                                 selectedItemsLabel={`${selectedMaterial.length} selected`}
-                                showClear
+                                
                             />
                         </label>
                     )} style={{ minWidth: '13rem' }} />
@@ -191,7 +191,7 @@ const StockAvailabilityTable = () => {
                                 className="small-multiselect w-100"
                                 maxSelectedLabels={0}
                                 selectedItemsLabel={`${selectedMaterialName.length} selected`}
-                                showClear
+                                // showClear
                             />
                         </label>
                     )} style={{ minWidth: '13rem' }} />

@@ -36,10 +36,10 @@ import UnitTypeMaster from "../components/admin/masters/UnitTypeMaster";
 import UserMaster from "../components/admin/masters/UserMaster";
 import Leads from "../components/admin/transactions/LeadsForm";
 import LeadsTable from "../components/admin/transactions/LeadsTable";
-import LeadsTableBoot from "../components/admin/transactions/LeadsTableBoot";
+// import LeadsTableBoot from "../components/admin/transactions/LeadsTableBoot";
 import MaterialForm from "../components/admin/transactions/stockAvaliabilityForm";
 import StockAvailabilityTable from "../components/admin/transactions/StockAvaliabilityTable";
-import InventoryEntryForm from "../components/admin/transactions/InventoryEntryForm";
+// import InventoryEntryForm from "../components/admin/transactions/InventoryEntryForm";
 
 const AppRoutes = () => (
   <Routes>
@@ -98,10 +98,10 @@ const AppRoutes = () => (
 
     <Route path="/leads" element={<Leads />} />
     <Route path="/leadsTable" element={<LeadsTable />} />
-    <Route path="/leadsTableBoot" element={<LeadsTableBoot />} />
+    {/* <Route path="/leadsTableBoot" element={<LeadsTableBoot />} /> */}
     <Route path="/stockAvailabilityForm" element={<MaterialForm/>} />
     <Route path="/stockAvailability" element={< StockAvailabilityTable/>} />
-    <Route path="/inventoryEntry" element={<InventoryEntryForm/>}/>
+    {/* <Route path="/inventoryEntry" element={<InventoryEntryForm/>}/> */}
 
 
 

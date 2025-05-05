@@ -135,11 +135,11 @@ const Leads = () => {
 
     return (
         <div className="container-fluid mt-3">
-            {/* <div className='mb-2'>
-                <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"></i>  Back </Link>
-            </div> */}
-            <div className='mb-2'>
-                <Link className="text-decoration-none text-primary" to="/leadsTable"> <i className="pi pi-arrow-left"></i> Leads Management table </Link>
+            <div className='d-flex mb-2 justify-content-between'>
+                <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"> </i>  Back </Link>
+            {/* </div>
+            <div className='mb-2'> */}
+                <Link className="text-decoration-none text-primary" to="/leadsTable"> Leads Management table <i className="pi pi-arrow-right"> </i> </Link>
             </div>
 
 

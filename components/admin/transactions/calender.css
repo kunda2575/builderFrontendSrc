@@ -1,23 +1,3 @@
-/* General adjustments for the Calendar input field */
-.custom-calendar .p-inputtext {
-    height: 37px !important; /* Reduce the height of the input field */
-    font-size: 14px !important; /* Reduce the font size */
-    padding: 4px 8px !important; /* Adjust padding inside input */
-}
-
-/* Resize the calendar icon (inside the input field) */
-.custom-calendar .p-calendar-icon {
-    font-size: 16px !important; /* Reduce the icon size */
-    height: 16px !important; /* Adjust the height of the icon */
-    width: 16px !important; /* Adjust the width of the icon */
-}
-
-/* Adjust the size of navigation buttons inside the popup (next/previous buttons) */
-.custom-calendar .p-button {
-    padding: 5px 8px !important;  /* Reduce button padding */
-    font-size: 12px !important; /* Smaller font size for buttons */
-}
-
 .popup{
     transform: scale(0.7) !important;
     font-size: 2rem !important;
@@ -28,3 +8,8 @@
 .popup td>span{
     font-size: 1.3rem;
 }
+
+/* Target the calendar input */
+.p-calendar {
+    height: 2.3rem;
+  }

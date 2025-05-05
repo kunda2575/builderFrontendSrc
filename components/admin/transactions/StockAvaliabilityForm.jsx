@@ -117,7 +117,7 @@ const MaterialForm = () => {
             </div>
 
             <div className="row">
-                <div className="col-lg-5 m-auto">
+                <div className="col-lg-4 m-auto">
                     <div className="card">
                         <div className="card-header">
                             <h4 className='text-center'>Materials Form Transactions</h4>
@@ -126,7 +126,7 @@ const MaterialForm = () => {
                             <div className="card-body">
                                 <div className="row">
                                     {/* Material ID */}
-                                    <div className="col-lg-12 mb-3">
+                                    <div className="col-lg-12 mb-2">
                                         <select
                                             name='material_id'
                                             value={form.material_id}
@@ -146,7 +146,7 @@ const MaterialForm = () => {
                                     </div>
 
                                     {/* Material Name */}
-                                    <div className="col-lg-12 mb-3">
+                                    <div className="col-lg-12 mb-2">
                                         <select
                                             name='material_name'
                                             value={form.material_name}
@@ -166,7 +166,7 @@ const MaterialForm = () => {
                                     </div>
 
                                     {/* Unit Type */}
-                                    <div className="col-lg-12 mb-3">
+                                    <div className="col-lg-12 mb-2">
                                         <select
                                             name='unit_type'
                                             value={form.unit_type}
@@ -186,7 +186,7 @@ const MaterialForm = () => {
                                     </div>
 
                                     {/* Available Stock */}
-                                    <div className="col-lg-12 mb-3">
+                                    <div className="col-lg-12 mb-2">
                                         <input
                                             type="number"
                                             name="available_stock"

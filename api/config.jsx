@@ -29,12 +29,16 @@ export const config = {
   unitType : `${host}/api/stocks/unitTypes`,
   create :`${host}/api/stocks`,
 
-// inventory Entry
-getInventories : `${host}/api/inventory`,
-material:`${host}/api/inventory/materialMaster`,
-unitType : `${host}/api/inventory/unitTypes`,
-vendor : `${host}/api/inventory/vendor`,
-create :`${host}/api/inventory`,
+
+
+  // Inventory Entry
+  getInventories: `${host}/api/inventory`,
+  inventoryMaterial: `${host}/api/inventory/materialMaster`, // renamed from "material"
+  inventoryUnitType: `${host}/api/inventory/unitTypes`,      // renamed from "unitType"
+  inventoryVendor: `${host}/api/inventory/vendor`,
+  createInventory: `${host}/api/inventory`,                  // renamed from "create"
+
+  // Other unrelated endpoints should have their own unique names
 
 };
 

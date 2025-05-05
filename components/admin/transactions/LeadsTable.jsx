@@ -112,10 +112,10 @@ const LeadsTable = () => {
 
     return (
         <div className="container-fluid mt-4">
-            <div className="d-flex justify-content-between">
-                <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"></i>  Back </Link>
-                <h3 className="text-center mb-4">Leads Management</h3>
-                <Link className="text-decoration-none text-primary" to="/leads"> Add Details  <i className="pi pi-arrow-right"></i>  </Link>
+            <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"></i>  Back </Link>
+            <h3 className="text-center mb-4">Leads Management</h3>
+            <div className="text-end">
+                <Link className="text-decoration-none text-primary" to="/leads"> <button className='btn btn-primary btn-sm'> Add Details  <i className="pi pi-arrow-right"></i> </button>  </Link>
             </div>
 
             <div className='row mb-3'>
@@ -125,109 +125,229 @@ const LeadsTable = () => {
                 </div>
 
             </div>
+            {/* <DataTable
+               value={filteredLeads}
+               stripedRows
+               scrollable
+               scrollHeight="600px"
+               loading={loading}
+               loadingIcon="pi pi-spinner"
+               emptyMessage={<h6 className="p-4">No leads data available.</h6>}
+            >
+                <Column field="contact_name" header="Contact Name" style={{ minWidth: '150px' }} />
+                <Column field="contact_phone" header="Contact Phone" style={{ minWidth: '150px' }} />
+                <Column field="contact_email" header="Contact Email" style={{ minWidth: '150px' }} />
+                <Column field="address" header="Address" style={{ minWidth: '200px' }} />
+                <Column field="customer_profession" header="Contact Profession" style={{ minWidth: '150px' }} />
+                <Column field="native_language" header="Native Language" style={{ minWidth: '150px' }} />
+
+                <Column
+                    field="lead_source"
+                    header={() => (
+                        <label>
+                            Lead Source<br />
+                            <div style={{ minWidth: '150px' }}>
+                                <MultiSelect
+                                    filter
+                                    value={selectedSources}
+                                    options={leadSource}
+                                    optionLabel="leadSource"
+                                    onChange={(e) => {
+                                        setSelectedSources(e.target.value);
+                                        selectedLeadSource.current = e.target.value;
+                                        getLeadDetails();
+                                    }}
+                                    placeholder="Select Lead Source"
+                                    className="w-100"
+                                    showClear
+                                />
+                            </div>
+                        </label>
+                    )}
+                    style={{ minWidth: '180px', maxWidth: '200px' }}
+                />
+
+                <Column
+                    field="lead_stage"
+                    header={() => (
+                        <label>
+                            Lead Stage<br />
+                            <div style={{ minWidth: '150px' }}>
+                                <MultiSelect
+                                    filter
+                                    value={selectedStages}
+                                    options={leadStage}
+                                    optionLabel="leadStage"
+                                    onChange={(e) => {
+                                        setSelectedStages(e.target.value);
+                                        selectedLeadStage.current = e.target.value;
+                                        getLeadDetails();
+                                    }}
+                                    placeholder="Select Lead Stage"
+                                    className="w-100"
+                                    showClear
+                                />
+                            </div>
+                        </label>
+                    )}
+                    style={{ minWidth: '180px', maxWidth: '200px' }}
+                />
+
+                <Column field="value_in_inr" header="Value In INR" style={{ minWidth: '150px' }} />
+                <Column field="creation_date" header="Creation Date" body={(rowData) => formatDate(rowData.creation_date)} style={{ minWidth: '150px' }} />
+                <Column field="expected_date" header="Expected Date" body={(rowData) => formatDate(rowData.expected_date)} style={{ minWidth: '150px' }} />
+
+                <Column
+                    field="team_member"
+                    header={() => (
+                        <label>
+                            Team Member<br />
+                                <MultiSelect
+                                    filter
+                                    value={selectedMembers}
+                                    options={teamMember}
+                                    optionLabel="team_name"
+                                    onChange={(e) => {
+                                        setSelectedMembers(e.target.value);
+                                        selectedTeamMembers.current = e.target.value;
+                                        getLeadDetails();
+                                    }}
+                                    placeholder="Select Team Member"
+                                    className="w-100"
+                                    showClear
+                                />
+                        </label>
+                    )}
+                    // style={{ minWidth: '180px', maxWidth: '200px' }}
+                />
+
+                <Column
+                    field="last_interacted_on"
+                    header="Last Interacted On"
+                    body={(rowData) => rowData.last_interacted_on ? moment(rowData.last_interacted_on).format("DD-MM-YYYY") : ''}
+                    style={{ minWidth: '150px' }}
+                />
+                <Column field="next_interacted_date" header="Next Interacted Date" body={(rowData) => formatDate(rowData.next_interacted_date)} style={{ minWidth: '150px' }} />
+                <Column field="remarks" header="Remarks" style={{ minWidth: '200px' }} />
+                <Column field="reason_for_lost_customers" header="Reason For Lost Customers" style={{ minWidth: '200px' }} />
+            </DataTable> */}
+
             <DataTable
                 value={filteredLeads}
-                stripedRows
-                className="custom-bordered-table"
+                // scrollable
+                // scrollHeight="flex"
                 loading={loading}
-                loadingIcon="pi pi-spinner"
-                scrollable
-                // resizableColumns
-                emptyMessage={<h6 className='p-4'> No leads data available.</h6>} // Custom empty message
+                stripedRows
+                emptyMessage="No leads data available"
+                responsiveLayout="scroll" // ✅ makes table responsive on small screens
             >
+                <Column field="contact_name" header="Contact Name" />
+                <Column field="contact_phone" header="Contact Phone" />
+                <Column field="contact_email" header="Contact Email" />
+                <Column field="address" header="Address" />
+                <Column field="customer_profession" header="Profession" />
+                <Column field="native_language" header="Language" />
 
-                <Column field="contact_name" header="Contact Name"  />
-                <Column field="contact_phone" header="Contact Phone" style={{ minWidth: '8rem' }} />
-                <Column field="contact_email" header="Contact Email" style={{ minWidth: '10rem' }} />
-                <Column field="address" header="Address" style={{ minWidth: '16rem' }} />
-                <Column field="customer_profession" header="Contact Profession" style={{ minWidth: '10rem' }} />
-                <Column field="native_language" header="Native Language" style={{ minWidth: '10rem' }} />
-                <Column field="lead_source" header={() => (
-                    <div className='p-0 m-0'>
-                        <label className="me-2">Lead Source<br />
+                <Column
+                    field="lead_source"
+                    header={
+                        <>
+                            Lead Source
+                            <br />
                             <MultiSelect
                                 filter
                                 value={selectedSources}
                                 options={leadSource}
                                 optionLabel="leadSource"
-                                onChange={e => { setSelectedSources(e.target.value); selectedLeadSource.current = e.target.value; getLeadDetails() }}
+                                onChange={(e) => {
+                                    setSelectedSources(e.value);
+                                    selectedLeadSource.current = e.value;
+                                    getLeadDetails();
+                                }}
                                 placeholder="Select Lead Source"
-                                className="small-multiselect w-100"
-                                maxSelectedLabels={0}
-                                selectedItemsLabel={`${selectedSources.length} lead sources`}
+                                className="w-100"
+                                showClear
                             />
-                        </label>
-                    </div>
-                )} style={{ minWidth: '8rem' }} />
-                <Column field="lead_stage" header={() => (
-                    <div className='p-0 m-0'>
-                        <label className="me-2">Lead Stage<br />
+                        </>
+                    }
+                />
 
-
-
+                <Column
+                    field="lead_stage"
+                    header={
+                        <>
+                            Lead Stage
+                            <br />
                             <MultiSelect
                                 filter
                                 value={selectedStages}
                                 options={leadStage}
                                 optionLabel="leadStage"
-                                onChange={e => { setSelectedStages(e.target.value); selectedLeadStage.current = e.target.value; getLeadDetails() }}
+                                onChange={(e) => {
+                                    setSelectedStages(e.value);
+                                    selectedLeadStage.current = e.value;
+                                    getLeadDetails();
+                                }}
                                 placeholder="Select Lead Stage"
-                                className="small-multiselect w-100"
-                                maxSelectedLabels={0}
-                                selectedItemsLabel={`${selectedStages.length} lead stage`}
+                                className="w-100"
+                                showClear
                             />
+                        </>
+                    }
+                />
 
-                        </label>
-                    </div>
-                )
-                } style={{ minWidth: '8rem' }} />
-                <Column field="value_in_inr" header="Value In INR" style={{ minWidth: '8rem' }} />
-                <Column field="creation_date" header="Creation Date" body={(rowData) => formatDate(rowData.creation_date)} style={{ minWidth: '8rem' }} />
+                <Column field="value_in_inr" header="Value In INR" />
+                <Column
+                    field="creation_date"
+                    header="Creation Date"
+                    body={(rowData) => moment(rowData.creation_date).format("DD-MM-YYYY")}
+                />
                 <Column
                     field="expected_date"
                     header="Expected Date"
-                    body={(rowData) => formatDate(rowData.expected_date)}
-                    style={{ minWidth: '8rem' }}
+                    body={(rowData) => moment(rowData.expected_date).format("DD-MM-YYYY")}
                 />
-
-                <Column field="team_member" style={{ minWidth: '8rem' }} header={() => (
-                    <div className='p-0 m-0'>
-                        <label className="me-2">Team Member<br />
-
-
-
+                <Column
+                    field="team_member"
+                    header={
+                        <>
+                            Team Member
+                            <br />
                             <MultiSelect
                                 filter
                                 value={selectedMembers}
                                 options={teamMember}
                                 optionLabel="team_name"
-                                onChange={e => { setSelectedMembers(e.target.value); selectedTeamMembers.current = e.target.value; getLeadDetails() }}
+                                onChange={(e) => {
+                                    setSelectedMembers(e.value);
+                                    selectedTeamMembers.current = e.value;
+                                    getLeadDetails();
+                                }}
                                 placeholder="Select Team Member"
-                                className="small-multiselect w-100"
-                                maxSelectedLabels={0}
-                                selectedItemsLabel={`${selectedMembers.length} team member`}
+                                className="w-100"
+                                showClear
                             />
-
-
-                        </label>
-                    </div>
-                )
-                }
-
-
-
+                        </>
+                    }
                 />
                 <Column
                     field="last_interacted_on"
-                    header="Last Interacted on"
-                    body={(rowData) => rowData.last_interacted_on ? moment(rowData.last_interacted_on).format("DD-MM-YYYY") : ''}
-                    style={{ minWidth: '10rem' }}
+                    header="Last Interacted On"
+                    body={(rowData) =>
+                        rowData.last_interacted_on
+                            ? moment(rowData.last_interacted_on).format("DD-MM-YYYY")
+                            : ""
+                    }
                 />
-                <Column field="next_interacted_date" header="Next Interacted Date" body={(rowData) => formatDate(rowData.next_interacted_date)} style={{ minWidth: '10rem' }} />
-                <Column field="remarks" header="Remarks" style={{ minWidth: '20rem' }} />
-                <Column field="reason_for_lost_customers" header="Reason For Lost Customers" style={{ minWidth: '20rem' }} />
-
+                <Column
+                    field="next_interacted_date"
+                    header="Next Interacted Date"
+                    body={(rowData) => moment(rowData.next_interacted_date).format("DD-MM-YYYY")}
+                />
+                <Column field="remarks" header="Remarks" />
+                <Column field="reason_for_lost_customers" header="Reason For Lost Customers" />
             </DataTable>
+
 
             <div className='mt-3'>
                 <Paginator first={first} rows={rows} totalRecords={totalRecords} rowsPerPageOptions={[10, 25, 50, 100, 200, totalRecords]} onPageChange={onPageChange} />
