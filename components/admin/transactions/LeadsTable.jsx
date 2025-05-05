@@ -113,7 +113,7 @@ const LeadsTable = () => {
     return (
         <div className="container-fluid mt-4">
             <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"></i>  Back </Link>
-            <h3 className="text-center mb-4">Leads Management</h3>
+            <h3 className="text-center mb-3">Leads Management</h3>
             <div className="text-end">
                 <Link className="text-decoration-none text-primary" to="/leads"> <button className='btn btn-primary btn-sm'> Add Details  <i className="pi pi-arrow-right"></i> </button>  </Link>
             </div>
