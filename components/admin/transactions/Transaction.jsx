@@ -7,13 +7,13 @@ const Transaction = () => {
 
   const allData = [
     { name: "Leads ", path: "/leadsTable" },
-    { name: "Stock Availabillity ", path: "/stockAvailability" },
+    { name: "Stock Availabillity ", path: "/stockAvailabilityTable" },
+    { name: "Material Issue ", path: "/materialIssueTable" },
+    { name: "Inventory Entry ", path: "/inventoryEntryTable" },
     { name: "Expenditure ", path: "/expenditure" },
-    { name: "Inventory Entry ", path: "/inventoryEntry" },
-    { name: "Material issue ", path: "/materialIssue" },
+    { name: "Project Schedule ", path: "/projectSchedule" },
     { name: "Project Debits ", path: "/projectDebits" },
     { name: "Project Credits ", path: "/projectCredits" },
-    { name: "Project Schedule ", path: "/projectSchedule" },
     { name: "Customer Payments ", path: "/customerPayments" },
     { name: "Data Master ", path: "/dataMaster" },
    

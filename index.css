@@ -67,24 +67,31 @@ label {
 
 /* Style for the table */
 
-/* Apply borders and padding to table cells */
-.p-datatable td, 
-.p-datatable th {
-    font-size: 14px;
-    border: 1px solid #bfbaba;
-    padding: 6px 8px; /* Smaller padding */
+/* .p-datatable th, */
+.p-datatable-tbody tr > td{
+    border:1.5px solid rgb(190, 186, 186) !important;
+    padding: 6px 8px;
+    font-size: 15px;
+}
+
+.p-datatable .p-datatable-thead > tr > th{
+    /* text-align: left; */
+    padding: 6px 8px;
+    border: 1.5px solid rgb(190, 186, 186) !important;
+    /* border-width: thin; */
+    font-weight: 600;
+    color: #374151;
+    background: #f9fafb;
+    transition: box-shadow 0.2s;
 }
 
 /* Optional: force narrow columns */
 .p-datatable th 
  {
     white-space: nowrap;
-    /* white-space: normal !important; */
+    white-space: normal !important;
 }
-.p-datatable td{
-    white-space: wrap;
 
-}
 
 /* Make filters inside headers look neat */
 .p-column-header-content {
@@ -93,6 +100,14 @@ label {
     align-items: flex-start;
 }
 
+/* Prevent word wrapping in header and body cells */
+.p-datatable .p-datatable-thead > tr > th,
+.p-datatable .p-datatable-tbody > tr > td {
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
 
 
 /* PRIME REACT DATA TABLE */

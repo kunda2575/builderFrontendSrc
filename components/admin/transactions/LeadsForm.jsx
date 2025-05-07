@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getleadDetails, getleadSourceDetails, getleadStageDetails, getteamMemberDetails, createleadDetails } from '../../../api/transactionApis/leadsApi';
+import { fetchData, postData, putData } from '../../../api/apiHandler';
+import { config } from '../../../api/config'
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { MultiSelect } from 'primereact/multiselect';
 import { Calendar } from 'primereact/calendar';
 import './calender.css'
+import { useSearchParams } from 'react-router-dom';
 
 const Leads = () => {
+    // For GET data based on ID 
+    const [searchParams] = useSearchParams();
+    const editId = searchParams.get('id'); //Ex: This gets ?id=123 from the URL
+
     const [loading, setLoading] = useState(false)
     const [leads, setLeads] = useState([]);
     const [leadSource, setLeadSource] = useState([]);
@@ -38,11 +44,15 @@ const Leads = () => {
         fetchLeadSource();
         fetchLeadStageDetails();
         fetchTeamMemberDetails();
+
+        if (editId) {
+            fetchEditData(editId);
+        }
     }, []);
 
     const fetchLeads = async () => {
         try {
-            const res = await getleadDetails();
+            const res = await fetchData(`${config.getLeads}`);
             setLeads(res.data);
         } catch (error) {
             toast.error('Failed to fetch leads');
@@ -50,7 +60,7 @@ const Leads = () => {
     };
     const fetchLeadSource = async () => {
         try {
-            const res = await getleadSourceDetails();
+            const res = await fetchData(`${config.getLeadSource}`);
             setLeadSource(res.data);
         } catch (error) {
             toast.error('Failed to fetch lead source');
@@ -58,7 +68,7 @@ const Leads = () => {
     };
     const fetchLeadStageDetails = async () => {
         try {
-            const res = await getleadStageDetails();
+            const res = await fetchData(`${config.getLeadStage}`);
             setLeadStage(res.data);
         } catch (error) {
             toast.error('Failed to fetch lead stage');
@@ -67,7 +77,7 @@ const Leads = () => {
 
     const fetchTeamMemberDetails = async () => {
         try {
-            const res = await getteamMemberDetails();
+            const res = await fetchData(`${config.getTeamMember}`);
             setteamMember(res.data);
         } catch (error) {
             toast.error('Failed to fetch team member');
@@ -94,10 +104,10 @@ const Leads = () => {
             // }
 
             if (form.id) {
-                await updateLeadsDetails(form.id, formData);
+                await putData(config.updateLead(form.id), formData);
                 toast.success('Leads updated successfully');
             } else {
-                await createleadDetails(formData);
+                await postData(config.createLead, formData);
                 toast.success('Leads created successfully');
             }
 
@@ -131,15 +141,47 @@ const Leads = () => {
         }
     };
 
+    const fetchEditData = async (id) => {
+        try {
+            const res = await fetchData(config.getLeadById(id)); // Update this to your actual API endpoint
+            const lead = res.data;
+
+            if (lead) {
+                if (typeof lead.native_language === 'string') {
+                    lead.native_language = lead.native_language.split(','); // convert back to array if it's a CSV
+                }
+                setForm({
+                    contact_name: lead.contact_name || '',
+                    contact_phone: lead.contact_phone || '',
+                    contact_email: lead.contact_email || '',
+                    address: lead.address || '',
+                    customer_profession: lead.customer_profession || '',
+                    native_language: lead.native_language || [],  // reset to an empty array for MultiSelect
+                    lead_source: lead.lead_source || '',
+                    lead_stage: lead.lead_stage || '',
+                    value_in_inr: lead.value_in_inr || '',
+                    creation_date: lead.creation_date ? new Date(lead.creation_date) : '',
+                    expected_date: lead.expected_date ? new Date(lead.expected_date) : '',
+                    last_interacted_on: lead.last_interacted_on ? new Date(lead.last_interacted_on) : '',
+                    next_interacted_date: lead.next_interacted_date ? new Date(lead.next_interacted_date) : '',
+                    team_member: lead.team_member || '',
+                    remarks: lead.remarks || '',
+                    reason_for_lost_customers: lead.reason_for_lost_customers || '',
+                    id: lead.id || null
+                });
+            }
+        } catch (error) {
+            toast.error("Failed to load Lead data for editing");
+            console.error("Error loading lead by ID:", error);
+        }
+    };
 
 
     return (
-        <div className="container-fluid mt-3">
+        <div className="container-fluid mt-4">
             <div className='d-flex mb-2 justify-content-between'>
                 <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"> </i>  Back </Link>
-            {/* </div>
-            <div className='mb-2'> */}
-                <Link className="text-decoration-none text-primary" to="/leadsTable"> Leads Management table <i className="pi pi-arrow-right"> </i> </Link>
+                <Link className="text-decoration-none text-primary" to="/leadsTable"> <button className='btn btn-sm btn-primary'> Leads Management table <i className="pi pi-arrow-right"> </i> </button> </Link>
             </div>
 
 
@@ -294,6 +336,7 @@ const Leads = () => {
                                             className="w-100 mb-2 custom-calendar"  // Apply the custom class
                                             panelClassName='popup'
                                             required
+                                            showButtonBar
                                         />
 
                                     </div>
@@ -304,42 +347,45 @@ const Leads = () => {
 
                                         <Calendar
                                             value={form.expected_date}
-                                            onChange={(e) => setForm({ ...form, expected_date: e.target.value })}
+                                            onChange={(e) => setForm({ ...form, expected_date: e.value })}
                                             showIcon
                                             dateFormat="dd-mm-yy"
                                             placeholder="Select a Date"
                                             className="w-100 mb-2 custom-calendar"  // Apply the custom class
                                             panelClassName='popup'
                                             required
+                                            showButtonBar
                                         />
                                     </div>
 
                                     <div className="col-lg-3">
                                         <label className='mb-1'> Last interacted on </label>
-                                       
+
                                         <Calendar
                                             value={form.last_interacted_on}
-                                            onChange={(e) => setForm({ ...form, last_interacted_on: e.target.value })}
+                                            onChange={(e) => setForm({ ...form, last_interacted_on: e.value })}
                                             showIcon
                                             dateFormat="dd-mm-yy"
                                             placeholder="Select a Date"
                                             className="w-100 mb-2 custom-calendar"  // Apply the custom class
                                             panelClassName='popup'
                                             required
+                                            showButtonBar
                                         />
                                     </div>
                                     <div className="col-lg-3">
                                         <label className='mb-1'>Next interacted date </label>
-                                      
-                                           <Calendar
+
+                                        <Calendar
                                             value={form.next_interacted_date}
-                                            onChange={(e) => setForm({ ...form, next_interacted_date: e.target.value })}
+                                            onChange={(e) => setForm({ ...form, next_interacted_date: e.value })}
                                             showIcon
                                             dateFormat="dd-mm-yy"
                                             placeholder="Select a Date"
                                             className="w-100 mb-2 custom-calendar"  // Apply the custom class
                                             panelClassName='popup'
                                             required
+                                            showButtonBar
                                         />
                                     </div>
                                     <div className="col-lg-3">
@@ -359,7 +405,7 @@ const Leads = () => {
                                             value={form.remarks}
 
                                             onChange={(e) => setForm({ ...form, remarks: e.target.value })}
-                                            className="form-control"
+                                            className="form-control mb-2"
                                             required
                                         />
                                     </div>
@@ -369,7 +415,7 @@ const Leads = () => {
                                             placeholder="Reason for lost customers"
                                             value={form.reason_for_lost_customers}
                                             onChange={(e) => setForm({ ...form, reason_for_lost_customers: e.target.value })}
-                                            className="form-control"
+                                            className="form-control mb-2"
                                             required
                                         />
                                     </div>
@@ -378,7 +424,7 @@ const Leads = () => {
                                             placeholder='Address'
                                             value={form.address}
                                             onChange={(e) => setForm({ ...form, address: e.target.value })}
-                                            className="form-control"
+                                            className="form-control mb-2"
                                             rows={3}
                                             required
                                         >
@@ -388,9 +434,10 @@ const Leads = () => {
                                 </div>
                             </div>
 
-                            <div className="card-footer text-center">
-                                <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
-                                    {loading ? 'Processing...' : 'Create'}
+                            {/* Submit Button */}
+                            <div className="card-footer text-center row d-flex justify-content-center">
+                                <button type="submit" className="btn btn-primary btn-sm col-lg-2" disabled={loading}>
+                                    {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
                                 </button>
                             </div>
                         </form>

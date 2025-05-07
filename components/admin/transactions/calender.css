@@ -1,8 +1,8 @@
 .popup{
-    transform: scale(0.7) !important;
-    font-size: 2rem !important;
+    transform: scale(0.6) !important;
+    font-size: 1.5rem !important;
     /* transform-origin: top left right bottom ; */
-    width: 50%;
+    width: 60%;
     }
 
 .popup td>span{
@@ -12,4 +12,17 @@
 /* Target the calendar input */
 .p-calendar {
     height: 2.3rem;
-  }
+}
+
+.p-datepicker .p-datepicker-buttonbar {
+    padding: 0;
+    border-top: 1px solid #e5e7eb;
+    font-size: 1.2rem;
+}
+
+.p-datepicker th {
+    text-align: inherit;
+    text-align: center;
+    font-size: large;
+}
+

@@ -3,10 +3,16 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { fetchData, postData } from '../../../api/apiHandler';
+import { fetchData, postData, putData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import { Calendar } from 'primereact/calendar';
+import { useSearchParams } from 'react-router-dom';
+
 const InventoryEntryForm = () => {
+    // For GET data based on ID 
+    const [searchParams] = useSearchParams();
+    const editId = searchParams.get('id'); //Ex: This gets ?id=123 from the URL
+
     const [loading, setLoading] = useState(false);
     const [inventorys, setInventorys] = useState([]);
     const [unitTypes, setUnitTypes] = useState([]);
@@ -31,13 +37,17 @@ const InventoryEntryForm = () => {
         fetchUnitTypes();
         fetchMaterials();
         fetchVendors();
+
+        if (editId) {
+            fetchEditData(editId);
+        }
     }, []);
 
     // Fetch inventorys from API
     const fetchInventorysForm = async () => {
         try {
             const res = await fetchData(`${config.getInventories}`);
-            console.log('inventory Response:', res);  // Debugging the API response
+            // console.log('inventory Response:', res);  // Debugging the API response
             if (Array.isArray(res.data)) {
                 setInventorys(res.data);
             } else {
@@ -52,8 +62,8 @@ const InventoryEntryForm = () => {
     // Fetch material 
     const fetchMaterials = async () => {
         try {
-            const res = await fetchData(`${config.inventoryMaterial}`);
-            console.log('Material Names Response:', res);  // Debugging API response
+            const res = await fetchData(`${config.getMaterial}`);
+            // console.log('Material Names Response:', res);  // Debugging API response
             if (res && res.data && Array.isArray(res.data)) {
                 setMaterials(res.data);
             } else {
@@ -69,8 +79,8 @@ const InventoryEntryForm = () => {
     // Fetch unit types
     const fetchUnitTypes = async () => {
         try {
-            const res = await fetchData(`${config.inventoryUnitType}`);
-            console.log('Unit Types Response:', res);  // Debugging API response
+            const res = await fetchData(`${config.getUnitType}`);
+            // console.log('Unit Types Response:', res);  // Debugging API response
             if (res && res.data && Array.isArray(res.data)) {
                 setUnitTypes(res.data);
             } else {
@@ -84,8 +94,8 @@ const InventoryEntryForm = () => {
     };
     const fetchVendors = async () => {
         try {
-            const res = await fetchData(`${config.inventoryVendor}`);
-            console.log('vendor Response:', res);  // Debugging API response
+            const res = await fetchData(`${config.getVendorName}`);
+            // console.log('vendor Response:', res);  // Debugging API response
             if (res && res.data && Array.isArray(res.data)) {
                 setVendors(res.data);
             } else {
@@ -107,10 +117,12 @@ const InventoryEntryForm = () => {
             const formData = { ...form };
 
             if (form.id) {
-                await postData(`${config.createInventory}`, formData); // Using create URL to add the Inventory
+                // Update existing material
+                await putData(config.updateInventory(form.id), formData); // Using create URL to add the Inventory
                 toast.success('Inventory updated successfully');
             } else {
-                await postData(`${config.createInventory}`, formData); // Create new Inventory
+                // Create new material
+                await postData(config.createInventory, formData); // Create new Inventory
                 toast.success('Inventory created successfully');
             }
 
@@ -139,19 +151,49 @@ const InventoryEntryForm = () => {
         }
     };
 
+    const fetchEditData = async (id) => {
+        try {
+            const res = await fetchData(config.getInventoriesById(id)); // Update this to your actual API endpoint
+            const inventory = res.data;
+
+            if (inventory) {
+                setForm({
+                    material_id: inventory.material_id || "",
+                    material_name: inventory.material_name || "",
+                    unit_type: inventory.unit_type || "",
+                    vendor_name: inventory.vendor_name || "",
+                    invoice_number: inventory.invoice_number || "",
+                    invoice_date: inventory.invoice_date ? new Date(inventory.invoice_date) : "",
+                    invoice_cost_incl_gst: inventory.invoice_cost_incl_gst || "",
+                    quantity_received: inventory.quantity_received || "",
+                    invoice_attachment: inventory.invoice_attachment || "",
+                    entered_by: inventory.entered_by || "",
+                    id: inventory.id || null
+                });
+            }
+        } catch (error) {
+            toast.error("Failed to load inventory data for editing");
+            console.error("Error loading inventory by ID:", error);
+        }
+    };
+
     return (
         <div className="container-fluid mt-3">
-            <div className='mb-1'>
+            {/* <div className='mb-1'>
                 <Link className="text-decoration-none text-primary" to="/inventoryEntry">
                     <i className="pi pi-arrow-left"></i> Inventory Entry Table
                 </Link>
+            </div> */}
+            <div className='d-flex mb-2 justify-content-between'>
+                <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"> </i>  Back </Link>
+                <Link className="text-decoration-none text-primary" to="/inventoryEntryTable"> <button className='btn btn-sm btn-primary'> Inventory Entry Table <i className="pi pi-arrow-right"> </i> </button> </Link>
             </div>
 
             <div className="row">
                 <div className="col-lg-8 m-auto">
                     <div className="card">
                         <div className="card-header">
-                            <h4 className='text-center'>Inventory Entry Form Transactions</h4>
+                            <h4 className='text-center'>Inventory Transactions</h4>
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="card-body">
@@ -241,9 +283,6 @@ const InventoryEntryForm = () => {
                                             className="form-control mb-1"
                                             required
                                         /> */}
-
-
-
                                         <label className='mb-1'> Invoice date </label>
 
                                         <Calendar
@@ -255,6 +294,7 @@ const InventoryEntryForm = () => {
                                             className="w-100 mb-2 custom-calendar"  // Apply the custom class
                                             panelClassName='popup'
                                             required
+                                            showButtonBar
                                         />
                                     </div>
                                     <div className="col-lg-6 mb-1">
@@ -323,14 +363,13 @@ const InventoryEntryForm = () => {
                                             required
                                         />
                                     </div>
-
                                 </div>
                             </div>
 
                             {/* Submit Button */}
-                            <div className="card-footer text-center">
-                                <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
-                                    {loading ? 'Processing...' : 'Submit'}
+                            <div className="card-footer text-center row d-flex justify-content-center">
+                                <button type="submit" className="btn btn-primary btn-sm col-lg-4" disabled={loading}>
+                                    {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
                                 </button>
                             </div>
                         </form>

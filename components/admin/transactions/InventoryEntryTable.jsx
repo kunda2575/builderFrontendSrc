@@ -11,7 +11,7 @@ import { fetchData, deleteData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import { Paginator } from 'primereact/paginator';
 
-const StockAvailabilityTable = () => {
+const InventoryEntryTable = () => {
     const [loading, setLoading] = useState(true);
 
     // for delete actions
@@ -20,17 +20,20 @@ const StockAvailabilityTable = () => {
     const [deleteType, setDeleteType] = useState(null);
 
 
-    const [filteredStocks, setFilteredStocks] = useState([]);
+    const [filteredInventory, setFilteredInventory] = useState([]);
     const [materialDetails, setMaterialDetails] = useState([]);
     const [unitType, setUnitType] = useState([]);
+    const [vendorName, setVendorName] = useState([]);
 
     const [selectedMaterialId, setSelectedMaterialId] = useState([]);
     const [selectedMaterialName, setSelectedMaterialName] = useState([]);
     const [selectedUnitType, setSelectedUnitType] = useState([]);
+    const [selectedVendorName, setSelectedVendorName] = useState([]);
 
     const selectedMaterialIdRef = useRef([]);
     const selectedMaterialNameRef = useRef([])
     const selectedUnitTypeRef = useRef([]);
+    const selectedVendorNameRef = useRef([]);
 
     const [first, setFirst] = useState(0);
     const [rows, setRows] = useState(10);
@@ -41,7 +44,8 @@ const StockAvailabilityTable = () => {
     useEffect(() => {
         getMaterialDetails();
         getUnitTypeDetails();
-        getStockDetails();
+        getInventory();
+        getVendorDetails();
     }, []);
 
     const onPageChange = (event) => {
@@ -53,11 +57,14 @@ const StockAvailabilityTable = () => {
     };
 
 
-    const getStockDetails = async () => {
+    const getInventory = async () => {
         setLoading(true);
         let material_id = [];
         let materialName = []
         let unit = [];
+        let vendorName = [];
+
+
         // Extract selected IDs and names
         if (selectedMaterialIdRef.current?.length > 0) {
             const materialIds = selectedMaterialIdRef.current.map(item => item.material_id);
@@ -71,24 +78,48 @@ const StockAvailabilityTable = () => {
             const unitTypes = selectedUnitTypeRef.current.map(item => item.unit);
             unit = unitTypes
         }
+        if (selectedVendorNameRef.current?.length > 0) {
+            const vendorNames = selectedVendorNameRef.current.map(item => item.vendorName);
+            vendorName = vendorNames
+        }
+
+        const queryParams = new URLSearchParams();
+
+        if (material_id.length > 0) queryParams.append('material_id', material_id.join(','));
+        if (materialName.length > 0) queryParams.append('materialName', materialName.join(','));
+        if (unit.length > 0) queryParams.append('unit', unit.join(','));
+        if (vendorName.length > 0) queryParams.append('vendorName', vendorName.join(','));
+
+        queryParams.append('skip', skipValue.current);
+        queryParams.append('limit', limitValue.current);
 
         try {
-            const res = await fetchData(
-                `${config.getStocks}?material_id=${material_id}&materialName=${materialName}&unit=${unit}&skip=${skipValue.current}&limit=${limitValue.current}`
-            );
-            setFilteredStocks(res.data?.materialDetails || []);
-            setTotalRecords(res.data?.materialDetailsCount || 0);
+            const res = await fetchData(`${config.getInventories}?${queryParams.toString()}`);
+            setFilteredInventory(res.data?.inventoryDetails || []);
+            setTotalRecords(res.data?.inventoryDetailsCount || 0);
         } catch (error) {
             toast.error("Error fetching stock data");
         } finally {
             setLoading(false);
         }
+
+        // try {
+        //     const res = await fetchData(
+        //         `${config.getInventories}?material_id=${material_id}&materialName=${materialName}&unit=${unit}&vendorName=${vendorName}&skip=${skipValue.current}&limit=${limitValue.current}`
+        //     );
+        //     setFilteredInventory(res.data?.inventoryDetails || []);
+        //     setTotalRecords(res.data?.inventoryDetailsCount || 0);
+        // } catch (error) {
+        //     toast.error("Error fetching stock data");
+        // } finally {
+        //     setLoading(false);
+        // }
     };
 
 
     const getMaterialDetails = async () => {
         try {
-            const res = await fetchData(config.material);
+            const res = await fetchData(config.getMaterial);
             setMaterialDetails(Array.isArray(res.data) ? res.data : []);
         } catch {
             setMaterialDetails([]);
@@ -97,30 +128,41 @@ const StockAvailabilityTable = () => {
 
     const getUnitTypeDetails = async () => {
         try {
-            const res = await fetchData(config.unitType);
+            const res = await fetchData(config.getUnitType);
             setUnitType(Array.isArray(res.data) ? res.data : []);
         } catch {
             setUnitType([]);
         }
     };
 
+    const getVendorDetails = async () => {
+        try {
+            const res = await fetchData(config.getVendorName);
+            setVendorName(Array.isArray(res.data) ? res.data : []);
+        } catch {
+            setVendorName([]);
+        }
+    };
+
     const resetFilters = () => {
         setSelectedMaterialId([]);
         setSelectedUnitType([]);
-        setSelectedMaterialName([])
+        setSelectedMaterialName([]);
+        setSelectedVendorName([]);
         selectedMaterialIdRef.current = [];
         selectedMaterialNameRef.current = [];
         selectedUnitTypeRef.current = [];
-        getStockDetails();
+        selectedVendorNameRef.current = [];
+        getInventory();
     };
 
     const confirmDelete = async () => {
         if (!confirmDeleteId) return;
         setLoading(true);
         try {
-            const res = await deleteData(config.deleteStock(confirmDeleteId));
-            toast.success( res.data?.message || "Material deleted successfully.");
-            getStockDetails(); // Refresh data
+            const res = await deleteData(config.deleteInventory(confirmDeleteId));
+            toast.success(res.data?.message || "Inventory deleted successfully.");
+            getInventory(); // Refresh data
         } catch (error) {
             toast.error("Failed to delete material");
         } finally {
@@ -130,14 +172,14 @@ const StockAvailabilityTable = () => {
             setLoading(false);
         }
     };
-    
+
 
     return (
         <div className="container-fluid mt-2">
             <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"></i>  Back </Link>
-            <h3 className="text-center mb-3">Stock Availability Management</h3>
+            <h3 className="text-center mb-3">Inventory Management</h3>
             <div className="text-end">
-                <Link className="text-decoration-none text-primary" to="/stockAvailabilityForm"> <button className='btn btn-primary btn-sm'> Add Details  <i className="pi pi-arrow-right"></i> </button>  </Link>
+                <Link className="text-decoration-none text-primary" to="/inventoryEntryForm"> <button className='btn btn-primary btn-sm mb-2'> Add Details  <i className="pi pi-arrow-right"></i> </button>  </Link>
             </div>
 
             <div className='row mb-3'>
@@ -145,7 +187,7 @@ const StockAvailabilityTable = () => {
                     <h5>Total Records: {totalRecords}</h5>
                 </div>
                 <div className='col-6 text-end'>
-                    {(selectedMaterialIdRef.current.length > 0 || selectedMaterialNameRef.current.length > 0 || selectedUnitTypeRef.current.length > 0) && (
+                    {(selectedMaterialIdRef.current.length > 0 || selectedMaterialNameRef.current.length > 0 || selectedUnitTypeRef.current.length > 0 || selectedVendorNameRef.current.length > 0) && (
                         <button className='btn btn-danger btn-sm rounded-0' onClick={resetFilters}>
                             Reset All Filters
                         </button>
@@ -176,17 +218,17 @@ const StockAvailabilityTable = () => {
 
 
             <DataTable
-                value={filteredStocks}
+                value={filteredInventory}
                 stripedRows
                 loading={loading}
                 loadingIcon="pi pi-spinner"
                 scrollable
                 emptyMessage={
                     <h6 className="text-center" >
-                        No stock data available.
+                        No Inventory data available.
                     </h6>
                 }
-                showClear = {true}
+                showClear={true}
                 style={{ textAlign: 'center' }}
             >
                 <Column field="material_id" header={() => (
@@ -200,7 +242,7 @@ const StockAvailabilityTable = () => {
                             onChange={e => {
                                 setSelectedMaterialId(e.value);
                                 selectedMaterialIdRef.current = e.value;
-                                getStockDetails();
+                                getInventory();
                             }}
                             style={{ textAlign: 'center' }}
                             placeholder="Select Material Id"
@@ -222,7 +264,7 @@ const StockAvailabilityTable = () => {
                             onChange={e => {
                                 setSelectedMaterialName(e.value);
                                 selectedMaterialNameRef.current = e.value;
-                                getStockDetails();
+                                getInventory();
                             }}
                             placeholder="Select Material Name"
                             className="small-multiselect w-100"
@@ -232,6 +274,31 @@ const StockAvailabilityTable = () => {
                     </label>
                 )} style={{ minWidth: '13rem' }} />
 
+                <Column field="vendor_name" header={() => (    // model name
+                    <label>
+                        Vendor Name<br />
+                        <MultiSelect
+                            filter
+                            value={selectedVendorName}
+                            options={vendorName}   // state variable 
+                            optionLabel="vendorName"
+                            onChange={e => {
+                                setSelectedVendorName(e.value);
+                                selectedVendorNameRef.current = e.value;
+                                getInventory();
+                            }}
+                            placeholder="Select Vendor Name"
+                            className="small-multiselect w-100"
+                            maxSelectedLabels={0}
+                            selectedItemsLabel={`${selectedVendorName.length} selected`}
+                        />
+                    </label>
+                )} style={{ minWidth: '13rem' }} />
+
+                <Column field="invoice_number" header="Invoice Number" style={{ minWidth: '13rem' }} />
+                <Column field="invoice_date" header="Invoice Date" style={{ minWidth: '13rem' }} />
+                <Column field="invoice_cost_incl_gst" header="Invoice_Cost_Incl_Gst" style={{ minWidth: '13rem' }} />
+                <Column field="quantity_received" header="Quantity Received" style={{ minWidth: '13rem' }} />
                 <Column field="unit_type" header={() => (    // model name
                     <label>
                         Unit Type<br />
@@ -243,7 +310,7 @@ const StockAvailabilityTable = () => {
                             onChange={e => {
                                 setSelectedUnitType(e.value);
                                 selectedUnitTypeRef.current = e.value;
-                                getStockDetails();
+                                getInventory();
                             }}
                             placeholder="Select Unit Type"
                             className="small-multiselect w-100"
@@ -252,14 +319,14 @@ const StockAvailabilityTable = () => {
                         />
                     </label>
                 )} style={{ minWidth: '13rem' }} />
-
-                <Column field="available_stock" header="Available Stock" style={{ minWidth: '13rem' }} />
+                <Column field="invoice_attachment" header="Invoice Attachment" style={{ minWidth: '13rem' }} />
+                <Column field="entered_by" header="Entered By" style={{ minWidth: '13rem' }} />
 
                 <Column
                     header="Actions"
                     body={(rowData) => (
                         <div className="d-flex gap-2 justify-content-center">
-                            <Link to={`/stockAvailabilityForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
+                            <Link to={`/inventoryEntryForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                                 <i className="pi pi-pencil"></i>
                             </Link>
                             <button className="btn btn-outline-danger btn-sm" onClick={() => {
@@ -288,4 +355,4 @@ const StockAvailabilityTable = () => {
     );
 };
 
-export default StockAvailabilityTable;
+export default InventoryEntryTable;

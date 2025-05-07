@@ -34,12 +34,17 @@ import TeamMemberMaster from "../components/admin/masters/TeamMemberMaster";
 import VendorMaster from "../components/admin/masters/VendorMaster";
 import UnitTypeMaster from "../components/admin/masters/UnitTypeMaster";
 import UserMaster from "../components/admin/masters/UserMaster";
+
+// Transaction Routes
 import Leads from "../components/admin/transactions/LeadsForm";
 import LeadsTable from "../components/admin/transactions/LeadsTable";
 // import LeadsTableBoot from "../components/admin/transactions/LeadsTableBoot";
-import MaterialForm from "../components/admin/transactions/stockAvaliabilityForm";
+import MaterialForm from "../components/admin/transactions/StockAvaliabilityForm";
 import StockAvailabilityTable from "../components/admin/transactions/StockAvaliabilityTable";
-// import InventoryEntryForm from "../components/admin/transactions/InventoryEntryForm";
+import InventoryEntryForm from "../components/admin/transactions/InventoryEntryForm";
+import InventoryEntryTable from "../components/admin/transactions/InventoryEntryTable";
+import MaterialIssueTable from "../components/admin/transactions/MaterialIssueTable";
+import MaterialIssueForm from "../components/admin/transactions/MaterialIssueForm";
 
 const AppRoutes = () => (
   <Routes>
@@ -100,8 +105,11 @@ const AppRoutes = () => (
     <Route path="/leadsTable" element={<LeadsTable />} />
     {/* <Route path="/leadsTableBoot" element={<LeadsTableBoot />} /> */}
     <Route path="/stockAvailabilityForm" element={<MaterialForm/>} />
-    <Route path="/stockAvailability" element={< StockAvailabilityTable/>} />
-    {/* <Route path="/inventoryEntry" element={<InventoryEntryForm/>}/> */}
+    <Route path="/stockAvailabilityTable" element={< StockAvailabilityTable/>} />
+    <Route path="/inventoryEntryForm" element={<InventoryEntryForm/>}/>
+    <Route path="/inventoryEntryTable" element={<InventoryEntryTable/>}/>
+    <Route path="/materialIssueForm" element={<MaterialIssueForm/>}/>
+    <Route path="/materialIssueTable" element={<MaterialIssueTable/>}/>
 
 
 

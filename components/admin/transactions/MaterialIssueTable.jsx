@@ -11,7 +11,7 @@ import { fetchData, deleteData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import { Paginator } from 'primereact/paginator';
 
-const StockAvailabilityTable = () => {
+const MaterialIssueTable = () => {
     const [loading, setLoading] = useState(true);
 
     // for delete actions
@@ -20,15 +20,13 @@ const StockAvailabilityTable = () => {
     const [deleteType, setDeleteType] = useState(null);
 
 
-    const [filteredStocks, setFilteredStocks] = useState([]);
+    const [filteredMaterialIsuue, setFilteredMaterialIsuue] = useState([]);
     const [materialDetails, setMaterialDetails] = useState([]);
     const [unitType, setUnitType] = useState([]);
 
-    const [selectedMaterialId, setSelectedMaterialId] = useState([]);
     const [selectedMaterialName, setSelectedMaterialName] = useState([]);
     const [selectedUnitType, setSelectedUnitType] = useState([]);
 
-    const selectedMaterialIdRef = useRef([]);
     const selectedMaterialNameRef = useRef([])
     const selectedUnitTypeRef = useRef([]);
 
@@ -41,7 +39,7 @@ const StockAvailabilityTable = () => {
     useEffect(() => {
         getMaterialDetails();
         getUnitTypeDetails();
-        getStockDetails();
+        getMaterialIssues();
     }, []);
 
     const onPageChange = (event) => {
@@ -49,20 +47,15 @@ const StockAvailabilityTable = () => {
         setRows(event.rows);
         skipValue.current = event.first;
         limitValue.current = event.rows;
-        getStockDetails();
+        getMaterialIssues();
     };
 
 
-    const getStockDetails = async () => {
+    const getMaterialIssues = async () => {
         setLoading(true);
-        let material_id = [];
         let materialName = []
         let unit = [];
-        // Extract selected IDs and names
-        if (selectedMaterialIdRef.current?.length > 0) {
-            const materialIds = selectedMaterialIdRef.current.map(item => item.material_id);
-            material_id = materialIds
-        }
+
         if (selectedMaterialNameRef.current?.length > 0) {
             const materialNames = selectedMaterialNameRef.current.map(item => item.materialName);
             materialName = materialNames
@@ -74,9 +67,9 @@ const StockAvailabilityTable = () => {
 
         try {
             const res = await fetchData(
-                `${config.getStocks}?material_id=${material_id}&materialName=${materialName}&unit=${unit}&skip=${skipValue.current}&limit=${limitValue.current}`
+                `${config.getMaterialIsuues}?materialName=${materialName}&unit=${unit}&skip=${skipValue.current}&limit=${limitValue.current}`
             );
-            setFilteredStocks(res.data?.materialDetails || []);
+            setFilteredMaterialIsuue(res.data?.materialIssueDetails || []);
             setTotalRecords(res.data?.materialDetailsCount || 0);
         } catch (error) {
             toast.error("Error fetching stock data");
@@ -88,7 +81,7 @@ const StockAvailabilityTable = () => {
 
     const getMaterialDetails = async () => {
         try {
-            const res = await fetchData(config.material);
+            const res = await fetchData(config.material_Issue);
             setMaterialDetails(Array.isArray(res.data) ? res.data : []);
         } catch {
             setMaterialDetails([]);
@@ -97,7 +90,7 @@ const StockAvailabilityTable = () => {
 
     const getUnitTypeDetails = async () => {
         try {
-            const res = await fetchData(config.unitType);
+            const res = await fetchData(config.unitType_Issue);
             setUnitType(Array.isArray(res.data) ? res.data : []);
         } catch {
             setUnitType([]);
@@ -105,22 +98,20 @@ const StockAvailabilityTable = () => {
     };
 
     const resetFilters = () => {
-        setSelectedMaterialId([]);
         setSelectedUnitType([]);
         setSelectedMaterialName([])
-        selectedMaterialIdRef.current = [];
         selectedMaterialNameRef.current = [];
         selectedUnitTypeRef.current = [];
-        getStockDetails();
+        getMaterialIssues();
     };
 
     const confirmDelete = async () => {
         if (!confirmDeleteId) return;
         setLoading(true);
         try {
-            const res = await deleteData(config.deleteStock(confirmDeleteId));
-            toast.success( res.data?.message || "Material deleted successfully.");
-            getStockDetails(); // Refresh data
+            const res = await deleteData(config.deleteMaterialIssue(confirmDeleteId));
+            toast.success(res.data?.message || "Material Issue deleted successfully.");
+            getMaterialIssues(); // Refresh data
         } catch (error) {
             toast.error("Failed to delete material");
         } finally {
@@ -130,14 +121,14 @@ const StockAvailabilityTable = () => {
             setLoading(false);
         }
     };
-    
+
 
     return (
         <div className="container-fluid mt-2">
             <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"></i>  Back </Link>
-            <h3 className="text-center mb-3">Stock Availability Management</h3>
+            <h3 className="text-center mb-3"> Material Issue Management</h3>
             <div className="text-end">
-                <Link className="text-decoration-none text-primary" to="/stockAvailabilityForm"> <button className='btn btn-primary btn-sm'> Add Details  <i className="pi pi-arrow-right"></i> </button>  </Link>
+                <Link className="text-decoration-none text-primary" to="/materialIssueForm"> <button className='btn btn-primary btn-sm'> Add Details  <i className="pi pi-arrow-right"></i> </button>  </Link>
             </div>
 
             <div className='row mb-3'>
@@ -145,7 +136,7 @@ const StockAvailabilityTable = () => {
                     <h5>Total Records: {totalRecords}</h5>
                 </div>
                 <div className='col-6 text-end'>
-                    {(selectedMaterialIdRef.current.length > 0 || selectedMaterialNameRef.current.length > 0 || selectedUnitTypeRef.current.length > 0) && (
+                    {(selectedMaterialNameRef.current.length > 0 || selectedUnitTypeRef.current.length > 0) && (
                         <button className='btn btn-danger btn-sm rounded-0' onClick={resetFilters}>
                             Reset All Filters
                         </button>
@@ -176,7 +167,7 @@ const StockAvailabilityTable = () => {
 
 
             <DataTable
-                value={filteredStocks}
+                value={filteredMaterialIsuue}
                 stripedRows
                 loading={loading}
                 loadingIcon="pi pi-spinner"
@@ -186,31 +177,9 @@ const StockAvailabilityTable = () => {
                         No stock data available.
                     </h6>
                 }
-                showClear = {true}
+                showClear={true}
                 style={{ textAlign: 'center' }}
             >
-                <Column field="material_id" header={() => (
-                    <label>
-                        Material Id<br />
-                        <MultiSelect
-                            filter
-                            value={selectedMaterialId}
-                            options={materialDetails}
-                            optionLabel="material_id"
-                            onChange={e => {
-                                setSelectedMaterialId(e.value);
-                                selectedMaterialIdRef.current = e.value;
-                                getStockDetails();
-                            }}
-                            style={{ textAlign: 'center' }}
-                            placeholder="Select Material Id"
-                            className="small-multiselect w-100"
-                            maxSelectedLabels={0}
-                            selectedItemsLabel={`${selectedMaterialId.length} selected`}
-                        />
-                    </label>
-                )} style={{ minWidth: '13rem' }} />
-
                 <Column field="material_name" header={() => (
                     <label>
                         Material Name <br />
@@ -222,7 +191,7 @@ const StockAvailabilityTable = () => {
                             onChange={e => {
                                 setSelectedMaterialName(e.value);
                                 selectedMaterialNameRef.current = e.value;
-                                getStockDetails();
+                                getMaterialIssues();
                             }}
                             placeholder="Select Material Name"
                             className="small-multiselect w-100"
@@ -230,7 +199,7 @@ const StockAvailabilityTable = () => {
                             selectedItemsLabel={`${selectedMaterialName.length} selected`}
                         />
                     </label>
-                )} style={{ minWidth: '13rem' }} />
+                )}  style={{ minWidth: '13rem' }} />
 
                 <Column field="unit_type" header={() => (    // model name
                     <label>
@@ -243,23 +212,26 @@ const StockAvailabilityTable = () => {
                             onChange={e => {
                                 setSelectedUnitType(e.value);
                                 selectedUnitTypeRef.current = e.value;
-                                getStockDetails();
+                                getMaterialIssues();
                             }}
                             placeholder="Select Unit Type"
-                            className="small-multiselect w-100"
+                            style={{ textAlign: 'center' }}
                             maxSelectedLabels={0}
                             selectedItemsLabel={`${selectedUnitType.length} selected`}
                         />
                     </label>
-                )} style={{ minWidth: '13rem' }} />
+                )}  style={{ minWidth: '13rem' }} />
 
-                <Column field="available_stock" header="Available Stock" style={{ minWidth: '13rem' }} />
+                <Column field="quantity_issued" header="Quantity Issued" headerClassName="text-center" />
+                <Column field="issued_by" header="Issued By" />
+                <Column field="issued_to" header="Issued To" />
+                <Column field="issue_date" header="Issue Date" />
 
                 <Column
                     header="Actions"
                     body={(rowData) => (
                         <div className="d-flex gap-2 justify-content-center">
-                            <Link to={`/stockAvailabilityForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
+                            <Link to={`/materialIssueForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                                 <i className="pi pi-pencil"></i>
                             </Link>
                             <button className="btn btn-outline-danger btn-sm" onClick={() => {
@@ -288,4 +260,4 @@ const StockAvailabilityTable = () => {
     );
 };
 
-export default StockAvailabilityTable;
+export default MaterialIssueTable;
