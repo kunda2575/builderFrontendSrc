@@ -1,8 +1,5 @@
-
-// export const host = "https://buildrviewbackend.onrender.com";
-
-
-export const host = "http://localhost:2026"
+export const host = "https://buildrviewbackend.onrender.com";
+// export const host = `http://localhost:2026/`;
 
 export const config = {
   host: `${host}`,
@@ -16,51 +13,48 @@ export const config = {
   verifyOtp: `${host}/user/verify-otp`,
 
   // LEADS
-  getLeads: `${host}/api/leads`,                           // GET all leads
-  getLeadStage: `${host}/api/leads/leadStage`,                // GET lead stages
-  getLeadSource: `${host}/api/leads/leadSource`,              // GET lead sources
-  createLead: `${host}/api/leads`,                         // POST (create a new lead)
-  updateLead: (id) => `${host}/api/leads/${id}`,           // PUT (update a lead by ID)
-  deleteLead: (id) => `${host}/api/leads/${id}`,           // DELETE (delete a lead by ID)
-  getLeadById: (id) => `${host}/api/leads/${id}`,     // GET single stock by ID
-  // TEAM MEMBERS
-  getTeamMember: `${host}/api/leads/teamMember`,         // GET  team members
+  getLeads: `${host}/api/leads`,
+  getLeadStage: `${host}/api/leads/leadStage`,
+  getLeadSource: `${host}/api/leads/leadSource`,
+  createLead: `${host}/api/leads`,
+  updateLead: (id) => `${host}/api/leads/${id}`,
+  deleteLead: (id) => `${host}/api/leads/${id}`,
+  getLeadById: (id) => `${host}/api/leads/${id}`,
+  getTeamMember: `${host}/api/leads/teamMember`,
 
-  
-  // Stock Availability
-  getStocks: `${host}/api/stocks`,                       // GET all with filters/pagination
-  getStockById: (id) => `${host}/api/stocks/${id}`,     // GET single stock by ID
-  createStock: `${host}/api/stocks`,                    // POST (create new stock)
-  updateStock: (id) => `${host}/api/stocks/${id}`,      // PUT (update stock by ID)
-  deleteStock: (id) => `${host}/api/stocks/${id}`,      // DELETE (delete stock by ID)
+  // STOCK AVAILABILITY
+  getStocks: `${host}/api/stocks`,
+  getStockById: (id) => `${host}/api/stocks/${id}`,
+  createStock: `${host}/api/stocks`,
+  updateStock: (id) => `${host}/api/stocks/${id}`,
+  deleteStock: (id) => `${host}/api/stocks/${id}`,
+  getMaterialMaster_Stock: `${host}/api/stocks/materialMaster`,
+  getUnitTypes_Stock: `${host}/api/stocks/unitTypes`,
 
-  material: `${host}/api/stocks/materialMaster`,        // GET material master data
-  unitType: `${host}/api/stocks/unitTypes`,             // GET unit type data
-
-
-  // Inventory Entry
+  // INVENTORY ENTRY
   getInventories: `${host}/api/inventory`,
-  getInventoriesById: (id) => `${host}/api/inventory/${id}`,               // GET all inventories
-  getMaterial: `${host}/api/inventory/materialMaster`, // GET material master data
-  getUnitType: `${host}/api/inventory/unitTypes`,    // GET unit types data
-  getVendorName: `${host}/api/inventory/vendor`,        // GET vendor data
-  createInventory: `${host}/api/inventory`,               // POST (create new inventory)
-  updateInventory: (id) => `${host}/api/inventory/${id}`,  // PUT (update inventory by ID)
-  deleteInventory: (id) => `${host}/api/inventory/${id}`,  // DELETE (delete inventory by ID)
+  getInventoryById: (id) => `${host}/api/inventory/${id}`,
+  getMaterialMaster_Inventory: `${host}/api/inventory/materialMaster`,
+  getUnitTypes_Inventory: `${host}/api/inventory/unitTypes`,
+  getVendors_Inventory: `${host}/api/inventory/vendor`,
+  createInventory: `${host}/api/inventory`,
+  updateInventory: (id) => `${host}/api/inventory/${id}`,
+  deleteInventory: (id) => `${host}/api/inventory/${id}`,
 
+  // MATERIAL ISSUE
+  getMaterialIssues: `${host}/api/materialIssue`,
+  getMaterialIssueById: (id) => `${host}/api/materialIssue/${id}`,
+  createMaterialIssue: `${host}/api/materialIssue`,
+  updateMaterialIssue: (id) =>`${host}/api/materialIssue/${id}`,
+  deleteMaterialIssue: (id) => `${host}/api/materialIssue/${id}`,
+  getMaterialMaster_Issue: `${host}/api/materialIssue/materialMaster`,
+  getUnitTypes_Issue: `${host}/api/materialIssue/unitTypes`,
 
-  // Material Issue 
-  getMaterialIsuues: `${host}/api/materialIssue`,                       // GET all with filters/pagination
-  getMaterialIsuuesById: (id) => `${host}/api/materialIssue/${id}`,     // GET single material Issue by ID
-  createMaterialIssue: `${host}/api/materialIssue`,                    // POST (create new material Issue)
-  updateMaterialIssue: (id) => `${host}/api/materialIssue/${id}`,      // PUT (update material Issue by ID)
-  deleteMaterialIssue: (id) => `${host}/api/materialIssue/${id}`,      // DELETE (delete material Issue by ID)
-
-  material_Issue: `${host}/api/materialIssue/materialMaster`,        // GET material master data
-  unitType_Issue: `${host}/api/materialIssue/unitTypes`,             // GET unit type data
-
-
-  // Other unrelated endpoints should have their own unique names
-
+  // EXPENDITURE
+  getExpenditures: `${host}/api/expenditure`,                              // GET all with filters/pagination
+  getExpenditureById: (id) => `${host}/api/expenditure/${id}`,            // GET single expenditure by ID
+  createExpenditure: `${host}/api/expenditure`,                           // POST (create new expenditure)
+  updateExpenditure: (id) => `${host}/api/expenditure/${id}`,             // PUT (update expenditure by ID)
+  deleteExpenditure: (id) => `${host}/api/expenditure/${id}`,             // DELETE (delete expenditure by ID)
+  getExpenditureCategories: `${host}/api/expenditure/categories`,         // GET expenditure category options
 };
-
