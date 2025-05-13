@@ -1,5 +1,5 @@
-export const host = "https://buildrviewbackend.onrender.com";
-// export const host = `http://localhost:2026/`;
+// export const host = "https://buildrviewbackend.onrender.com";
+export const host = `http://localhost:2026`;
 
 export const config = {
   host: `${host}`,
