@@ -10,12 +10,12 @@ const Transaction = () => {
     { name: "Stock Availabillity ", path: "/stockAvailabilityTable" },
     { name: "Material Issue ", path: "/materialIssueTable" },
     { name: "Inventory Entry ", path: "/inventoryEntryTable" },
-    { name: "Expenditure ", path: "/expenditure" },
-    { name: "Project Schedule ", path: "/projectSchedule" },
+    { name: "Expenditure ", path: "/expenditureTable" },
+    
     { name: "Project Debits ", path: "/projectDebits" },
     { name: "Project Credits ", path: "/projectCredits" },
     { name: "Customer Payments ", path: "/customerPayments" },
-    { name: "Data Master ", path: "/dataMaster" },
+   
    
 
   ];

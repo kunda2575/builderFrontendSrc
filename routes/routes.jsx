@@ -45,6 +45,8 @@ import InventoryEntryForm from "../components/admin/transactions/InventoryEntryF
 import InventoryEntryTable from "../components/admin/transactions/InventoryEntryTable";
 import MaterialIssueTable from "../components/admin/transactions/MaterialIssueTable";
 import MaterialIssueForm from "../components/admin/transactions/MaterialIssueForm";
+import ExpenditureForm from "../components/admin/transactions/ExpenditureForm";
+import ExpenditureTable from "../components/admin/transactions/ExpenditureTable ";
 
 const AppRoutes = () => (
   <Routes>
@@ -110,6 +112,8 @@ const AppRoutes = () => (
     <Route path="/inventoryEntryTable" element={<InventoryEntryTable/>}/>
     <Route path="/materialIssueForm" element={<MaterialIssueForm/>}/>
     <Route path="/materialIssueTable" element={<MaterialIssueTable/>}/>
+    <Route path="/expenditureForm" element={<ExpenditureForm/>}/>
+    <Route path="/expenditureTable" element={<ExpenditureTable/>}/>
 
 
 

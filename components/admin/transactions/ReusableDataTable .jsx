@@ -33,21 +33,25 @@ const ReusableDataTable = ({
             filterStates.current[f.field] = [];
         }
     });
-
     const handleDelete = async () => {
+        if (!deleteId) {
+            toast.error("Invalid ID to delete");
+            return;
+        }
+
         setLoading(true);
         try {
             await deleteFunction(deleteId);
             toast.success('Deleted successfully');
-            fetchData();
-        } catch {
+            fetchData(); // Refresh after delete
+        } catch (err) {
+            console.error("Error deleting item:", err);
             toast.error('Failed to delete');
         } finally {
             setShowDeleteModal(false);
             setLoading(false);
         }
     };
-
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -88,9 +92,9 @@ const ReusableDataTable = ({
     return (
         <div className="container-fluid mt-2">
             {backButtonLink && (
-                <a href={backButtonLink} className="text-primary text-decoration-none mb-2 d-inline-block">
+                <Link to={backButtonLink} className="text-primary text-decoration-none mb-2 d-inline-block">
                     <i className="pi pi-arrow-left" /> Back
-                </a>
+                </Link>
             )}
 
             <h3 className="text-center">{title}</h3>
@@ -152,7 +156,7 @@ const ReusableDataTable = ({
                                     maxSelectedLabels={0}
                                     selectedItemsLabel={`${filterStates.current[f.field]?.length || 0} selected`}
                                 />
-                                
+
                             </label>
                         )}
                         style={{ minWidth: '12rem' }}

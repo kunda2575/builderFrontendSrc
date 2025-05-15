@@ -1,8 +1,8 @@
 
-export const host = "https://buildrviewbackend.onrender.com";
+// export const host = "https://buildrviewbackend.onrender.com";
 
 
-// export const host = "http://localhost:2026"
+export const host = "http://localhost:2026"
 
 export const config = {
   host: `${host}`,
@@ -59,6 +59,23 @@ export const config = {
   material_Issue: `${host}/api/materialIssue/materialMaster`,        // GET material master data
   unitType_Issue: `${host}/api/materialIssue/unitTypes`,             // GET unit type data
 
+
+
+  
+  
+  // Expenditure CRUD
+  getExpenditures:         `${host}/api/expenditure`,            // GET all (with filters/pagination)
+  createExpenditure:       `${host}/api/expenditure`,            // POST
+  updateExpenditure:       (id) => `${host}/api/expenditure/${id}`,// PUT
+  deleteExpenditure:       (id) => `${host}/api/expenditure/${id}`,// DELETE
+  
+  // Master-data endpoints for dropdowns
+  getVendorNameEx:           `${host}/api/expenditure/vendor`,
+  getExpenseHeadEx:          `${host}/api/expenditure/expense`,
+  getPaymentModeEx:          `${host}/api/expenditure/paymentMode`,
+  getPaymentBankEx:          `${host}/api/expenditure/paymentBank`,
+  getExpenditureById:      (id) => `${host}/api/expenditure/${id}`,// GET single
+  
 
   // Other unrelated endpoints should have their own unique names
 
