@@ -268,7 +268,7 @@ const ExpenditureForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                        <label>Vendor Name</label>
+                                        <label> </label>
                                         <select
                                             name='vendor_name'
                                             value={form.vendor_name}
@@ -286,7 +286,7 @@ const ExpenditureForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                        <label>Expense Head</label>
+                                   
                                         <select
                                             name='expense_head'
                                             value={form.expense_head}
@@ -304,7 +304,7 @@ const ExpenditureForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                        <label>Payment Mode</label>
+                                  
                                         <select
                                             name='payment_mode'
                                             value={form.payment_mode}
@@ -322,7 +322,7 @@ const ExpenditureForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                        <label>Payment Bank</label>
+                                      
                                         <select
                                             name='payment_bank'
                                             value={form.payment_bank}
