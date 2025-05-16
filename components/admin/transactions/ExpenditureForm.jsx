@@ -11,13 +11,14 @@ const ExpenditureForm = () => {
     const editID = searchParams.get('id');
 
     const [loading, setLoading] = useState(false);
+    const [expenditure, setExpenditures] = useState([])
     const [vendorNames, setVendorName] = useState([]);
     const [expenseHeads, setExpenseHeads] = useState([]);
     const [paymentMode, setPaymentMode] = useState([]);
     const [paymentBank, setPaymentBank] = useState([]);
 
     const [form, setForm] = useState({
-        date: null,
+        date: "",
         vendor_name: '',
         expense_head: '',
         amount_inr: '',
@@ -30,72 +31,204 @@ const ExpenditureForm = () => {
     });
 
     useEffect(() => {
-        fetchInitialData();
+
+        fetchExpendituresForm();
+        fetchVendors()
+        fetchExpenseHeads()
+        fetchPaymentModes()
+        fetchPaymentBanks();
+    
         if (editID) {
-            fetchExpenditureById(editID);
+            fetchEditData(editID);
         }
-    }, [editID]);
+    }, []);
 
-    const fetchInitialData = async () => {
+    //     const fetchInitialData = async () => {
+    //         try {
+    //             const [vendorRes, expenseRes, modeRes, bankRes] = await Promise.all([
+    //                 fetchData(`${config.getVendorNameEx}`),
+    //                 fetchData(`${config.getExpenseHeadEx}`),
+    //                 fetchData(`${config.getPaymentModeEx}`),
+    //                 fetchData(`${config.getPaymentBankEx}`)
+    //             ]);
+
+    //             setVendorName(vendorRes.data || []);
+    //             setExpenseHeads(expenseRes.data || []);
+    //             setPaymentMode(modeRes.data || []);
+    //             setPaymentBank(bankRes.data || []);
+    //         } catch (err) {
+    //             toast.error("Failed to fetch dropdown data.");
+    //         }
+    //     };
+    // const fetchExpenditureById = async (id) => {
+    //   try {
+    //     const res = await fetchData(`${config.getExpenditureById(id)}`);
+    //     if (res.data) {
+    //       const fetched = res.data;
+
+    //       const formattedData = {
+    //         id: fetched.id,
+    //         date: fetched.date ? new Date(fetched.date) : null,
+    //         vendor_name: fetched.vendorName || '',          // map to vendor_name
+    //         expense_head: fetched.expenseHead || '',        // map to expense_head
+    //         amount_inr: fetched.amount_inr || '',           // keep same key if matches
+    //         invoice_number: fetched.invoice_number || '',
+    //         payment_mode: fetched.paymentMode || '',        // map to payment_mode
+    //         payment_bank: fetched.bankName || '',            // map to payment_bank
+    //         payment_reference: fetched.payment_reference || '',
+    //         payment_evidence: fetched.payment_evidence || '',
+    //       };
+
+    //       setForm(formattedData);
+    //     }
+    //   } catch (err) {
+    //     toast.error("Failed to fetch expenditure data.");
+    //   }
+    // };
+
+
+
+
+    const fetchExpendituresForm = async () => {
         try {
-            const [vendorRes, expenseRes, modeRes, bankRes] = await Promise.all([
-                fetchData(`${config.getVendorNameEx}`),
-                fetchData(`${config.getExpenseHeadEx}`),
-                fetchData(`${config.getPaymentModeEx}`),
-                fetchData(`${config.getPaymentBankEx}`)
-            ]);
-
-            setVendorName(vendorRes.data || []);
-            setExpenseHeads(expenseRes.data || []);
-            setPaymentMode(modeRes.data || []);
-            setPaymentBank(bankRes.data || []);
-        } catch (err) {
-            toast.error("Failed to fetch dropdown data.");
+            const res = await fetchData(`${config.getExpenditures}`);
+            // console.log('inventory Response:', res);  // Debugging the API response
+            if (Array.isArray(res.data)) {
+                setExpenditures(res.data);
+            } else {
+                setExpenditures([]);
+            }
+        } catch (error) {
+            console.error("Error fetching expenditure:", error);
+            toast.error('Failed to fetch expenditure');
         }
     };
-const fetchExpenditureById = async (id) => {
-  try {
-    const res = await fetchData(`${config.getExpenditureById(id)}`);
-    if (res.data) {
-      const fetched = res.data;
 
-      const formattedData = {
-        id: fetched.id,
-        date: fetched.date ? new Date(fetched.date) : null,
-        vendor_name: fetched.vendorName || '',          // map to vendor_name
-        expense_head: fetched.expenseHead || '',        // map to expense_head
-        amount_inr: fetched.amount_inr || '',           // keep same key if matches
-        invoice_number: fetched.invoice_number || '',
-        payment_mode: fetched.paymentMode || '',        // map to payment_mode
-        payment_bank: fetched.bankName || '',            // map to payment_bank
-        payment_reference: fetched.payment_reference || '',
-        payment_evidence: fetched.payment_evidence || '',
-      };
 
-      setForm(formattedData);
-    }
-  } catch (err) {
-    toast.error("Failed to fetch expenditure data.");
-  }
-};
+
+    const fetchVendors = async () => {
+        try {
+            const res = await fetchData(`${config.getVendorNameEx}`);
+            // console.log('vendor Response:', res);  // Debugging API response
+            if (res && res.data && Array.isArray(res.data)) {
+                setVendorName(res.data);
+            } else {
+                console.log("No unit types found or invalid data format.");
+                setVendorName([]);
+            }
+        } catch (error) {
+            console.error("Error fetching vendors:", error);
+            toast.error('Failed to fetch vendors');
+        }
+    };
+    // Fetch Expense Heads
+    const fetchExpenseHeads = async () => {
+        try {
+            const res = await fetchData(`${config.getExpenseHeadEx}`);
+            if (res && res.data && Array.isArray(res.data)) {
+                setExpenseHeads(res.data);
+            } else {
+                console.log("No expense heads found or invalid data format.");
+                setExpenseHeads([]);
+            }
+        } catch (error) {
+            console.error("Error fetching expense heads:", error);
+            toast.error('Failed to fetch expense heads');
+        }
+    };
+
+    // Fetch Payment Modes
+    const fetchPaymentModes = async () => {
+        try {
+            const res = await fetchData(`${config.getPaymentModeEx}`);
+            if (res && res.data && Array.isArray(res.data)) {
+                setPaymentMode(res.data);
+            } else {
+                console.log("No payment modes found or invalid data format.");
+                setPaymentMode([]);
+            }
+        } catch (error) {
+            console.error("Error fetching payment modes:", error);
+            toast.error('Failed to fetch payment modes');
+        }
+    };
+
+    // Fetch Payment Banks
+    const fetchPaymentBanks = async () => {
+        try {
+            const res = await fetchData(`${config.getPaymentBankEx}`);
+            if (res && res.data && Array.isArray(res.data)) {
+                setPaymentBank(res.data);
+            } else {
+                console.log("No payment banks found or invalid data format.");
+                setPaymentBank([]);
+            }
+        } catch (error) {
+            console.error("Error fetching payment banks:", error);
+            toast.error('Failed to fetch payment banks');
+        }
+    };
+
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
+             const formData = { ...form };
             if (form.id) {
-                await putData(`${config.updateExpenditure}/${form.id}`, form);
-                toast.success("Updated successfully!");
+              await putData(config.updateExpenditure(form.id), formData);
+  toast.success("Updated successfully!");
             } else {
-                await postData(`${config.createExpenditure}`, form);
+                await postData(`${config.createExpenditure}`, formData);
                 toast.success("Created successfully!");
             }
+            setForm({
+              date: null,
+        vendor_name: '',
+        expense_head: '',
+        amount_inr: '',
+        invoice_number: '',
+        payment_mode: '',
+        payment_bank: '',
+        payment_reference: '',
+        payment_evidence: '',
+        id: null
+            })
+            fetchExpendituresForm();
         } catch (err) {
             toast.error("Submission failed.");
         } finally {
             setLoading(false);
         }
     };
+
+   const fetchEditData = async (id) => {
+    try {
+        const res = await fetchData(config.getExpenditureById(id)); // Make sure this is the correct expenditure endpoint
+        const data = res.data;
+
+        if (data) {
+            const formattedData = {
+                date: data.date ? new Date(data.date) : "",
+                vendor_name: data.vendor_name || '',         // Assuming these match your backend response
+                expense_head: data.expense_head || '',
+                amount_inr: data.amount_inr || '',
+                invoice_number: data.invoice_number || '',
+                payment_mode: data.payment_mode || '',
+                payment_bank: data.payment_bank || '',
+                payment_reference: data.payment_reference || '',
+                payment_evidence: data.payment_evidence || '',
+                id: data.id || null,
+            };
+            setForm(formattedData);
+        }
+    } catch (error) {
+        toast.error("Failed to load expenditure data for editing");
+        console.error("Error loading expenditure by ID:", error);
+    }
+};
 
     return (
         <div className="container-fluid mt-3">

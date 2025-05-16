@@ -9,7 +9,7 @@ const ExpenditureTable = () => {
     const [expenseHead, setExpenseHead] = useState([]);
     const [paymentMode, setPaymentMode] = useState([]);
     const [paymentBank, setPaymentBank] = useState([]);
-    const navigate = useNavigate();
+    
 
     useEffect(() => {
         fetchData(config.getVendorNameEx).then(res => setVendorName(res.data || []));
@@ -19,28 +19,16 @@ const ExpenditureTable = () => {
     }, []);
 
     const fetchExpenditure = async ({ vendor_name, expense_head, payment_mode, payment_bank, skip, limit }) => {
-        const params = { vendor_name, expense_head, payment_mode, payment_bank, skip, limit };
-        const res = await fetchData(config.getExpenditures, params);
-
+        // const params = { vendor_name, expense_head, payment_mode, payment_bank, skip, limit };
+ const url = `${config.getExpenditures}?vendor_name=${vendor_name || ''}&expense_head=${expense_head || ''}&payment_mode=${payment_mode || ''}&payment_bank=${payment_bank || ''}&skip=${skip}&limit=${limit}`;
+      const res = await fetchData(url);
         return {
             data: res.data?.expenditureDetails || [],
             count: res.data?.expenditureDetailsCount || 0,
         };
     };
 
-    const deleteExpenditure = async (id) => {
-        if (!id) {
-            alert('Expenditure ID is required');
-            return;
-        }
-        try {
-            const response = await deleteData(`${config.deleteExpenditure}/${id}`);
-            console.log('Delete response:', response);
-        } catch (error) {
-            console.error('Error deleting expenditure:', error.message);
-        }
-    };
-
+    
     return (
         <div>
             {/* Action Buttons */}
