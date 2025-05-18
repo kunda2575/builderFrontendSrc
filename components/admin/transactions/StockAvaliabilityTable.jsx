@@ -35,16 +35,16 @@ const StockAvailabilityTable = () => {
             columns={[
                 { field: 'available_stock', header: 'Available Stock', style: { minWidth: '10rem' } },
             ]}
-            actions={(rowData, { onDelete }) => (
-                <>
-                    <Link to={`/stockAvailabilityForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
-                        <i className="pi pi-pencil" />
-                    </Link>
-                    <button className="btn btn-outline-danger btn-sm" onClick={() => onDelete(rowData.id)}>
-                        <i className="pi pi-trash" />
-                    </button>
-                </>
-            )}
+            // actions={(rowData, { onDelete }) => (
+            //     <>
+            //         <Link to={`/stockAvailabilityForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
+            //             <i className="pi pi-pencil" />
+            //         </Link>
+            //         <button className="btn btn-outline-danger btn-sm" onClick={() => onDelete(rowData.id)}>
+            //             <i className="pi pi-trash" />
+            //         </button>
+            //     </>
+            // )}
             addButtonLink="/stockAvailabilityForm"
             backButtonLink="/transaction"
         />

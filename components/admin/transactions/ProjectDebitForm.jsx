@@ -6,35 +6,34 @@ import { config } from '../../../api/config';
 import { Calendar } from 'primereact/calendar';
 import 'react-toastify/dist/ReactToastify.css';
 
-const ExpenditureForm = () => {
+const ProjectDebitForm = () => {
     const [searchParams] = useSearchParams();
     const editID = searchParams.get('id');
 
     const [loading, setLoading] = useState(false);
-    const [expenditure, setExpenditures] = useState([])
+    const [projectDebit, setProjectDebits] = useState([])
     const [vendorNames, setVendorName] = useState([]);
-    const [expenseHeads, setExpenseHeads] = useState([]);
+    const [payTo, setPayTo] = useState([]);
     const [paymentMode, setPaymentMode] = useState([]);
     const [paymentBank, setPaymentBank] = useState([]);
 
     const [form, setForm] = useState({
         date: "",
         vendor_name: '',
-        expense_head: '',
+        payed_to: '',
         amount_inr: '',
         invoice_number: '',
         payment_mode: '',
         payment_bank: '',
-        payment_reference: '',
-        payment_evidence: '',
+       
         id: null
     });
 
     useEffect(() => {
 
-        fetchExpendituresForm();
+        fetchProjectDebitsForm();
         fetchVendors()
-        fetchExpenseHeads()
+        fetchPayTo()
         fetchPaymentModes()
         fetchPaymentBanks();
     
@@ -45,18 +44,18 @@ const ExpenditureForm = () => {
 
     
 
-    const fetchExpendituresForm = async () => {
+    const fetchProjectDebitsForm = async () => {
         try {
-            const res = await fetchData(`${config.getExpenditures}`);
+            const res = await fetchData(`${config.getProjectDebits}`);
             // console.log('inventory Response:', res);  // Debugging the API response
             if (Array.isArray(res.data)) {
-                setExpenditures(res.data);
+                setProjectDebits(res.data);
             } else {
-                setExpenditures([]);
+                setProjectDebits([]);
             }
         } catch (error) {
-            console.error("Error fetching expenditure:", error);
-            toast.error('Failed to fetch expenditure');
+            console.error("Error fetching projectDebit:", error);
+            toast.error('Failed to fetch projectDebit');
         }
     };
 
@@ -64,7 +63,7 @@ const ExpenditureForm = () => {
 
     const fetchVendors = async () => {
         try {
-            const res = await fetchData(`${config.getVendorNameEx}`);
+            const res = await fetchData(`${config.getVendorNamePd}`);
             // console.log('vendor Response:', res);  // Debugging API response
             if (res && res.data && Array.isArray(res.data)) {
                 setVendorName(res.data);
@@ -78,14 +77,14 @@ const ExpenditureForm = () => {
         }
     };
     // Fetch Expense Heads
-    const fetchExpenseHeads = async () => {
+    const fetchPayTo = async () => {
         try {
-            const res = await fetchData(`${config.getExpenseHeadEx}`);
+            const res = await fetchData(`${config.getPayToPd}`);
             if (res && res.data && Array.isArray(res.data)) {
-                setExpenseHeads(res.data);
+                setPayTo(res.data);
             } else {
                 console.log("No expense heads found or invalid data format.");
-                setExpenseHeads([]);
+                setPayTo([]);
             }
         } catch (error) {
             console.error("Error fetching expense heads:", error);
@@ -96,7 +95,7 @@ const ExpenditureForm = () => {
     // Fetch Payment Modes
     const fetchPaymentModes = async () => {
         try {
-            const res = await fetchData(`${config.getPaymentModeEx}`);
+            const res = await fetchData(`${config.getPaymentModePd}`);
             if (res && res.data && Array.isArray(res.data)) {
                 setPaymentMode(res.data);
             } else {
@@ -112,7 +111,7 @@ const ExpenditureForm = () => {
     // Fetch Payment Banks
     const fetchPaymentBanks = async () => {
         try {
-            const res = await fetchData(`${config.getPaymentBankEx}`);
+            const res = await fetchData(`${config.getPaymentBankPd}`);
             if (res && res.data && Array.isArray(res.data)) {
                 setPaymentBank(res.data);
             } else {
@@ -134,16 +133,16 @@ const ExpenditureForm = () => {
         try {
              const formData = { ...form };
             if (form.id) {
-              await putData(config.updateExpenditure(form.id), formData);
+              await putData(config.updateProjectDebit(form.id), formData);
   toast.success("Updated successfully!");
             } else {
-                await postData(`${config.createExpenditure}`, formData);
+                await postData(`${config.createProjectDebit}`, formData);
                 toast.success("Created successfully!");
             }
             setForm({
               date: null,
         vendor_name: '',
-        expense_head: '',
+        payed_to: '',
         amount_inr: '',
         invoice_number: '',
         payment_mode: '',
@@ -152,7 +151,7 @@ const ExpenditureForm = () => {
         payment_evidence: '',
         id: null
             })
-            fetchExpendituresForm();
+            fetchProjectDebitsForm();
         } catch (err) {
             toast.error("Submission failed.");
         } finally {
@@ -162,14 +161,14 @@ const ExpenditureForm = () => {
 
    const fetchEditData = async (id) => {
     try {
-        const res = await fetchData(config.getExpenditureById(id)); // Make sure this is the correct expenditure endpoint
+        const res = await fetchData(config.getProjectDebitById(id)); // Make sure this is the correct projectDebit endpoint
         const data = res.data;
 
         if (data) {
             const formattedData = {
                 date: data.date ? new Date(data.date) : "",
                 vendor_name: data.vendor_name || '',         // Assuming these match your backend response
-                expense_head: data.expense_head || '',
+                payed_to: data.payed_to || '',
                 amount_inr: data.amount_inr || '',
                 invoice_number: data.invoice_number || '',
                 payment_mode: data.payment_mode || '',
@@ -181,8 +180,8 @@ const ExpenditureForm = () => {
             setForm(formattedData);
         }
     } catch (error) {
-        toast.error("Failed to load expenditure data for editing");
-        console.error("Error loading expenditure by ID:", error);
+        toast.error("Failed to load projectDebit data for editing");
+        console.error("Error loading projectDebit by ID:", error);
     }
 };
 
@@ -192,9 +191,9 @@ const ExpenditureForm = () => {
                 <Link className="text-decoration-none text-primary" to="/transaction">
                     <i className="pi pi-arrow-left"></i> Back
                 </Link>
-                <Link className="text-decoration-none text-primary" to="/expenditureTable">
+                <Link className="text-decoration-none text-primary" to="/projectDebitTable">
                     <button className='btn btn-sm btn-primary'>
-                        Expenditure  Table <i className="pi pi-arrow-right"></i>
+                        ProjectDebit  Table <i className="pi pi-arrow-right"></i>
                     </button>
                 </Link>
             </div>
@@ -203,7 +202,7 @@ const ExpenditureForm = () => {
                 <div className="col-lg-8 m-auto">
                     <div className="card">
                         <div className="card-header">
-                            <h4 className='text-center'>Expenditure Transactions</h4>
+                            <h4 className='text-center'>ProjectDebit Transactions</h4>
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="card-body">
@@ -244,16 +243,16 @@ const ExpenditureForm = () => {
                                     <div className="col-lg-6 mb-1">
                                    
                                         <select
-                                            name='expense_head'
-                                            value={form.expense_head}
-                                            onChange={(e) => setForm({ ...form, expense_head: e.target.value })}
+                                            name='payed_to'
+                                            value={form.payed_to}
+                                            onChange={(e) => setForm({ ...form, payed_to: e.target.value })}
                                             className="form-select mb-1"
                                             required
                                         >
-                                            <option value="">Select Expense Head</option>
-                                            {expenseHeads.map(expense => (
-                                                <option key={expense.id} value={expense.expenseHead}>
-                                                    {expense.expenseHead}
+                                            <option value="">Select  Pay To </option>
+                                            {payTo.map(pay => (
+                                                <option key={pay.id} value={pay.vendorName}>
+                                                    {pay.vendorName}
                                                 </option>
                                             ))}
                                         </select>
@@ -318,29 +317,7 @@ const ExpenditureForm = () => {
                                         />
                                     </div>
 
-                                    <div className="col-lg-6 mb-1">
-                                        <input
-                                            type="text"
-                                            name="payment_reference"
-                                            placeholder="Payment Reference"
-                                            value={form.payment_reference || ''}
-                                            onChange={(e) => setForm({ ...form, payment_reference: e.target.value })}
-                                            className="form-control mb-1"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="col-lg-6 mb-1">
-                                        <input
-                                            type="text"
-                                            name="payment_evidence"
-                                            placeholder="Payment Evidence"
-                                            value={form.payment_evidence || ''}
-                                            onChange={(e) => setForm({ ...form, payment_evidence: e.target.value })}
-                                            className="form-control mb-1"
-                                            required
-                                        />
-                                    </div>
+                                  
                                 </div>
                             </div>
 
@@ -357,4 +334,4 @@ const ExpenditureForm = () => {
     );
 };
 
-export default ExpenditureForm;
+export default ProjectDebitForm;

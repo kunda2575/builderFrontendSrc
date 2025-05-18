@@ -12,8 +12,8 @@ const Transaction = () => {
     { name: "Inventory Entry ", path: "/inventoryEntryTable" },
     { name: "Expenditure ", path: "/expenditureTable" },
     
-    { name: "Project Debits ", path: "/projectDebits" },
-    { name: "Project Credits ", path: "/projectCredits" },
+    { name: "Project Debits ", path: "/projectDebitTable" },
+    { name: "Project Credits ", path: "/projectCreditTable" },
     { name: "Customer Payments ", path: "/customerPayments" },
    
    

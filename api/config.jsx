@@ -77,6 +77,40 @@ export const config = {
   getExpenditureById:      (id) => `${host}/api/expenditure/${id}`,// GET single
   
 
+  
+
+  // projectCredits
+
+  getProjectCredits:         `${host}/api/projectCredit`,            // GET all (with filters/pagination)
+  createProjectCredits:       `${host}/api/projectCredit`,            // POST
+  updateProjectCredits:       (id) => `${host}/api/projectCredit/${id}`,// PUT
+  deleteProjectCredits:       (id) => `${host}/api/projectCredit/${id}`,// DELETE
+  
+  // Master-data endpoints for dropdowns
+  getSource:           `${host}/api/projectCredit/source`,
+  getPurpose:          `${host}/api/projectCredit/purpose`,
+  getPaymentModePc:          `${host}/api/projectCredit/paymentMode`,
+  
+  getProjectCreditsById:      (id) => `${host}/api/projectCredit/${id}`,// GET single
+  
+  
+  
+  // ProjectDebit CRUD
+  getProjectDebits:         `${host}/api/projectDebit`,            // GET all (with filters/pagination)
+  createProjectDebit:       `${host}/api/projectDebit`,            // POST
+  updateProjectDebit:       (id) => `${host}/api/projectDebit/${id}`,// PUT
+  deleteProjectDebit:       (id) => `${host}/api/projectDebit/${id}`,// DELETE
+  
+  // Master-data endpoints for dropdowns
+  getVendorNamePd:           `${host}/api/projectDebit/vendor`,
+  getPayToPd:          `${host}/api/projectDebit/payTo`,
+  getPaymentModePd:          `${host}/api/projectDebit/paymentMode`,
+  getPaymentBankPd:          `${host}/api/projectDebit/paymentBank`,
+  getProjectDebitById:      (id) => `${host}/api/projectDebit/${id}`,// GET single
+  
+
+  
+
   // Other unrelated endpoints should have their own unique names
 
 };
