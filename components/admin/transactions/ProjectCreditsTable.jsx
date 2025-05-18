@@ -33,7 +33,7 @@ const ProjectCreditsTable = () => {
             {/* Action Buttons */}
           
             <ReusableDataTable
-                title="ProjectCredits Table"
+                title="Project Credits Table"
                 fetchFunction={fetchProjectCredits}
                 deleteFunction={(id) => deleteData(`${config.host}/api/projectCredit/${id}`)}
                 filters={[

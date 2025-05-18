@@ -73,7 +73,7 @@ const Login = () => {
           <h2 className="fw-bold">Welcome Back!</h2>
           <p>Sign in to access your account</p>
           <img src={loginimage} alt="Login Illustration" className="img-fluid mt-3 login-image rounded" />
-          <Link to="/" className="btn btn-light btn-sm mt-4">Go to Home</Link>
+          {/* <Link to="/" className="btn btn-light btn-sm mt-4">Go to Home</Link> */}
         </div>
 
         {/* Right Section - Login Form */}

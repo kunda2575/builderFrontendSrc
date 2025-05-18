@@ -402,7 +402,7 @@ const LeadsTable = () => {
                 />
                 <Column field="remarks" header="Remarks" />
                 <Column field="reason_for_lost_customers" header="Reason For Lost Customers" />
-                <Column
+                {/* <Column
                     header="Actions"
                     body={(rowData) => (
                         <div className="d-flex gap-2 justify-content-center">
@@ -419,7 +419,7 @@ const LeadsTable = () => {
                         </div>
                     )}
                     style={{ minWidth: '7rem' }}
-                />
+                /> */}
             </DataTable>
 
 

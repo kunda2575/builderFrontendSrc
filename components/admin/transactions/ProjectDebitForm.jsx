@@ -202,7 +202,7 @@ const ProjectDebitForm = () => {
                 <div className="col-lg-8 m-auto">
                     <div className="card">
                         <div className="card-header">
-                            <h4 className='text-center'>ProjectDebit Transactions</h4>
+                            <h4 className='text-center'>Project Debit Transactions</h4>
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="card-body">

@@ -50,12 +50,13 @@ const ProjectDebitTable = () => {
                         optionValue: 'vendorName',
                         queryKey: 'vendor_name'
                     },
+                    
                     {
                         field: 'payed_to',
                         header: 'Payed To',
                         options: payedTo,
                         optionLabel: 'vendorName', // visible to user
-                        optionValue: 'id',         // sent in query
+                        optionValue: 'vendorName',         // sent in query
                         queryKey: 'payed_to'
                     },
 

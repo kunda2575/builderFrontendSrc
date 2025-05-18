@@ -163,7 +163,7 @@ const ProjectreditsForm = () => {
                 </Link>
                 <Link className="text-decoration-none text-primary" to="/projectCreditTable">
                     <button className='btn btn-sm btn-primary'>
-                        ProjectCredits  Table <i className="pi pi-arrow-right"></i>
+                        Project Credits  Table <i className="pi pi-arrow-right"></i>
                     </button>
                 </Link>
             </div>
@@ -172,7 +172,7 @@ const ProjectreditsForm = () => {
                 <div className="col-lg-8 m-auto">
                     <div className="card">
                         <div className="card-header">
-                            <h4 className='text-center'>ProjectCredits Transactions</h4>
+                            <h4 className='text-center'>Project Credits Transactions</h4>
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="card-body">
