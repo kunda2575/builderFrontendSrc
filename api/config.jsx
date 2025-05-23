@@ -110,6 +110,20 @@ export const config = {
   
 
   
+  // CustomerPayment CRUD
+  getCustomerPayments:         `${host}/api/customerPayments`,            // GET all (with filters/pagination)
+  createCustomerPayment:       `${host}/api/customerPayments`,            // POST
+  updateCustomerPayment:       (id) => `${host}/api/customerPayments/${id}`,// PUT
+  deleteCustomerPayment:       (id) => `${host}/api/customerPayments/${id}`,// DELETE
+  
+  // Master-data endpoints for dropdowns
+  getPaymentTypeCp:           `${host}/api/customerPayments/paymentType`,
+  getVerifiedByCp:          `${host}/api/customerPayments/verifiedBy`,
+  getPaymentModeCp:          `${host}/api/customerPayments/paymentMode`,
+  getFundingBankCp:          `${host}/api/customerPayments/fundingBank`,
+  getCustomerPaymentById:      (id) => `${host}/api/customerPayments/${id}`,// GET single
+  
+
 
   // Other unrelated endpoints should have their own unique names
 

@@ -228,7 +228,7 @@ const InventoryEntryTable = () => {
                         No Inventory data available.
                     </h6>
                 }
-                showClear={true}
+                // showClear={true}
                 style={{ textAlign: 'center' }}
             >
                 <Column field="material_id" header={() => (
@@ -319,10 +319,41 @@ const InventoryEntryTable = () => {
                         />
                     </label>
                 )} style={{ minWidth: '13rem' }} />
-                <Column field="invoice_attachment" header="Invoice Attachment" style={{ minWidth: '13rem' }} />
+                {/* <Column field="invoice_attachment" header="Invoice Attachment" style={{ minWidth: '13rem' }} />
+                 */}
+
+                <Column
+                    header="Invoice Attachment"
+                    body={(rowData) => {
+                        const files = rowData.invoice_attachment
+                            ? rowData.invoice_attachment.split(',')
+                            : [];
+
+                        return files.length > 0 ? (
+                            <div className="flex flex-col gap-1">
+                                {files.map((file, index) => (
+                                    <a
+                                        href={`${config.host}/uploads/${file}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    // Add inline style to hint it's clickable or add class if needed
+                                    >
+                                        View PDF {index + 1}
+                                    </a>
+
+                                ))}
+                            </div>
+                        ) : (
+                            <span className="text-muted">No Attachment</span>
+                        );
+                    }}
+                    style={{ minWidth: '13rem' }}
+                />
+
+
                 <Column field="entered_by" header="Entered By" style={{ minWidth: '13rem' }} />
 
-                {/* <Column
+                <Column
                     header="Actions"
                     body={(rowData) => (
                         <div className="d-flex gap-2 justify-content-center">
@@ -339,7 +370,7 @@ const InventoryEntryTable = () => {
                         </div>
                     )}
                     style={{ minWidth: '10rem' }}
-                /> */}
+                />
 
             </DataTable>
             <div className='mt-3'>

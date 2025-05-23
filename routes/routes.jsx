@@ -46,11 +46,14 @@ import InventoryEntryTable from "../components/admin/transactions/InventoryEntry
 import MaterialIssueTable from "../components/admin/transactions/MaterialIssueTable";
 import MaterialIssueForm from "../components/admin/transactions/MaterialIssueForm";
 import ExpenditureForm from "../components/admin/transactions/ExpenditureForm";
-import ExpenditureTable from "../components/admin/transactions/ExpenditureTable ";
+// import ExpenditureTable from "../components/admin/transactions/ExpenditureTable";
 import ProjectreditsForm from "../components/admin/transactions/ProjectCreditsForm";
 import ProjectCreditsTable from "../components/admin/transactions/ProjectCreditsTable";
 import ProjectDebitForm from "../components/admin/transactions/ProjectDebitForm";
 import ProjectDebitTable from "../components/admin/transactions/ProjectDebitTable";
+import ExpenditureTable from "../components/admin/transactions/ExpenditureTable";
+import CustomerPaymentsForm from "../components/admin/transactions/CustomerPaymentsForm";
+import CustomerPaymentsTable from "../components/admin/transactions/CustomerPaymentsTable";
 
 const AppRoutes = () => (
   <Routes>
@@ -122,6 +125,8 @@ const AppRoutes = () => (
     <Route path="/projectCreditTable" element={<ProjectCreditsTable/>}/>
     <Route path="/projectDebitForm" element={<ProjectDebitForm/>}/>
     <Route path="/projectDebitTable" element={<ProjectDebitTable/>}/>
+    <Route path="/customerPaymentsForm" element={<CustomerPaymentsForm/>}/>
+    <Route path="/customerPaymentsTable" element={<CustomerPaymentsTable/>}/>
 
 
 

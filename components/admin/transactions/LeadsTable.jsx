@@ -290,7 +290,12 @@ const LeadsTable = () => {
                 loadingIcon="pi pi-spinner"
                 stripedRows
                 showClear = {true}
-                emptyMessage="No leads data available"
+                  emptyMessage={
+                    <h6 className="text-center" >
+                       No leads data available
+                    </h6>
+                }
+              
                 responsiveLayout="scroll" // ✅ makes table responsive on small screens
             // style={{ maxWidth: '100vw', overflowX: 'auto' }}
             >
@@ -402,7 +407,7 @@ const LeadsTable = () => {
                 />
                 <Column field="remarks" header="Remarks" />
                 <Column field="reason_for_lost_customers" header="Reason For Lost Customers" />
-                {/* <Column
+                <Column
                     header="Actions"
                     body={(rowData) => (
                         <div className="d-flex gap-2 justify-content-center">
@@ -419,7 +424,7 @@ const LeadsTable = () => {
                         </div>
                     )}
                     style={{ minWidth: '7rem' }}
-                /> */}
+                />
             </DataTable>
 
 

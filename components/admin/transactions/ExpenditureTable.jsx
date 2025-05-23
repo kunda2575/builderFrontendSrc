@@ -75,10 +75,10 @@ const ExpenditureTable = () => {
                     { field: 'date', header: 'Date' },
                     { field: 'amount_inr', header: 'Amount (INR)' },
                     { field: 'invoice_number', header: 'Invoice Number' },
-                    { field: 'payment_reference', header: 'Reference' },
+                    { field: 'payment_reference', header: ' Payment Reference' },
                     {
                         field: 'payment_evidence',
-                        header: 'Evidence',
+                        header: ' Payment Evidence',
                         body: rowData => (
                             rowData.payment_evidence ? (
                                 <a

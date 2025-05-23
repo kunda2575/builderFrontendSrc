@@ -14,7 +14,7 @@ const Transaction = () => {
     
     { name: "Project Debits ", path: "/projectDebitTable" },
     { name: "Project Credits ", path: "/projectCreditTable" },
-    { name: "Customer Payments ", path: "/customerPayments" },
+    { name: "Customer Payments ", path: "/customerPaymentsTable" },
    
    
 

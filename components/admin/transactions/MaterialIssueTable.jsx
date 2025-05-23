@@ -14,38 +14,20 @@ const MaterialIssueTable = () => {
         fetchData(config.unitType_Issue).then(res => setUnitTypes(res.data || []));
     }, []);
 
-// const fetchMaterials = async ({ material_name, unit_type, skip, limit }) => {
-//     const url = `${config.getMaterialIsuues}?material_name=${material_name || ''}&unit_type=${unit_type || ''}&skip=${skip}&limit=${limit}`;
 
-//     try {
-//         const res = await fetchData(url);
 
-//         console.log("✅ API Data:", res.data); // Debug
-
-//         return {
-//             data: res.data?.materialIssueDetails || [],
-//             count: res.data?.materialIssueDetailsCount || 0,
-//         };
-//     } catch (err) {
-//         toast.error('Failed to fetch material issue data');
-//         return { data: [], count: 0 };
-//     }
-// };
-
-const fetchMaterials = async ({ material_name, unit, skip, limit }) => {
-    const url = `${config.getMaterialIsuues}?material_name=${material_name || ''}&unit=${unit || ''}&skip=${skip}&limit=${limit}`;
-    console.log("🔍 Fetching with material_name:", material_name); // Add this
-    const res = await fetchData(url);
-    console.log("✅ API Data:", res.data);
-    return {
-        data: res.data?.materialIssueDetails || [],
-        count: res.data?.materialDetailsCount || 0,
+ const fetchMaterials = async ({ material_name, unit, skip, limit }) => {
+       const url = `${config.getMaterialIsuues}?material_name=${material_name || ''}&unit=${unit || ''}&skip=${skip}&limit=${limit}`;
+      const res = await fetchData(url);
+        return {
+            data: res.data?.materialIssuesDetails || [],
+            count: res.data?.materialIssuesDetailsCount || 0,
+        };
     };
-};
 
     return (
         <ReusableDataTable
-            title="Material "
+            title="Material Issues "
             fetchFunction={fetchMaterials}
             deleteFunction={(id) => deleteData(config.deleteStock(id))}
             filters={[
