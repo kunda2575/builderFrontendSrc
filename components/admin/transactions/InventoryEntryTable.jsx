@@ -53,7 +53,7 @@ const InventoryEntryTable = () => {
         setRows(event.rows);
         skipValue.current = event.first;
         limitValue.current = event.rows;
-        getStockDetails();
+        getInventory();
     };
 
 
@@ -319,10 +319,10 @@ const InventoryEntryTable = () => {
                         />
                     </label>
                 )} style={{ minWidth: '13rem' }} />
-                {/* <Column field="invoice_attachment" header="Invoice Attachment" style={{ minWidth: '13rem' }} />
-                 */}
+                {/* <Column field="invoice_attachment" header="Invoice Attachment" style={{ minWidth: '13rem' }} /> */}
+                
 
-                <Column
+               <Column
                     header="Invoice Attachment"
                     body={(rowData) => {
                         const files = rowData.invoice_attachment
@@ -333,13 +333,16 @@ const InventoryEntryTable = () => {
                             <div className="flex flex-col gap-1">
                                 {files.map((file, index) => (
                                     <a
-                                        href={`${config.host}/uploads/${file}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    // Add inline style to hint it's clickable or add class if needed
-                                    >
-                                        View PDF {index + 1}
-                                    </a>
+                                                key={index}
+
+                                                href={`http://localhost:2026/uploads/${file}`}
+                                                target='blank'
+                                                download
+                                                className="btn btn-sm btn-outline-primary"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                Download PDF {index + 1}
+                                            </a>
 
                                 ))}
                             </div>
@@ -348,7 +351,7 @@ const InventoryEntryTable = () => {
                         );
                     }}
                     style={{ minWidth: '13rem' }}
-                />
+                /> 
 
 
                 <Column field="entered_by" header="Entered By" style={{ minWidth: '13rem' }} />
@@ -357,20 +360,24 @@ const InventoryEntryTable = () => {
                     header="Actions"
                     body={(rowData) => (
                         <div className="d-flex gap-2 justify-content-center">
-                            <Link to={`/inventoryEntryForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
+                            {/* <Link to={`/inventoryEntryForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                                 <i className="pi pi-pencil"></i>
-                            </Link>
-                            <button className="btn btn-outline-danger btn-sm" onClick={() => {
-                                setConfirmDeleteId(rowData.id);
-                                setDeleteType("single");
-                                setShowDeleteModal(true);
-                            }}>
+                            </Link> */}
+                            <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => {
+                                    setConfirmDeleteId(rowData.id);
+                                    setDeleteType("single");
+                                    setShowDeleteModal(true);
+                                }}
+                            >
                                 <i className="pi pi-trash"></i>
                             </button>
                         </div>
                     )}
                     style={{ minWidth: '10rem' }}
                 />
+
 
             </DataTable>
             <div className='mt-3'>

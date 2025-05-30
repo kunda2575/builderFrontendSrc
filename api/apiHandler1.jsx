@@ -39,38 +39,33 @@ const handleErrors = (error) => {
 
 
 
-// Always get the latest token when needed
 const getAuthHeaders = () => ({
-  'Content-Type': 'application/json',
   'Authorization': `Bearer ${localStorage.getItem('loginToken')}`
 });
-
-// Generic API call using Axios
 const apiCall = async (method, url, data = null) => {
   try {
-    const headers = getAuthHeaders();
-    const response = await axios({ method, url, data, headers, withCredentials: true });
+    const isFormData = data instanceof FormData;
+    const headers = isFormData
+      ? getAuthHeaders()
+      : { ...getAuthHeaders(), 'Content-Type': 'application/json' };
+
+    const config = {
+      method,
+      url,
+      headers,
+      withCredentials: true,
+      ...(data !== null && { data }) // ✅ only include data if not null
+    };
+
+    const response = await axios(config);
     return { success: true, data: response.data };
   } catch (error) {
     return handleErrors(error);
   }
 };
 
-
-
-// Exported functions
-export const login = async (url, data) => apiCall("post", url, data);
-export const register = async (url, data) => apiCall("post", url, data);
 
 export const fetchData = async (url) => apiCall("get", url);
 export const postData = async (url, data) => apiCall("post", url, data);
 export const putData = async (url, data) => apiCall("put", url, data);
-export const deleteData = async (url) => {
-  try {
-    const headers = getAuthHeaders();
-    const response = await axios.delete(url, { headers });
-    return { success: true, data: response.data };
-  } catch (error) {
-    return handleErrors(error);
-  }
-};
+export const deleteData = async (url) => apiCall("delete", url);

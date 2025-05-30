@@ -39,7 +39,8 @@ const Login = () => {
       const success = userDetails?.success;
   
       if ((success === true || success === "Login successful") && token) {
-        login(token);
+        // login(token);
+         login(token, user?.profile); // ✅ Pass token and profile
         localStorage.setItem("fullname", user?.fullname || "User");
         localStorage.setItem("profile", user?.profile || "");
   

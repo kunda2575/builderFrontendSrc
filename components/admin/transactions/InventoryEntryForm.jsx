@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { fetchData, postData, putData } from '../../../api/apiHandler';
+import { fetchData, postData, putData } from '../../../api/apiHandler1';
 import { config } from '../../../api/config';
 import { Calendar } from 'primereact/calendar';
 
@@ -97,8 +97,8 @@ const InventoryEntryForm = () => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length < 2 || files.length > 5) {
-      toast.error("Please upload between 2 and 5 invoice attachments.");
+    if (files.length < 1 || files.length > 5) {
+      toast.error("Please upload between 1 and 5 invoice attachments.");
       return;
     }
     setForm((prev) => ({
@@ -317,21 +317,20 @@ const InventoryEntryForm = () => {
                   </div>
 
                   {/* File Upload */}
+                  {/* File Upload */}
                   <div className="col-lg-6 mb-1">
                     <input
                       type="file"
                       accept="image/*,application/pdf"
                       multiple
-                      onChange={handleFileChange}
+                      onChange={handleFileChange} // ✅ Use the correct handler
                       className="form-control mb-1"
                     />
                     {form.invoice_attachment.length > 0 && (
                       <small>{form.invoice_attachment.length} file(s) selected</small>
                     )}
-
-
-
                   </div>
+
                 </div>
               </div>
 

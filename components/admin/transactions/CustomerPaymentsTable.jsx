@@ -36,8 +36,8 @@ const CustomerPaymentsTable = () => {
             <ReusableDataTable
                 title="Customer Payments Table"
                 fetchFunction={fetchProjectCredits}
-                deleteFunction={(id) => deleteData(`${config.host}/api/customerPayment/${id}`)}
-                filters={[
+                deleteFunction={(id) => deleteData(config.deleteCustomerPayment(id))}
+                          filters={[
                     {
                         field: 'payment_type',
                         header: 'payment Type',

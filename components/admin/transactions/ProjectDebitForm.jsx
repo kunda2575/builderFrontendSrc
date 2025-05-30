@@ -193,7 +193,7 @@ const ProjectDebitForm = () => {
                 </Link>
                 <Link className="text-decoration-none text-primary" to="/projectDebitTable">
                     <button className='btn btn-sm btn-primary'>
-                        ProjectDebit  Table <i className="pi pi-arrow-right"></i>
+                        Project Debit  Table <i className="pi pi-arrow-right"></i>
                     </button>
                 </Link>
             </div>

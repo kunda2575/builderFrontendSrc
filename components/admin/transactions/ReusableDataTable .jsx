@@ -6,7 +6,6 @@ import { Paginator } from 'primereact/paginator';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 
-
 const ReusableDataTable = ({
     title = '',
     fetchFunction,
@@ -33,6 +32,7 @@ const ReusableDataTable = ({
             filterStates.current[f.field] = [];
         }
     });
+
     const handleDelete = async () => {
         if (!deleteId) {
             toast.error("Invalid ID to delete");
@@ -52,6 +52,7 @@ const ReusableDataTable = ({
             setLoading(false);
         }
     };
+
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -108,7 +109,6 @@ const ReusableDataTable = ({
                         </button>
                     )}
                     {addButtonLink && (
-
                         <Link to={addButtonLink} className="btn btn-primary btn-sm ms-2">
                             Add Details <i className="pi pi-plus" />
                         </Link>
@@ -156,15 +156,47 @@ const ReusableDataTable = ({
                                     maxSelectedLabels={0}
                                     selectedItemsLabel={`${filterStates.current[f.field]?.length || 0} selected`}
                                 />
-
                             </label>
                         )}
                         style={{ minWidth: '12rem' }}
                     />
                 ))}
+
                 {columns.map(col => (
-                    <Column key={col.field} field={col.field} header={col.header} style={col.style || {}} />
+                    <Column
+                        key={col.field}
+                        field={col.field}
+                        header={col.header}
+                        style={col.style || {}}
+                        body={col.field === 'payment_reference' || col.field === 'payment_evidence'
+                            ? (rowData) => {
+                                const files = rowData[col.field]?.split(',').filter(f => f.trim() !== '') || [];
+                                return files.length ? (
+                                    <div className="d-flex flex-column gap-1">
+                                        {files.map((file, i) => (
+                                            <a
+                                                key={i}
+
+                                                href={`http://localhost:2026/uploads/${file}`}
+                                                target='blank'
+                                                download
+                                                className="btn btn-sm btn-outline-primary"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                Download PDF {i + 1}
+                                            </a>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <span className="text-muted">No Attachment</span>
+                                );
+                            }
+                            : col.body || undefined // use custom renderer if provided
+                        }
+
+                    />
                 ))}
+
                 <Column
                     header="Actions"
                     body={rowData => (

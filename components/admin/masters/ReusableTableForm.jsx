@@ -396,5 +396,4 @@ const ReusableTableForm = ({
         </div>
     );
 };
-
 export default ReusableTableForm;

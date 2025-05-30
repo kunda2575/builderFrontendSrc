@@ -203,3 +203,14 @@ label {
         align-items: center;
     } */
     
+
+/* 
+    html, body {
+  height: 100%;
+  overflow: hidden;
+} */
+
+/* .container-fluid.no-scroll {
+  height: 100vh;
+  overflow: hidden;
+} */

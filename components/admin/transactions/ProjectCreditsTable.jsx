@@ -35,8 +35,8 @@ const ProjectCreditsTable = () => {
             <ReusableDataTable
                 title="Project Credits Table"
                 fetchFunction={fetchProjectCredits}
-                deleteFunction={(id) => deleteData(`${config.host}/api/projectCredit/${id}`)}
-                filters={[
+               deleteFunction={(id) => deleteData(config.deleteProjectCredits(id))}
+                         filters={[
                     {
                         field: 'source',
                         header: 'Source',

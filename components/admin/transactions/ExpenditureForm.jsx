@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { fetchData, postData, putData } from '../../../api/apiHandler';
+import { fetchData, postData, putData } from '../../../api/apiHandler1';
 import { config } from '../../../api/config';
 import { Calendar } from 'primereact/calendar';
 import 'react-toastify/dist/ReactToastify.css';
@@ -25,8 +25,8 @@ const ExpenditureForm = () => {
         invoice_number: '',
         payment_mode: '',
         payment_bank: '',
-        payment_reference: '',
-        payment_evidence: '',
+        payment_reference: [],
+        payment_evidence: [],
         id: null
     });
 
@@ -37,13 +37,13 @@ const ExpenditureForm = () => {
         fetchExpenseHeads()
         fetchPaymentModes()
         fetchPaymentBanks();
-    
+
         if (editID) {
             fetchEditData(editID);
         }
     }, []);
 
-    
+
 
     const fetchExpendituresForm = async () => {
         try {
@@ -128,63 +128,125 @@ const ExpenditureForm = () => {
 
 
 
+    // const handleSubmit = async (e) => {
+    //     e.preventDefault();
+    //     setLoading(true);
+
+
+    //     const formData = new FormData();
+    //     Object.entries(form).forEach(([key, value]) => {
+    //         if (key === "payment_reference") return;
+    //         if (key === "payment_evidence" && value) {
+    //             formData.append(key, value.toISOString());
+    //         } else {
+    //             formData.append(key, value);
+    //         }
+    //     });
+
+    //     form.invoice_attachment.forEach((file) => {
+    //         formData.append("invoice_attachment", file);
+    //     });
+
+    //     try {
+    //         const formData = { ...form };
+    //         if (form.id) {
+    //             await putData(config.updateExpenditure(form.id), formData);
+    //             toast.success("Updated successfully!");
+    //         } else {
+    //             await postData(`${config.createExpenditure}`, formData);
+    //             toast.success("Created successfully!");
+    //         }
+    //         setForm({
+    //             date: null,
+    //             vendor_name: '',
+    //             expense_head: '',
+    //             amount_inr: '',
+    //             invoice_number: '',
+    //             payment_mode: '',
+    //             payment_bank: '',
+    //             payment_reference: [],
+    //             payment_evidence: [],
+    //             id: null
+    //         })
+    //         fetchExpendituresForm();
+    //     } catch (err) {
+    //         toast.error("Submission failed.");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    const fetchEditData = async (id) => {
+        try {
+            const res = await fetchData(config.getExpenditureById(id)); // Make sure this is the correct expenditure endpoint
+            const data = res.data;
+
+            if (data) {
+                const formattedData = {
+                    date: data.date ? new Date(data.date) : "",
+                    vendor_name: data.vendor_name || '',         // Assuming these match your backend response
+                    expense_head: data.expense_head || '',
+                    amount_inr: data.amount_inr || '',
+                    invoice_number: data.invoice_number || '',
+                    payment_mode: data.payment_mode || '',
+                    payment_bank: data.payment_bank || '',
+                    payment_reference: data.payment_reference || '',
+                    payment_evidence: data.payment_evidence || '',
+                    id: data.id || null,
+                };
+                setForm(formattedData);
+            }
+        } catch (error) {
+            toast.error("Failed to load expenditure data for editing");
+            console.error("Error loading expenditure by ID:", error);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+
+        const formData = new FormData();
+        formData.append("date", form.date?.toISOString() || "");
+        formData.append("vendor_name", form.vendor_name);
+        formData.append("expense_head", form.expense_head);
+        formData.append("amount_inr", form.amount_inr);
+        formData.append("invoice_number", form.invoice_number);
+        formData.append("payment_mode", form.payment_mode);
+        formData.append("payment_bank", form.payment_bank);
+        formData.append('payment_reference', form.payment_reference); // Single file
+        formData.append('payment_evidence', form.payment_evidence);   // Single file
+
         try {
-             const formData = { ...form };
             if (form.id) {
-              await putData(config.updateExpenditure(form.id), formData);
-  toast.success("Updated successfully!");
+                await putData(config.updateExpenditure(form.id), formData, true); // Ensure multipart flag is true in handler
+                toast.success("Updated successfully!");
             } else {
-                await postData(`${config.createExpenditure}`, formData);
+                await postData(`${config.createExpenditure}`, formData, true);
                 toast.success("Created successfully!");
             }
+
             setForm({
-              date: null,
-        vendor_name: '',
-        expense_head: '',
-        amount_inr: '',
-        invoice_number: '',
-        payment_mode: '',
-        payment_bank: '',
-        payment_reference: '',
-        payment_evidence: '',
-        id: null
-            })
+                date: "",
+                vendor_name: '',
+                expense_head: '',
+                amount_inr: '',
+                invoice_number: '',
+                payment_mode: '',
+                payment_bank: '',
+                payment_reference: [],
+                payment_evidence: [],
+                id: null
+            });
             fetchExpendituresForm();
         } catch (err) {
             toast.error("Submission failed.");
+            console.error(err);
         } finally {
             setLoading(false);
         }
     };
 
-   const fetchEditData = async (id) => {
-    try {
-        const res = await fetchData(config.getExpenditureById(id)); // Make sure this is the correct expenditure endpoint
-        const data = res.data;
-
-        if (data) {
-            const formattedData = {
-                date: data.date ? new Date(data.date) : "",
-                vendor_name: data.vendor_name || '',         // Assuming these match your backend response
-                expense_head: data.expense_head || '',
-                amount_inr: data.amount_inr || '',
-                invoice_number: data.invoice_number || '',
-                payment_mode: data.payment_mode || '',
-                payment_bank: data.payment_bank || '',
-                payment_reference: data.payment_reference || '',
-                payment_evidence: data.payment_evidence || '',
-                id: data.id || null,
-            };
-            setForm(formattedData);
-        }
-    } catch (error) {
-        toast.error("Failed to load expenditure data for editing");
-        console.error("Error loading expenditure by ID:", error);
-    }
-};
 
     return (
         <div className="container-fluid mt-3">
@@ -242,7 +304,7 @@ const ExpenditureForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                   
+
                                         <select
                                             name='expense_head'
                                             value={form.expense_head}
@@ -260,7 +322,7 @@ const ExpenditureForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                  
+
                                         <select
                                             name='payment_mode'
                                             value={form.payment_mode}
@@ -278,7 +340,7 @@ const ExpenditureForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                      
+
                                         <select
                                             name='payment_bank'
                                             value={form.payment_bank}
@@ -320,33 +382,47 @@ const ExpenditureForm = () => {
 
                                     <div className="col-lg-6 mb-1">
                                         <input
-                                            type="text"
+                                            type="file"
                                             name="payment_reference"
-                                            placeholder="Payment Reference"
-                                            value={form.payment_reference || ''}
-                                            onChange={(e) => setForm({ ...form, payment_reference: e.target.value })}
+                                            
+                                            onChange={(e) => setForm({ ...form, payment_reference: e.target.files[0] })}
                                             className="form-control mb-1"
+                                            accept="image/*,application/pdf"
                                             required
                                         />
+
+
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                        <input
-                                            type="text"
+                                        {/* <input
+                                            type="file"
+                                            accept="image/*,application/pdf"
+
                                             name="payment_evidence"
                                             placeholder="Payment Evidence"
                                             value={form.payment_evidence || ''}
                                             onChange={(e) => setForm({ ...form, payment_evidence: e.target.value })}
                                             className="form-control mb-1"
                                             required
+                                        /> */}
+
+                                        <input
+                                            type="file"
+                                            name="payment_evidence"
+                                             
+                                            onChange={(e) => setForm({ ...form, payment_evidence: e.target.files[0] })}
+                                            className="form-control mb-1"
+                                            accept="image/*,application/pdf"
+                                            required
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="card-footer text-center row d-flex justify-content-center">
-                                <button type="submit" className="btn btn-primary btn-sm col-lg-4" disabled={loading}>
-                                    {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
+                            <div className="col-12 text-center mt-3">
+                                <button className="btn btn-success" type="submit" disabled={loading}>
+                                    {form.id ? 'Update' : 'Submit'} {loading && <i className="pi pi-spin pi-spinner"></i>}
                                 </button>
                             </div>
                         </form>

@@ -29,7 +29,7 @@ const MaterialIssueTable = () => {
         <ReusableDataTable
             title="Material Issues "
             fetchFunction={fetchMaterials}
-            deleteFunction={(id) => deleteData(config.deleteStock(id))}
+            deleteFunction={(id) => deleteData(config.deleteMaterialIssue(id))}
             filters={[
                 {
                     field: 'material_name',

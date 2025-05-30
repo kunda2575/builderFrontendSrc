@@ -69,72 +69,69 @@ const Signup = () => {
     };
 
 
-    const sendOtp = async () => {
-        // ... your validations ...
-        if (otpRequestInProgress.current) {
-            return; // Prevent multiple requests
+const sendOtp = async () => {
+    if (otpRequestInProgress.current) return;
+
+    if (!fullname || !mobilenumber || !email || !password || !confirmPassword) {
+        toast.error("All fields are required!");
+        return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        toast.error("Invalid email format.");
+        return;
+    }
+
+    if (!/^[6-9]\d{9}$/.test(mobilenumber)) {
+        toast.error("Invalid mobile number.");
+        return;
+    }
+
+    if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
+        toast.error("Password must be strong.");
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        toast.error("Passwords do not match!");
+        return;
+    }
+
+    setIsOtpSending(true);
+    setOtp("");
+    setOtpSent(false);
+    setOtpVerified(false);
+    setTimeLeft(6 * 60);
+    otpRequestInProgress.current = true;
+
+    try {
+        const response = await fetch(config.sendOtp, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            // Backend already sends "Email already registered"
+            throw new Error(data.error || "Failed to send OTP");
         }
 
+        toast.success("OTP sent to your email");
+        setOtpSent(true);
+        setShowOtpModal(true);
 
-
-        if (!fullname || !mobilenumber || !email || !password || !confirmPassword) {  // checking all fields
-            toast.error("All fields are required!");
-            return;
-        }
-
-        // if (!email) {
-        //     toast.error("Please enter your email");
-        //     return;
-        // }
-
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            toast.error("Invalid email format. Please enter a valid email.");     // email format 
-            return;
-        }
-
-        if (!mobilenumber || !/^[6-9]\d{9}$/.test(mobilenumber)) {
-            toast.error("Invalid mobile number. It should be 10 digits and start with 6-9.");   //mobile number format 
-            return;
-        }
-
-
-
-        if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
-            toast.error("Password must be at least 8 characters long, include one uppercase, one lowercase, one number, and one special character.");
-            return;                                                                 // checking password format
-        }
-
-        if (password !== confirmPassword) {
-            toast.error("Passwords do not match!");    // compare password and confirm password
-            return;
-        }
-
-
-        setIsOtpSending(true);
-        setOtp("");
-        setOtpSent(false);
-        setOtpVerified(false);
-        setTimeLeft(6 * 60);
-        otpRequestInProgress.current = true;
-
-        try {
-            const data = await postData(config.sendOtp, { email });
-
-            toast.success("OTP sent to your email");
-            setOtpSent(true);
-            setShowOtpModal(true);
-
-        } catch (error) {
-            console.error("OTP Send Error:", error);
-            toast.error(error.message || "Failed to send OTP");
-        }
-
-        finally {
-            setIsOtpSending(false);
-            otpRequestInProgress.current = false;
-        }
-    };
-
+    } catch (error) {
+        console.error("OTP Send Error:", error);
+        toast.error(error.message || "Something went wrong");
+    } finally {
+        setIsOtpSending(false);
+        otpRequestInProgress.current = false;
+    }
+};
 
     // const debouncedSendOtp = debounce(sendOtp, 5000); // 2 seconds delay
 
@@ -263,8 +260,8 @@ const Signup = () => {
                                             >
                                                 <option value="" disabled hidden></option>
                                                 <option value="user">User</option>
-                                                <option value="builder">Builder</option>
-                                                <option value="agent">Agent</option>
+                                                <option value="Admin">Admin</option>
+                                                <option value="Super Admin">Super Admin</option>
 
                                             </select>
                                         </div>

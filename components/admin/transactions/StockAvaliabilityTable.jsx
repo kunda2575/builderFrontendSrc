@@ -21,7 +21,6 @@ const StockAvailabilityTable = () => {
             count: res.data?.materialDetailsCount || 0,
         };
     };
-
     return (
         <ReusableDataTable
             title="Stock Availability Management"
