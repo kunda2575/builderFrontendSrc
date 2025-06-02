@@ -320,9 +320,9 @@ const InventoryEntryTable = () => {
                     </label>
                 )} style={{ minWidth: '13rem' }} />
                 {/* <Column field="invoice_attachment" header="Invoice Attachment" style={{ minWidth: '13rem' }} /> */}
-                
 
-               <Column
+
+                <Column
                     header="Invoice Attachment"
                     body={(rowData) => {
                         const files = rowData.invoice_attachment
@@ -331,9 +331,9 @@ const InventoryEntryTable = () => {
 
                         return files.length > 0 ? (
                             <div className="flex flex-col gap-1">
-                                {files.map((file, index) => (
-                                    <a
-                                                key={index}
+                                {files.map((file, i) => (
+                                   <a
+                                                key={i}
 
                                                 href={`http://localhost:2026/uploads/${file}`}
                                                 target='blank'
@@ -341,7 +341,7 @@ const InventoryEntryTable = () => {
                                                 className="btn btn-sm btn-outline-primary"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
-                                                Download PDF {index + 1}
+                                                Download PDF {i + 1}
                                             </a>
 
                                 ))}
@@ -351,7 +351,7 @@ const InventoryEntryTable = () => {
                         );
                     }}
                     style={{ minWidth: '13rem' }}
-                /> 
+                />
 
 
                 <Column field="entered_by" header="Entered By" style={{ minWidth: '13rem' }} />

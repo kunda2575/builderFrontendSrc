@@ -321,8 +321,8 @@ const ProjectDebitForm = () => {
                                 </div>
                             </div>
 
-                            <div className="card-footer text-center row d-flex justify-content-center">
-                                <button type="submit" className="btn btn-primary btn-sm col-lg-4" disabled={loading}>
+                             <div className="card-footer text-center row d-flex justify-content-center">
+                                <button type="submit" className="btn btn-primary btn-sm col-lg-2" disabled={loading}>
                                     {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
                                 </button>
                             </div>

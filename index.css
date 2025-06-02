@@ -214,3 +214,10 @@ label {
   height: 100vh;
   overflow: hidden;
 } */
+
+
+
+.input-group .form-control {
+    padding: 1px !important;
+    font-size: 16px;
+}

@@ -126,7 +126,15 @@ const ExpenditureForm = () => {
     };
 
 
-
+    // handleFileChange (update it to handle field-specific file input)
+    const handleFileChange = (e) => {
+        const fieldName = e.target.id; // "paymentReference" or "paymentEvidence"
+        const files = Array.from(e.target.files);
+        setForm(prev => ({
+            ...prev,
+            [fieldName === 'paymentReference' ? 'payment_reference' : 'payment_evidence']: files
+        }));
+    };
 
     // const handleSubmit = async (e) => {
     //     e.preventDefault();
@@ -381,48 +389,65 @@ const ExpenditureForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                        <input
-                                            type="file"
-                                            name="payment_reference"
-                                            
-                                            onChange={(e) => setForm({ ...form, payment_reference: e.target.files[0] })}
-                                            className="form-control mb-1"
-                                            accept="image/*,application/pdf"
-                                            required
-                                        />
-
-
+                                        <div className="input-group">
+                                            <label htmlFor="paymentReference" className="btn btn-outline-secondary">
+                                                Payment Reference
+                                            </label>
+                                            <input
+                                                id="paymentReference"
+                                                type="file"
+                                                accept="image/*,application/pdf"
+                                                multiple
+                                                onChange={handleFileChange}
+                                                style={{ display: 'none' }}
+                                            />
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Choose file"
+                                                value={
+                                                    form.payment_reference?.length > 0
+                                                        ? form.payment_reference.map(file => file.name).join(', ')
+                                                        : ''
+                                                }
+                                                readOnly
+                                            />
+                                        </div>
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                        {/* <input
-                                            type="file"
-                                            accept="image/*,application/pdf"
-
-                                            name="payment_evidence"
-                                            placeholder="Payment Evidence"
-                                            value={form.payment_evidence || ''}
-                                            onChange={(e) => setForm({ ...form, payment_evidence: e.target.value })}
-                                            className="form-control mb-1"
-                                            required
-                                        /> */}
-
-                                        <input
-                                            type="file"
-                                            name="payment_evidence"
-                                             
-                                            onChange={(e) => setForm({ ...form, payment_evidence: e.target.files[0] })}
-                                            className="form-control mb-1"
-                                            accept="image/*,application/pdf"
-                                            required
-                                        />
+                                        <div className="input-group">
+                                            <label htmlFor="paymentEvidence" className="btn btn-outline-secondary">
+                                                Payment Evidence
+                                            </label>
+                                            <input
+                                                id="paymentEvidence"
+                                                type="file"
+                                                accept="image/*,application/pdf"
+                                                multiple
+                                                onChange={handleFileChange}
+                                                style={{ display: 'none' }}
+                                            />
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Choose file"
+                                                value={
+                                                    form.payment_evidence?.length > 0
+                                                        ? form.payment_evidence.map(file => file.name).join(', ')
+                                                        : ''
+                                                }
+                                                readOnly
+                                            />
+                                        </div>
                                     </div>
+
                                 </div>
                             </div>
 
-                            <div className="col-12 text-center mt-3">
-                                <button className="btn btn-success" type="submit" disabled={loading}>
-                                    {form.id ? 'Update' : 'Submit'} {loading && <i className="pi pi-spin pi-spinner"></i>}
+                            <div className="card-footer text-center row d-flex justify-content-center">
+                                <button type="submit" className="btn btn-primary btn-sm col-lg-2" disabled={loading}>
+                                    {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
                                 </button>
                             </div>
                         </form>

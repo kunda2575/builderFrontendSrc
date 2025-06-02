@@ -261,6 +261,7 @@ const InventoryEntryForm = () => {
 
                   {/* Invoice Cost Incl Gst */}
                   <div className="col-lg-6 mb-1">
+                    <label></label>
                     <input
                       type="number"
                       name="invoice_cost_incl_gst"
@@ -316,27 +317,42 @@ const InventoryEntryForm = () => {
                     />
                   </div>
 
-                  {/* File Upload */}
-                  {/* File Upload */}
+
                   <div className="col-lg-6 mb-1">
-                    <input
-                      type="file"
-                      accept="image/*,application/pdf"
-                      multiple
-                      onChange={handleFileChange} // ✅ Use the correct handler
-                      className="form-control mb-1"
-                    />
-                    {form.invoice_attachment.length > 0 && (
-                      <small>{form.invoice_attachment.length} file(s) selected</small>
-                    )}
+                    <div className="input-group">
+                      <label htmlFor="invoiceAttachment" className="btn btn-outline-secondary">
+                        Invoice Attachment
+                      </label>
+                      <input
+                        id="invoiceAttachment"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        multiple
+                        onChange={(e) => setForm({ ...form, invoice_attachment: Array.from(e.target.files) })}
+                        style={{ display: 'none' }}
+                      />
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Choose file"
+                        value={
+                          form.invoice_attachment && form.invoice_attachment.length > 0
+                            ? form.invoice_attachment.map(file => file.name).join(', ')
+                            : ''
+                        }
+                        readOnly
+                      />
+                    </div>
+
                   </div>
+
 
                 </div>
               </div>
 
-              <div className="card-footer">
-                <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-                  {loading ? 'Saving...' : form.id ? 'Update Inventory' : 'Add Inventory'}
+              <div className="card-footer text-center row d-flex justify-content-center">
+                <button type="submit" className="btn btn-primary btn-sm col-lg-2" disabled={loading}>
+                  {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>

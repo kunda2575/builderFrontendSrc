@@ -38,7 +38,7 @@ const ProjectDebitTable = () => {
             {/* Action Buttons */}
 
             <ReusableDataTable
-                title="Project Debit Table"
+                title="Project Debit's Table"
                 fetchFunction={fetchProjectDebit}
                 deleteFunction={(id) => deleteData(`${config.host}/api/projectDebit/${id}`)}
                 filters={[
