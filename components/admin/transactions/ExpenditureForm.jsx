@@ -187,7 +187,7 @@ const ExpenditureForm = () => {
     const fetchEditData = async (id) => {
         try {
             const res = await fetchData(config.getExpenditureById(id)); // Make sure this is the correct expenditure endpoint
-            const data = res.data;
+            const data = res.data.data; // ✅ fix here
 
             if (data) {
                 const formattedData = {
@@ -209,51 +209,58 @@ const ExpenditureForm = () => {
             console.error("Error loading expenditure by ID:", error);
         }
     };
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+    const formData = new FormData();
+    formData.append("date", form.date?.toISOString() || "");
+    formData.append("vendor_name", form.vendor_name);
+    formData.append("expense_head", form.expense_head);
+    formData.append("amount_inr", form.amount_inr);
+    formData.append("invoice_number", form.invoice_number);
+    formData.append("payment_mode", form.payment_mode);
+    formData.append("payment_bank", form.payment_bank);
 
-        const formData = new FormData();
-        formData.append("date", form.date?.toISOString() || "");
-        formData.append("vendor_name", form.vendor_name);
-        formData.append("expense_head", form.expense_head);
-        formData.append("amount_inr", form.amount_inr);
-        formData.append("invoice_number", form.invoice_number);
-        formData.append("payment_mode", form.payment_mode);
-        formData.append("payment_bank", form.payment_bank);
-        formData.append('payment_reference', form.payment_reference); // Single file
-        formData.append('payment_evidence', form.payment_evidence);   // Single file
+    // Append each file individually (for multiple files)
+    form.payment_reference.forEach((file) => {
+        formData.append("payment_reference", file);
+    });
 
-        try {
-            if (form.id) {
-                await putData(config.updateExpenditure(form.id), formData, true); // Ensure multipart flag is true in handler
-                toast.success("Updated successfully!");
-            } else {
-                await postData(`${config.createExpenditure}`, formData, true);
-                toast.success("Created successfully!");
-            }
+    form.payment_evidence.forEach((file) => {
+        formData.append("payment_evidence", file);
+    });
 
-            setForm({
-                date: "",
-                vendor_name: '',
-                expense_head: '',
-                amount_inr: '',
-                invoice_number: '',
-                payment_mode: '',
-                payment_bank: '',
-                payment_reference: [],
-                payment_evidence: [],
-                id: null
-            });
-            fetchExpendituresForm();
-        } catch (err) {
-            toast.error("Submission failed.");
-            console.error(err);
-        } finally {
-            setLoading(false);
+    try {
+        if (form.id) {
+            await putData(config.updateExpenditure(form.id), formData, true); // true indicates multipart/form-data
+            toast.success("Updated successfully!");
+        } else {
+            await postData(`${config.createExpenditure}`, formData, true);
+            toast.success("Created successfully!");
         }
-    };
+
+        // Reset form after submission
+        setForm({
+            date: "",
+            vendor_name: '',
+            expense_head: '',
+            amount_inr: '',
+            invoice_number: '',
+            payment_mode: '',
+            payment_bank: '',
+            payment_reference: [],
+            payment_evidence: [],
+            id: null
+        });
+        fetchExpendituresForm();
+    } catch (err) {
+        toast.error("Submission failed.");
+        console.error(err);
+    } finally {
+        setLoading(false);
+    }
+};
 
 
     return (
@@ -398,7 +405,9 @@ const ExpenditureForm = () => {
                                                 type="file"
                                                 accept="image/*,application/pdf"
                                                 multiple
-                                                onChange={handleFileChange}
+                                                // onChange={handleFileChange}
+                                                  onChange={(e) => setForm({ ...form, payment_reference: Array.from(e.target.files) })}
+                     
                                                 style={{ display: 'none' }}
                                             />
                                             <input

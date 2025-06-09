@@ -66,30 +66,36 @@ const ReusableTableForm = ({
             setForm({ ...form, [name]: value });
         }
     };
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+        const data = new FormData();
+        fields.forEach(field => data.append(field.name, form[field.name]));
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            const data = new FormData();
-            fields.forEach(field => data.append(field.name, form[field.name]));
-
-            if (form.id) {
-                await updateData(form.id, data);
-                toast.success(`${title} updated`);
-            } else {
-                await createData(data);
-                toast.success(`${title} created`);
-            }
-
-            setForm({ ...initialFormState, id: null });
-            getData();
-        } catch (error) {
-            toast.error(error.response?.data?.error || 'Action failed');
-        } finally {
-            setLoading(false);
+        let response;
+        if (form.id) {
+            response = await updateData(form.id, data);
+        } else {
+            response = await createData(data);
         }
-    };
+
+        if (!response.success) {
+            toast.error(response.message || 'Action failed');
+            return; // don’t proceed
+        }
+
+        toast.success(`${title} ${form.id ? 'updated' : 'created'}`);
+        setForm({ ...initialFormState, id: null });
+        getData();
+
+    } catch (error) {
+        toast.error(error.message || 'Unexpected error');
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     const handleEdit = (item) => {
         const updatedForm = { ...item };

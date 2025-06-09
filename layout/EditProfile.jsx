@@ -1,54 +1,46 @@
-import { postData } from '../../../api/api';
-import { config } from '../../../api/config';
-import './signup.css';
+import { postData } from '../api/api';
+import { putData } from '../api/apiHandler';
+import { config } from '../api/config';
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-// import { Modal, Button } from 'react-bootstrap';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
+import signupLogo from "/src/assets/auth/builderView.jpg";
+import signup from "/src/assets/auth/signup.jpg";
+import { useParams } from 'react-router-dom';
 
-import signupLogo from "/src/assets/auth/builderView.jpg"
+const EditProfile = () => {
 
-import signup from "/src/assets/auth/signup.jpg"
-
-const Signup = () => {
-    // Navigation
     const navigate = useNavigate();
+    const { userId } = useParams();
+    const location = useLocation();
+    const state = location.state || {};
+    // const [userId, setUserId] = useState(null);
 
-    // Form Fields
-    const [fullname, setfullname] = useState("")
+    const [fullname, setfullname] = useState("");
     const [mobilenumber, setmobilenumber] = useState("");
-
     const [email, setEmail] = useState("");
     const [profile, setProfile] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [mode, setMode] = useState("create");
 
-    // OTP Handling
     const [otp, setOtp] = useState("");
     const [otpSent, setOtpSent] = useState(false);
     const [otpVerified, setOtpVerified] = useState(false);
     const [isOtpSending, setIsOtpSending] = useState(false);
     const [showOtpModal, setShowOtpModal] = useState(false);
 
-    // OTP Timer
     const [freezeTimer, setFreezeTimer] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
-
-    // Errors
     const [error, setError] = useState(null);
-
-    // UI Controls
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // Ref to prevent multiple OTP requests
     const otpRequestInProgress = useRef(false);
-
     const [isVerifying, setIsVerifying] = useState(false);
-
 
     useEffect(() => {
         let timer;
@@ -62,98 +54,68 @@ const Signup = () => {
         return () => clearInterval(timer);
     }, [otpSent, timeLeft, otpVerified, freezeTimer]);
 
+    const resolvedUserId = state?.userData?.userId || userId;
+
+    useEffect(() => {
+        if (state.mode === "edit" && state.userData) {
+            const { fullname, mobilenumber, email, profile, password } = state.userData;
+            setfullname(fullname || '');
+            setmobilenumber(mobilenumber || '');
+            setEmail(email || '');
+            setProfile(profile || '');
+            setPassword(password || '');
+            setConfirmPassword(password || '');
+            setMode("edit");
+
+            console.log("🟢 Loaded edit profile data:", { resolvedUserId });
+        }
+    }, [state]);
+
+    console.log("userId from URL:", userId);
+
     const formatTime = (seconds) => {
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
     };
-
-
-const sendOtp = async () => {
-    if (otpRequestInProgress.current) return;
-
-    if (!fullname || !mobilenumber || !email || !password || !confirmPassword) {
-        toast.error("All fields are required!");
-        return;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        toast.error("Invalid email format.");
-        return;
-    }
-
-    if (!/^[6-9]\d{9}$/.test(mobilenumber)) {
-        toast.error("Invalid mobile number.");
-        return;
-    }
-
-    if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
-        toast.error("Password must be strong.");
-        return;
-    }
-
-    if (password !== confirmPassword) {
-        toast.error("Passwords do not match!");
-        return;
-    }
-
-    setIsOtpSending(true);
-    setOtp("");
-    setOtpSent(false);
-    setOtpVerified(false);
-    setTimeLeft(6 * 60);
-    otpRequestInProgress.current = true;
-// Step 1: Check if email already exists
-    try {
-        const checkRes = await fetch(`${config.emailExist}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email })
-        });
-
-        const checkData = await checkRes.json();
-
-        if (checkData.exists) {
-            toast.error(checkData.message || "Email already registered");
+    const sendOtp = async () => {
+        if (!email || !email.includes("@")) {
+            toast.error("Please enter a valid email");
             return;
         }
-    } catch (err) {
-        toast.error("Failed to check email");
-        return;
-    }
 
+        setIsOtpSending(true);
+        setOtp("");
+        setOtpSent(false);
+        setOtpVerified(false);
+        setTimeLeft(6 * 60);
+        otpRequestInProgress.current = true;
 
-    try {
-        const response = await fetch(config.sendOtp, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email }),
-        });
+        try {
+            const response = await fetch(config.sendOtp, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (!response.ok) {
-            // Backend already sends "Email already registered"
-            throw new Error(data.error || "Failed to send OTP");
+            if (response.ok && data) {
+                toast.success("OTP sent to your email");
+                setOtpSent(true);
+                setShowOtpModal(true);
+            } else {
+                toast.error(data?.message || "OTP send failed");
+            }
+
+        } catch (error) {
+            console.error("OTP Send Error:", error);
+            toast.error(error.message || "Something went wrong");
+        } finally {
+            setIsOtpSending(false);
+            otpRequestInProgress.current = false;
         }
-
-        toast.success("OTP sent to your email");
-        setOtpSent(true);
-        setShowOtpModal(true);
-
-    } catch (error) {
-        console.error("OTP Send Error:", error);
-        toast.error(error.message || "Something went wrong");
-    } finally {
-        setIsOtpSending(false);
-        otpRequestInProgress.current = false;
-    }
-};
-
-    // const debouncedSendOtp = debounce(sendOtp, 5000); // 2 seconds delay
-
+    };
 
     const verifyOtp = async () => {
         if (!otp) {
@@ -161,7 +123,7 @@ const sendOtp = async () => {
             return;
         }
 
-        setIsVerifying(true); // ⛔ Disable the button & show spinner
+        setIsVerifying(true);
 
         try {
             const otpResponse = await postData(config.verifyOtp, { email, otp });
@@ -171,45 +133,67 @@ const sendOtp = async () => {
                 return;
             }
 
-            const registeredData = await postData(config.register, {
-                fullname, mobilenumber, email, profile, password
-            });
-
-            if (registeredData?.success) {
-                toast.success("Register successfully");
-            } else {
-                setError(registeredData.error);
-            }
-
+            toast.success("OTP Verified Successfully");
             setOtpVerified(true);
             setFreezeTimer(true);
-            toast.success("Otp verified Successfully!");
-            navigate("/login");
             setShowOtpModal(false);
 
+            // If in edit mode, update the profile after OTP is verified
+            if (mode === "edit") {
+                const resolvedUserId = state?.userData?.userId || userId;
+
+                if (!resolvedUserId) {
+                    toast.error("User ID not found. Cannot update profile.");
+                    return;
+                }
+
+                const response = await putData(`${config.updateUsers}/${resolvedUserId}`, {
+                    userId: resolvedUserId,
+                    fullname,
+                    mobilenumber,
+                    email,
+                    profile,
+                    password,
+                });
+
+                if (response.success) {
+                    toast.success("Profile updated successfully! Redirecting to login...");
+  localStorage.removeItem('loginToken');
+    localStorage.removeItem('fullname');
+    localStorage.removeItem('profile');
+
+                    setTimeout(() => {
+                        navigate("/login");
+                    }, 1500);
+                }
+
+            }
+            setOtpVerified(true);
+            setFreezeTimer(true);
+
+            navigate("/login");
+            setShowOtpModal(false);
         } catch (error) {
             console.error("OTP Verification Error:", error);
             toast.error("Something went wrong!");
         } finally {
-            setIsVerifying(false); // ✅ Re-enable if retry is allowed (optional)
+            setIsVerifying(false);
         }
     };
 
     const handleOtpChange = (index, value) => {
-        if (!/^\d?$/.test(value)) return; // Only allow digits
-
-        const newOtp = otp.split(""); // Convert string to array
+        if (!/^\d?$/.test(value)) return;
+        const newOtp = otp.split("");
         newOtp[index] = value;
-        setOtp(newOtp.join("")); // Convert back to string
-
+        setOtp(newOtp.join(""));
         if (value && index < 5) {
-            document.getElementById(`otp-${index + 1}`).focus(); // Move forward
+            document.getElementById(`otp-${index + 1}`).focus();
         }
     };
 
     const moveToNextField = (index, event) => {
         if (event.key === "Backspace" && !otp[index] && index > 0) {
-            document.getElementById(`otp-${index - 1}`).focus(); // Move backward
+            document.getElementById(`otp-${index - 1}`).focus();
         }
     };
 
@@ -220,10 +204,10 @@ const sendOtp = async () => {
 
                     <div className="col-lg-10 m-auto">
 
-                        <div className="row g-0 shadow-lg rounded-4 overflow-hidden">
+                        <div className="row g-0 shadow-lg rounded-4 overflow-huserIdden">
 
                             <div className="col-lg-6 d-none d-lg-flex align-items-center justify-content-center bg-dark">
-                                <img src={signup} alt="Signup" className="img-fluid w-100 h-100 object-fit-cover" style={{ opacity: 0.8 }} />
+                                <img src={signup} alt="Signup" className="img-fluuserId w-100 h-100 object-fit-cover" style={{ opacity: 0.8 }} />
                             </div>
                             <div className="col-lg-6 pt-4 pb-4 p-2 d-flex flex-column justify-content-center bg-light position-relative">
 
@@ -231,11 +215,13 @@ const sendOtp = async () => {
                                     <img
                                         src={signupLogo}
                                         alt="logo"
-                                        style={{ width: '90px', height: '90px', borderRadius: '8px' }}
+                                        style={{ wuserIdth: '90px', height: '90px', borderRadius: '8px' }}
                                     />
                                 </div>
+                                <h3 className="text-center text-dark fw-bold mb-3">
+                                    {mode === 'edit' ? 'Edit Profile' : 'Create Your Account'}
+                                </h3>
 
-                                <h3 className="text-center text-dark fw-bold mb-3">Create Your Account</h3>
                                 <form >
                                     <div className="row mb-3">
                                         <div className="col-lg-4 m-auto">
@@ -277,7 +263,8 @@ const sendOtp = async () => {
                                                 onChange={(e) => setProfile(e.target.value)}
                                                 required
                                             >
-                                                <option value="" disabled hidden></option>
+                                                <option hidden value="">-- Select Role --</option>
+
                                                 <option value="user">User</option>
                                                 <option value="Admin">Admin</option>
                                                 <option value="Super Admin">Super Admin</option>
@@ -294,11 +281,12 @@ const sendOtp = async () => {
                                         <div className="col-lg-7 m-auto position-relative">
                                             <input
                                                 type={showPassword ? "text" : "password"}
-                                                className="form-control "
+                                                className="form-control"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
-                                                required
+                                                required={mode !== 'edit'}
                                             />
+
                                             <i
                                                 className={`pi ${showPassword ? "pi-eye-slash" : "pi-eye"} position-absolute`}
                                                 onClick={() => setShowPassword(!showPassword)}
@@ -329,27 +317,29 @@ const sendOtp = async () => {
 
 
                                     <div className="text-center col-10 m-auto">
-
                                         <button
                                             type="button"
                                             className='btn btn-primary w-100'
                                             onClick={sendOtp}
+
                                             disabled={isOtpSending}
                                         >
-                                            {isOtpSending ? "Sending OTP..." : "Sign Up"}
+                                            {mode === 'edit'
+                                                ? isOtpSending ? "Sending OTP..." : "Send OTP to Update"
+                                                : isOtpSending ? "Sending OTP..." : "Sign Up"}
+
                                         </button>
 
                                     </div>
                                 </form>
 
-                                <div className="text-center mt-3">
+                                {/* <div className="text-center mt-3">
                                     <Link to="/login" className="text-decoration-none text-secondary fw-medium">Already have an account? <b className='text-primary ms-2'> Login </b></Link>
-                                </div>
+                                </div> */}
                                 {error && <p className="text-danger text-center mt-3">{error}</p>}
                             </div>
                         </div>
                     </div>
-
                     <Dialog
                         visible={showOtpModal}
                         onHide={() => setShowOtpModal(false)}
@@ -413,4 +403,4 @@ const sendOtp = async () => {
     );
 };
 
-export default Signup;
+export default EditProfile;

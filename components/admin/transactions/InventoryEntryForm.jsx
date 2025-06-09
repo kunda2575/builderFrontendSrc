@@ -69,7 +69,7 @@ const InventoryEntryForm = () => {
   const fetchEditData = async (id) => {
     try {
       const res = await fetchData(config.getInventoriesById(id));
-      const inv = res.data;
+      const inv = res.data.data;
       if (inv) {
         setForm({
           material_id: inv.material_id || "",

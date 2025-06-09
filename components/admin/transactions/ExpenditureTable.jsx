@@ -128,9 +128,9 @@ const ExpenditureTable = () => {
                 ]}
                 actions={(rowData, { onDelete }) => (
                     <>
-                        {/* <Link to={`/expenditureForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm me-1">
+                        <Link to={`/expenditureForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm me-1">
                             <i className="pi pi-pencil" />
-                        </Link> */}
+                        </Link>
                         <button className="btn btn-outline-danger btn-sm" onClick={() => onDelete(rowData.id)}>
                             <i className="pi pi-trash" />
                         </button>

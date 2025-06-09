@@ -360,9 +360,9 @@ const InventoryEntryTable = () => {
                     header="Actions"
                     body={(rowData) => (
                         <div className="d-flex gap-2 justify-content-center">
-                            {/* <Link to={`/inventoryEntryForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
+                            <Link to={`/inventoryEntryForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                                 <i className="pi pi-pencil"></i>
-                            </Link> */}
+                            </Link>
                             <button
                                 className="btn btn-outline-danger btn-sm"
                                 onClick={() => {

@@ -8,7 +8,8 @@ import {
 } from '../../../api/updateApis/customerApi'; // Your API functions
 
 const fields = [
-  { name: 'customerId', label: 'Customer Id', type: 'number',  options: 'customerOptions',required: true },
+{ name: 'customerId', label: 'Customer Id', type: 'number', required: true, disabled: true },
+
   { name: 'customerName', label: 'Customer Name', type: 'text', required: true },
   { name: 'customerPhone', label: 'Mobile', type: 'number', required: true },
   { name: 'customerEmail', label: 'Email', type: 'email', required: true },

@@ -302,6 +302,7 @@ const ReusableForm_Table = ({
                                                 onChange={(e) => handleChange(e, field)}
                                                 className="form-control mb-2"
                                                 required={field.required}
+                                                 disabled={field.disabled || false}
                                             />
                                         </div>
                                     );

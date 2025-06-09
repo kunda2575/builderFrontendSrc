@@ -54,6 +54,7 @@ import ProjectDebitTable from "../components/admin/transactions/ProjectDebitTabl
 import ExpenditureTable from "../components/admin/transactions/ExpenditureTable";
 import CustomerPaymentsForm from "../components/admin/transactions/CustomerPaymentsForm";
 import CustomerPaymentsTable from "../components/admin/transactions/CustomerPaymentsTable";
+import EditProfile from "../layout/EditProfile";
 
 const AppRoutes = () => (
   <Routes>
@@ -106,6 +107,8 @@ const AppRoutes = () => (
     <Route path="/unitType" element={<UnitTypeMaster />} />
     <Route path="/vendorMaster" element={<VendorMaster />} />
     <Route path="/userMaster" element={<UserMaster />} />
+
+<Route path="/edit-profile/:userId" element={<EditProfile />} />
 
     {/* transaction */}
 

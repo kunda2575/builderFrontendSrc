@@ -1,8 +1,8 @@
 
-export const host = "https://buildrviewbackend.onrender.com";
+// export const host = "https://buildrviewbackend.onrender.com";
+// 
 
-
-// export const host = "http://localhost:2026"
+export const host = "http://localhost:2026"
 
 export const config = {
   host: `${host}`,
@@ -14,6 +14,10 @@ export const config = {
   resetPassword: `${host}/user/reset-password`,
   sendOtp: `${host}/user/send-otp`,
   verifyOtp: `${host}/user/verify-otp`,
+  getUser: `${host}/user/getUser`,
+  emailExist : `${host}/user/check-email`,
+  
+  updateUsers: `${host}/user/updateUser`,
 
   // LEADS
   getLeads: `${host}/api/leads`,                           // GET all leads
@@ -90,6 +94,7 @@ export const config = {
   getSource:           `${host}/api/projectCredit/source`,
   getPurpose:          `${host}/api/projectCredit/purpose`,
   getPaymentModePc:          `${host}/api/projectCredit/paymentMode`,
+  getDepositeBankPc:          `${host}/api/projectCredit/depositeBank`,
   
   getProjectCreditsById:      (id) => `${host}/api/projectCredit/${id}`,// GET single
   
@@ -121,6 +126,7 @@ export const config = {
   getVerifiedByCp:          `${host}/api/customerPayments/verifiedBy`,
   getPaymentModeCp:          `${host}/api/customerPayments/paymentMode`,
   getFundingBankCp:          `${host}/api/customerPayments/fundingBank`,
+  getCustomerCp:          `${host}/api/customerPayments/customer`,
   getCustomerPaymentById:      (id) => `${host}/api/customerPayments/${id}`,// GET single
   
 

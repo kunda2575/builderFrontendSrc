@@ -5,6 +5,10 @@ import { fetchData, postData, putData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import { Calendar } from 'primereact/calendar';
 import 'react-toastify/dist/ReactToastify.css';
+import { MultiSelect } from 'primereact/multiselect';
+import 'primereact/resources/themes/saga-blue/theme.css'; // Or your theme
+import 'primereact/resources/primereact.min.css';
+
 
 const CustomerPaymentsForm = () => {
     const [searchParams] = useSearchParams();
@@ -18,13 +22,16 @@ const CustomerPaymentsForm = () => {
     const [paymentMode, setPaymentMode] = useState([]);
 
 
+    const [customer, setCustomer] = useState([]);
+
+
     const [form, setForm] = useState({
         customer_id: "",
         customer_name: "",
         contact_number: "",
         email: "",
         profession: "",
-        native_language: "",
+        native_language: [],
         project_name: "",
         block_name: "",
         flat_no: "",
@@ -49,6 +56,7 @@ const CustomerPaymentsForm = () => {
         fetchVerifiedBy()
         fetchPaymentModes()
         fetchFundingBank()
+        fetchCustomer()
         if (editID) {
             fetchEditData(editID);
         }
@@ -86,6 +94,21 @@ const CustomerPaymentsForm = () => {
         } catch (error) {
             console.error("Error fetching paymentType:", error);
             toast.error('Failed to fetch paymentType');
+        }
+    };
+    const fetchCustomer = async () => {
+        try {
+            const res = await fetchData(`${config.getCustomerCp}`);
+
+            if (res && res.data && Array.isArray(res.data)) {
+                setCustomer(res.data);
+            } else {
+                console.log("No customer found or invalid data format.");
+                setCustomer([]);
+            }
+        } catch (error) {
+            console.error("Error fetching CUSTOMER:", error);
+            toast.error('Failed to fetch CUSTOMER');
         }
     };
     // Fetch Expense Heads
@@ -153,7 +176,7 @@ const CustomerPaymentsForm = () => {
                 contact_number: "",
                 email: "",
                 profession: "",
-                native_language: "",
+                native_language: [],
                 project_name: "",
                 block_name: "",
                 flat_no: "",
@@ -254,29 +277,48 @@ const CustomerPaymentsForm = () => {
                                             placeholder="Select Handover Date"
                                         />
 
-                                        {/* <Calendar
-                                            value={form.date}
-                                            onChange={(e) => setForm({ ...form, date: e.value })}
-                                            showIcon
-                                            dateFormat="dd-mm-yy"
-                                            placeholder="Select a Date"
-                                            className="w-100 mb-2 custom-calendar"
-                                            panelClassName='popup'
-                                            required
-                                            showButtonBar
-                                        /> */}
                                     </div>
 
-                                    {/* CUSTOMER ID */}
+
+
+                                    {/* customer ID*/}
                                     <div className="col-lg-4 mb-2">
                                         <label></label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
+                                        <select
+                                            className="form-select"
                                             value={form.customer_id}
-                                            onChange={(e) => setForm({ ...form, customer_id: e.target.value })}
-                                            placeholder='Customer ID'
-                                        />
+                                            onChange={(e) => {
+                                                const selectedId = parseInt(e.target.value); // convert to number
+                                                const selectedCustomer = customer.find(c => c.customerId === selectedId);
+
+                                                if (selectedCustomer) {
+                                                    setForm({
+                                                        ...form,
+                                                        customer_id: selectedCustomer.customerId,
+                                                        customer_name: selectedCustomer.customerName || "",
+                                                        contact_number: selectedCustomer.customerPhone || "",
+                                                        email: selectedCustomer.customerEmail || ""
+                                                    });
+                                                } else {
+                                                    setForm({
+                                                        ...form,
+                                                        customer_id: selectedId,
+                                                        customer_name: "",
+                                                        contact_number: "",
+                                                        email: ""
+                                                    });
+                                                }
+                                            }}
+
+                                        >
+                                            <option value="">Select customer</option>
+                                            {customer.map(type => (
+                                                <option key={type.id} value={type.customerId}>
+                                                    {type.customerId}
+                                                </option>
+                                            ))}
+                                        </select>
+
                                     </div>
 
                                     {/* CUSTOMER NAME */}
@@ -329,13 +371,18 @@ const CustomerPaymentsForm = () => {
 
                                     {/* NATIVE LANGUAGE */}
                                     <div className="col-lg-4 mb-2">
-
-                                        <input
-                                            type="text"
-                                            className="form-control"
+                                        <label>Native Language</label>
+                                        <MultiSelect
                                             value={form.native_language}
-                                            onChange={(e) => setForm({ ...form, native_language: e.target.value })}
-                                            placeholder='Native Language'
+                                            onChange={(e) => setForm({ ...form, native_language: e.value })}
+                                            options={[
+                                                { label: 'Telugu', value: 'Telugu' },
+                                                { label: 'English', value: 'English' },
+                                                { label: 'Hindi', value: 'Hindi' }
+                                            ]}
+                                            placeholder="Select Languages"
+                                            display="chip"
+                                            className="w-100"
                                         />
                                     </div>
 
@@ -465,9 +512,9 @@ const CustomerPaymentsForm = () => {
                                     </div>
 
                                     {/* FUNDING BANK */}
-                                    <div className="col-lg-4 mb-2">
-                                        {/* <label>Funding Bank</label> */}
-                                        <select
+                                   {/* <div className="col-lg-4 mb-2">
+                                
+                                         <select
                                             className="form-select"
                                             value={form.funding_bank}
                                             onChange={(e) => setForm({ ...form, funding_bank: e.target.value })}
@@ -479,7 +526,24 @@ const CustomerPaymentsForm = () => {
                                                 </option>
                                             ))}
                                         </select>
+                                    </div> */}
+
+                                    {/* FUNDING BANK */}
+                                    <div className="col-lg-4 mb-2">
+                                        <select
+                                            className="form-select"
+                                            value={form.funding_bank}
+                                            onChange={(e) => setForm({ ...form, funding_bank: e.target.value })}
+                                        >
+                                            <option value="">Select Funding Bank</option>
+                                            {[...new Set(fundingBank.map(bank => bank.bankName))].map((uniqueBankName, index) => (
+                                                <option key={index} value={uniqueBankName}>
+                                                    {uniqueBankName}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
+
 
                                     {/* DOCUMENTS */}
                                     <div className="col-lg-4 mb-2">
@@ -517,9 +581,9 @@ const CustomerPaymentsForm = () => {
                             </div>
 
 
-                           
 
-                             <div className="card-footer text-center row d-flex justify-content-center">
+
+                            <div className="card-footer text-center row d-flex justify-content-center">
                                 <button type="submit" className="btn btn-primary btn-sm col-lg-2" disabled={loading}>
                                     {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
                                 </button>

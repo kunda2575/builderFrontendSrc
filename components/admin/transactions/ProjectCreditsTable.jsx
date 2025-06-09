@@ -8,18 +8,20 @@ const ProjectCreditsTable = () => {
     const [source, setSource] = useState([]);
     const [purpose, setPurpose] = useState([]);
     const [paymentMode, setPaymentMode] = useState([]);
+    const [depositeBank, setDepositeBank] = useState([]);
     
 
     useEffect(() => {
         fetchData(config.getSource).then(res => setSource(res.data || []));
         fetchData(config.getPurpose).then(res => setPurpose(res.data || []));
+        fetchData(config.getDepositeBankPc).then(res => setDepositeBank(res.data || []));
         fetchData(config.getPaymentModePc).then(res => setPaymentMode(res.data || []));
     
     }, []);
 
-    const fetchProjectCredits = async ({ source, purpose, payment_mode,  skip, limit }) => {
+    const fetchProjectCredits = async ({ source,deposite_bank, purpose, payment_mode,  skip, limit }) => {
         // const params = { source, purpose, payment_mode, payment_bank, skip, limit };
- const url = `${config.getProjectCredits}?source=${source || ''}&purpose=${purpose || ''}&payment_mode=${payment_mode || ''}&skip=${skip}&limit=${limit}`;
+ const url = `${config.getProjectCredits}?source=${source || ''}&purpose=${purpose || ''}&payment_mode=${payment_mode || ''}&deposite_bank=${deposite_bank || ''}&skip=${skip}&limit=${limit}`;
       const res = await fetchData(url);
         return {
             data: res.data?.projectCreditsDetails || [],
@@ -46,7 +48,15 @@ const ProjectCreditsTable = () => {
                         queryKey: 'fundSource'
                     },
                     {
-                        field: 'deposit_bank_purpose',
+                        field: 'deposit_bank',
+                        header: 'Deposite Bank',
+                        options: depositeBank,
+                        optionLabel: 'bankName',
+                        optionValue: 'bankName',
+                        queryKey: 'deposite_bank'
+                    },
+                    {
+                        field: 'purpose',
                         header: 'Purpose',
                         options: purpose,
                         optionLabel: 'fundPurpose',

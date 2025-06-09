@@ -15,12 +15,14 @@ const ProjectreditsForm = () => {
     const [source, setSource] = useState([]);
     const [purpose, setPurpose] = useState([]);
     const [paymentMode, setPaymentMode] = useState([]);
+    const [deposit_bank, setDepositeBank] = useState([]);
 
 
     const [form, setForm] = useState({
         date: "",
         source: '',
-        deposit_bank_purpose: '',
+        deposit_bank,
+        purpose: '',
         amount_inr: '',
         payment_mode: '',
         id: null
@@ -32,7 +34,7 @@ const ProjectreditsForm = () => {
         fetchSources()
         fetchPurpose()
         fetchPaymentModes()
-
+        fetchDepositeBank()
         if (editID) {
             fetchEditData(editID);
         }
@@ -72,7 +74,7 @@ const ProjectreditsForm = () => {
             toast.error('Failed to fetch source');
         }
     };
-    // Fetch Expense Heads
+    // Fetch Expense 
     const fetchPurpose = async () => {
         try {
             const res = await fetchData(`${config.getPurpose}`);
@@ -81,6 +83,21 @@ const ProjectreditsForm = () => {
             } else {
                 console.log("No purpose found or invalid data format.");
                 setPurpose([]);
+            }
+        } catch (error) {
+            console.error("Error fetching purpose:", error);
+            toast.error('Failed to fetch purpose');
+        }
+    };
+    // Fetch deposite Bank 
+    const  fetchDepositeBank = async () => {
+        try {
+            const res = await fetchData(`${config.getDepositeBankPc}`);
+            if (res && res.data && Array.isArray(res.data)) {
+                setDepositeBank(res.data);
+            } else {
+                console.log("No Deposite Bank found or invalid data format.");
+                setDepositeBank([]);
             }
         } catch (error) {
             console.error("Error fetching purpose:", error);
@@ -120,7 +137,8 @@ const ProjectreditsForm = () => {
             setForm({
                 date: null,
                 source: '',
-                deposit_bank_purpose: '',
+                deposit_bank,
+                purpose: '',
                 amount_inr: '',
                 payment_mode: '',
                 id: null
@@ -142,7 +160,8 @@ const ProjectreditsForm = () => {
                 const formattedData = {
                     date: data.date ? new Date(data.date) : "",
                     source: data.source || '',         // Assuming these match your backend response
-                    deposit_bank_purpose: data.deposit_bank_purpose || '',
+                    deposit_bank: data.deposit_bank|| '',
+                    purpose: data.purpose || '',
                     amount_inr: data.amount_inr || '',
                     payment_mode: data.payment_mode || '',
                     id: data.id || null,
@@ -213,13 +232,30 @@ const ProjectreditsForm = () => {
                                     <div className="col-lg-6 mb-1">
 
                                         <select
-                                            name='deposit_bank_purpose'
-                                            value={form.deposit_bank_purpose}
-                                            onChange={(e) => setForm({ ...form, deposit_bank_purpose: e.target.value })}
+                                            name='deposit_bank'
+                                            value={form.deposit_bank}
+                                            onChange={(e) => setForm({ ...form, deposit_bank: e.target.value })}
                                             className="form-select mb-1"
                                             required
                                         >
-                                            <option value="">Select Expense Head</option>
+                                            <option value="">Select Deposite Bank</option>
+                                            {deposit_bank.map(bank => (
+                                                <option key={bank.id} value={bank.bankName}>
+                                                    {bank.bankName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="col-lg-6 mb-1">
+
+                                        <select
+                                            name='purpose'
+                                            value={form.purpose}
+                                            onChange={(e) => setForm({ ...form, purpose: e.target.value })}
+                                            className="form-select mb-1"
+                                            required
+                                        >
+                                            <option value="">Select Fund Purpose</option>
                                             {purpose.map(purpose => (
                                                 <option key={purpose.id} value={purpose.fundPurpose}>
                                                     {purpose.fundPurpose}
