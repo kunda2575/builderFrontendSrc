@@ -53,29 +53,36 @@ const ReusableForm_Table = ({
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            const data = new FormData();
-            fields.forEach(field => data.append(field.name, form[field.name]));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-            if (form.id) {
-                await updateData(form.id, data);
-                toast.success(`${title} updated`);
-            } else {
-                await createData(data);
-                toast.success(`${title} created`);
-            }
+    try {
+        const data = new FormData();
+        fields.forEach(field => data.append(field.name, form[field.name]));
 
-            setForm({ ...initialFormState, id: null });
-            getData();
-        } catch (error) {
-            toast.error(error.response?.data?.error || 'Action failed');
-        } finally {
-            setLoading(false);
+        let res;
+        if (form.id) {
+            res = await updateData(form.id, data);
+        } else {
+            res = await createData(data);
         }
-    };
+
+        if (!res.success) {
+            toast.error(res.message);
+            return;
+        }
+
+        toast.success(`${title} ${form.id ? 'updated' : 'created'} successfully`);
+        setForm({ ...initialFormState, id: null });
+        getData();
+    } catch (error) {
+        toast.error("Unexpected failure. Check your console.");
+        console.error(error);
+    } finally {
+        setLoading(false);
+    }
+};
 
     // const handleEdit = (item) => {
     //     const updatedForm = { ...item };

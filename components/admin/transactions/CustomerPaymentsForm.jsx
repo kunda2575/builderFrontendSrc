@@ -162,7 +162,13 @@ const CustomerPaymentsForm = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const formData = { ...form };
+            // const formData = { ...form };
+            const formData = {
+                ...form,
+                native_language: Array.isArray(form.native_language)
+                    ? form.native_language.join(', ')
+                    : form.native_language,
+            };
             if (form.id) {
                 await putData(config.updateCustomerPayment(form.id), formData);
                 toast.success("Updated successfully!");
@@ -213,7 +219,14 @@ const CustomerPaymentsForm = () => {
                     contact_number: data.contact_number || "",
                     email: data.email || "",
                     profession: data.profession || "",
-                    native_language: data.native_language || "",
+
+                    // ✅ Convert string to array for MultiSelect
+                    native_language: typeof data.native_language === 'string'
+                        ? data.native_language.split(',').map(item => item.trim())
+                        : Array.isArray(data.native_language)
+                            ? data.native_language
+                            : [],
+
                     project_name: data.project_name || "",
                     block_name: data.block_name || "",
                     flat_no: data.flat_no || "",
@@ -239,6 +252,7 @@ const CustomerPaymentsForm = () => {
             console.error("Error loading customer Payment by ID:", error);
         }
     };
+
 
     return (
         <div className="container-fluid mt-3">
@@ -373,7 +387,7 @@ const CustomerPaymentsForm = () => {
                                     <div className="col-lg-4 mb-2">
                                         <label>Native Language</label>
                                         <MultiSelect
-                                            value={form.native_language}
+                                            value={Array.isArray(form.native_language) ? form.native_language : []}
                                             onChange={(e) => setForm({ ...form, native_language: e.value })}
                                             options={[
                                                 { label: 'Telugu', value: 'Telugu' },
@@ -385,6 +399,7 @@ const CustomerPaymentsForm = () => {
                                             className="w-100"
                                         />
                                     </div>
+
 
                                     {/* PROJECT NAME */}
                                     <div className="col-lg-4 mb-2">
@@ -512,7 +527,7 @@ const CustomerPaymentsForm = () => {
                                     </div>
 
                                     {/* FUNDING BANK */}
-                                   {/* <div className="col-lg-4 mb-2">
+                                    {/* <div className="col-lg-4 mb-2">
                                 
                                          <select
                                             className="form-select"

@@ -1,7 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-
 const AuthContext = createContext();
-
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null); // user will be an object like { profile: 'user' }

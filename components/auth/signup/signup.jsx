@@ -20,7 +20,6 @@ const Signup = () => {
     // Form Fields
     const [fullname, setfullname] = useState("")
     const [mobilenumber, setmobilenumber] = useState("");
-
     const [email, setEmail] = useState("");
     const [profile, setProfile] = useState("");
     const [password, setPassword] = useState("");

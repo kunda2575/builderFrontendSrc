@@ -116,33 +116,40 @@ const InventoryEntryTable = () => {
         // }
     };
 
+const removeDuplicates = (data, key) => {
+    return Array.from(new Map(data.map(item => [item[key], item])).values());
+};
 
-    const getMaterialDetails = async () => {
-        try {
-            const res = await fetchData(config.getMaterial);
-            setMaterialDetails(Array.isArray(res.data) ? res.data : []);
-        } catch {
-            setMaterialDetails([]);
-        }
-    };
 
-    const getUnitTypeDetails = async () => {
-        try {
-            const res = await fetchData(config.getUnitType);
-            setUnitType(Array.isArray(res.data) ? res.data : []);
-        } catch {
-            setUnitType([]);
-        }
-    };
+const getMaterialDetails = async () => {
+    try {
+        const res = await fetchData(config.getMaterial);
+        const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'material_id'); // or 'materialName'
+        setMaterialDetails(unique);
+    } catch {
+        setMaterialDetails([]);
+    }
+};
 
-    const getVendorDetails = async () => {
-        try {
-            const res = await fetchData(config.getVendorName);
-            setVendorName(Array.isArray(res.data) ? res.data : []);
-        } catch {
-            setVendorName([]);
-        }
-    };
+const getUnitTypeDetails = async () => {
+    try {
+        const res = await fetchData(config.getUnitType);
+        const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'unit');
+        setUnitType(unique);
+    } catch {
+        setUnitType([]);
+    }
+};
+
+const getVendorDetails = async () => {
+    try {
+        const res = await fetchData(config.getVendorName);
+        const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'vendorName');
+        setVendorName(unique);
+    } catch {
+        setVendorName([]);
+    }
+};
 
     const resetFilters = () => {
         setSelectedMaterialId([]);

@@ -9,14 +9,32 @@ const CustomerPaymentsTable = () => {
        const [verifiedBy, setVerifiedBy] = useState([]);
        const [fundingBank, setFundingBank] = useState([])
        const [paymentMode, setPaymentMode] = useState([]);
-   
-    useEffect(() => {
-        fetchData(config.getPaymentTypeCp).then(res => setPaymentType(res.data || []));
-        fetchData(config.getVerifiedByCp).then(res => setVerifiedBy(res.data || []));
-        fetchData(config.getFundingBankCp).then(res => setFundingBank(res.data || []));
-        fetchData(config.getPaymentModePc).then(res => setPaymentMode(res.data || []));
-    
-    }, []);
+   useEffect(() => {
+    // Remove duplicates based on a key
+    const removeDuplicates = (data, key) => {
+        return Array.from(new Map(data.map(item => [item[key], item])).values());
+    };
+
+    fetchData(config.getPaymentTypeCp).then(res => {
+        const unique = removeDuplicates(res.data || [], 'paymentType');
+        setPaymentType(unique);
+    });
+
+    fetchData(config.getVerifiedByCp).then(res => {
+        const unique = removeDuplicates(res.data || [], 'employeeName');
+        setVerifiedBy(unique);
+    });
+
+    fetchData(config.getFundingBankCp).then(res => {
+        const unique = removeDuplicates(res.data || [], 'bankName');
+        setFundingBank(unique);
+    });
+
+    fetchData(config.getPaymentModePc).then(res => {
+        const unique = removeDuplicates(res.data || [], 'paymentMode');
+        setPaymentMode(unique);
+    });
+}, []);
 
     const fetchProjectCredits = async ({ payment_type, verified_by,funding_bank, payment_mode,  skip, limit }) => {
         
@@ -46,7 +64,7 @@ const CustomerPaymentsTable = () => {
                         optionValue: 'paymentType',
                         queryKey: 'payment_type'
                     },
-                    {
+                     {
                         field: 'verified_by',
                         header: 'verified By',
                         options: verifiedBy,

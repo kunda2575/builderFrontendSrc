@@ -10,12 +10,39 @@ const ExpenditureTable = () => {
     const [paymentMode, setPaymentMode] = useState([]);
     const [paymentBank, setPaymentBank] = useState([]);
 
+    // useEffect(() => {
+    //     fetchData(config.getVendorNameEx).then(res => setVendorName(res.data || []));
+    //     fetchData(config.getExpenseHeadEx).then(res => setExpenseHead(res.data || []));
+    //     fetchData(config.getPaymentModeEx).then(res => setPaymentMode(res.data || []));
+    //     fetchData(config.getPaymentBankEx).then(res => setPaymentBank(res.data || []));
+    // }, []);
+
     useEffect(() => {
-        fetchData(config.getVendorNameEx).then(res => setVendorName(res.data || []));
-        fetchData(config.getExpenseHeadEx).then(res => setExpenseHead(res.data || []));
-        fetchData(config.getPaymentModeEx).then(res => setPaymentMode(res.data || []));
-        fetchData(config.getPaymentBankEx).then(res => setPaymentBank(res.data || []));
-    }, []);
+    const removeDuplicates = (data, key) => {
+        return Array.from(new Map(data.map(item => [item[key], item])).values());
+    };
+
+    fetchData(config.getVendorNameEx).then(res => {
+        const unique = removeDuplicates(res.data || [], 'vendorName');
+        setVendorName(unique);
+    });
+
+    fetchData(config.getExpenseHeadEx).then(res => {
+        const unique = removeDuplicates(res.data || [], 'expenseHead');
+        setExpenseHead(unique);
+    });
+
+    fetchData(config.getPaymentModeEx).then(res => {
+        const unique = removeDuplicates(res.data || [], 'paymentMode');
+        setPaymentMode(unique);
+    });
+
+    fetchData(config.getPaymentBankEx).then(res => {
+        const unique = removeDuplicates(res.data || [], 'bankName');
+        setPaymentBank(unique);
+    });
+}, []);
+
 
     const fetchExpenditure = async ({ vendor_name, expense_head, payment_mode, payment_bank, skip, limit }) => {
         const url = `${config.getExpenditures}?vendor_name=${vendor_name || ''}&expense_head=${expense_head || ''}&payment_mode=${payment_mode || ''}&payment_bank=${payment_bank || ''}&skip=${skip}&limit=${limit}`;

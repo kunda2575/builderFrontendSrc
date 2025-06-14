@@ -17,7 +17,7 @@ const Home = () => {
          <div className="col-lg-8 d-flex justify-content-center align-items-center mb-4 mt-5 mb-lg-0">
                   <img
                     src={homeImage}
-                    alt="Hero"
+                    alt="Home"
                     style={{ maxWidth: "100%", height: "60vh", objectFit: "contain" }}
                   />
                 </div>
