@@ -55,6 +55,7 @@ import ExpenditureTable from "../components/admin/transactions/ExpenditureTable"
 import CustomerPaymentsForm from "../components/admin/transactions/CustomerPaymentsForm";
 import CustomerPaymentsTable from "../components/admin/transactions/CustomerPaymentsTable";
 import EditProfile from "../layout/EditProfile";
+import DocumentsMaster from "../components/admin/masters/DocumentsMaster";
 
 const AppRoutes = () => (
   <Routes>
@@ -107,6 +108,7 @@ const AppRoutes = () => (
     <Route path="/unitType" element={<UnitTypeMaster />} />
     <Route path="/vendorMaster" element={<VendorMaster />} />
     <Route path="/userMaster" element={<UserMaster />} />
+    <Route path="/documents" element={<DocumentsMaster/>} />
 
 <Route path="/edit-profile/:userId" element={<EditProfile />} />
 

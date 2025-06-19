@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { fetchData, postData, putData } from '../../../api/apiHandler';
+import { fetchData, postData, putData } from '../../../api/apiHandler1';
 import { config } from '../../../api/config';
 import { Calendar } from 'primereact/calendar';
 import 'react-toastify/dist/ReactToastify.css';
@@ -157,55 +157,84 @@ const CustomerPaymentsForm = () => {
         }
     };
 
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            // const formData = { ...form };
-            const formData = {
-                ...form,
-                native_language: Array.isArray(form.native_language)
-                    ? form.native_language.join(', ')
-                    : form.native_language,
-            };
-            if (form.id) {
-                await putData(config.updateCustomerPayment(form.id), formData);
-                toast.success("Updated successfully!");
-            } else {
-                await postData(`${config.createCustomerPayment}`, formData);
-                toast.success("Created successfully!");
+    try {
+        const formData = new FormData();
+
+        // Append all text fields
+        formData.append("customer_id", form.customer_id);
+        formData.append("customer_name", form.customer_name);
+        formData.append("contact_number", form.contact_number);
+        formData.append("email", form.email);
+        formData.append("profession", form.profession);
+        formData.append("native_language", Array.isArray(form.native_language) ? form.native_language.join(", ") : form.native_language);
+        formData.append("project_name", form.project_name);
+        formData.append("block_name", form.block_name);
+        formData.append("flat_no", form.flat_no);
+        formData.append("agreed_price", form.agreed_price);
+        formData.append("installment_no", form.installment_no);
+        formData.append("amount_received", form.amount_received);
+        formData.append("payment_mode", form.payment_mode);
+        formData.append("payment_type", form.payment_type);
+        formData.append("verified_by", form.verified_by);
+        formData.append("funding_bank", form.funding_bank);
+        formData.append("flat_hand_over_date", form.flat_hand_over_date);
+        formData.append("flat_area", form.flat_area);
+        formData.append("no_of_bhk", form.no_of_bhk);
+
+        // ✅ Append documents
+        if (form.documents && form.documents.length > 0) {
+            for (let i = 0; i < form.documents.length; i++) {
+                formData.append("documents", form.documents[i]);
             }
-            setForm({
-                customer_id: "",
-                customer_name: "",
-                contact_number: "",
-                email: "",
-                profession: "",
-                native_language: [],
-                project_name: "",
-                block_name: "",
-                flat_no: "",
-                agreed_price: "",
-                installment_no: "",
-                amount_received: "",
-                payment_mode: "",
-                payment_type: "",
-                verified_by: "",
-                funding_bank: "",
-                documents: "",
-                flat_hand_over_date: "",
-                flat_area: "",
-                no_of_bhk: "",
-                id: null
-            })
-            fetchCustomerPaymentssForm();
-        } catch (err) {
-            toast.error("Submission failed.");
-        } finally {
-            setLoading(false);
         }
-    };
+
+        // Submit form
+        if (form.id) {
+            await putData(config.updateCustomerPayment(form.id), formData, true); // Add `true` if `putData` needs content type override
+            toast.success("Updated successfully!");
+        } else {
+            await postData(config.createCustomerPayment, formData, true); // same here
+            toast.success("Created successfully!");
+        }
+
+        // Reset form
+        setForm({
+            customer_id: "",
+            customer_name: "",
+            contact_number: "",
+            email: "",
+            profession: "",
+            native_language: [],
+            project_name: "",
+            block_name: "",
+            flat_no: "",
+            agreed_price: "",
+            installment_no: "",
+            amount_received: "",
+            payment_mode: "",
+            payment_type: "",
+            verified_by: "",
+            funding_bank: "",
+            documents: [],
+            flat_hand_over_date: "",
+            flat_area: "",
+            no_of_bhk: "",
+            id: null
+        });
+
+        fetchCustomerPaymentssForm();
+    } catch (err) {
+        console.error(err);
+        toast.error("Submission failed.");
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     const fetchEditData = async (id) => {
         try {
@@ -296,8 +325,22 @@ const CustomerPaymentsForm = () => {
 
 
                                     {/* customer ID*/}
+
+
                                     <div className="col-lg-4 mb-2">
                                         <label></label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            value={form.customer_id}
+                                            onChange={(e) => setForm({ ...form, customer_id: e.target.value })}
+                                            placeholder='Customer Id'
+                                        />
+                                    </div>
+
+                                    {/* CUSTOMER NAME SELECT */}
+                                    <div className="col-lg-4 mb-2">
+                                        <label>Select Customer</label>
                                         <select
                                             className="form-select"
                                             value={form.customer_id}
@@ -316,36 +359,24 @@ const CustomerPaymentsForm = () => {
                                                 } else {
                                                     setForm({
                                                         ...form,
-                                                        customer_id: selectedId,
+                                                        customer_id: "",
                                                         customer_name: "",
                                                         contact_number: "",
                                                         email: ""
                                                     });
                                                 }
                                             }}
-
                                         >
-                                            <option value="">Select customer</option>
-                                            {customer.map(type => (
-                                                <option key={type.id} value={type.customerId}>
-                                                    {type.customerId}
+                                            <option value="">Select Customer</option>
+                                            {customer.map(c => (
+                                                <option key={c.customerId} value={c.customerId}>
+                                                    {c.customerName}
                                                 </option>
                                             ))}
                                         </select>
-
                                     </div>
 
-                                    {/* CUSTOMER NAME */}
-                                    <div className="col-lg-4 mb-2">
-                                        <label></label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            value={form.customer_name}
-                                            onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
-                                            placeholder='Customer Name'
-                                        />
-                                    </div>
+
 
                                     {/* CONTACT NUMBER */}
                                     <div className="col-lg-4 mb-2">
@@ -562,15 +593,15 @@ const CustomerPaymentsForm = () => {
 
                                     {/* DOCUMENTS */}
                                     <div className="col-lg-4 mb-2">
-
+                                        <label className="form-label">Documents</label>
                                         <input
-                                            type="text"
+                                            type="file"
                                             className="form-control"
-                                            value={form.documents}
-                                            onChange={(e) => setForm({ ...form, documents: e.target.value })}
-                                            placeholder='Documents'
+                                            multiple // ✅ Allow multiple file uploads
+                                            onChange={(e) => setForm({ ...form, documents: e.target.files })} // ✅ Store files directly
                                         />
                                     </div>
+
 
                                     {/* FLAT AREA */}
                                     <div className="col-lg-4 mb-2">

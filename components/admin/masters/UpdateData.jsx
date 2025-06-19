@@ -27,6 +27,7 @@ const UpdateData = () => {
     { name: "Bank Master", path: "/bankMaster" },
     { name: "Fund Source", path: "/fundSource" },
     { name: "Fund Purpose", path: "/fundPurpose" },
+    { name: "Documents Upload", path: "/documents" },
   ];
 
   const filteredData =

@@ -20,7 +20,7 @@ const fields = [
     type: 'textarea',
     required: true
   },
-  { name: 'projectBrouchers', label: 'Brouchers', type: 'text', required: true },
+  { name: 'projectBrouchers', label: 'Brouchers', type: 'file', required: true },
   
 
 ];

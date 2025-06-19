@@ -3,7 +3,7 @@ import {
   putData,
   deleteData,
   postData
-} from '../apiHandler';
+} from '../apiHandler1';
 import {host} from '../config'
 
 const BASE_URL =` ${host}/api/projects`;

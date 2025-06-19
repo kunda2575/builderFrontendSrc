@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useRef } from 'react';
 import { toast } from 'react-toastify';
 import { Dropdown } from 'primereact/dropdown';
 import { Link } from 'react-router-dom';
+import { MultiSelect } from 'primereact/multiselect';
 
 const ReusableTableForm = ({
     title,
@@ -20,32 +21,19 @@ const ReusableTableForm = ({
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [deleteType, setDeleteType] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-
+const fileInputRefs = useRef({});
     const rowsPerPageOptions = [
         { label: '5 Rows', value: 5 },
         { label: '10 Rows', value: 10 },
         { label: '20 Rows', value: 20 },
         { label: 'All', value: items.length }
     ];
-    const bankBranches = {
-        HDFC: [
-          { label: 'Hyderabad Main', value: 'Hyderabad Main' },
-          { label: 'Mumbai Andheri', value: 'Mumbai Andheri' },
-          { label: 'Bangalore MG Road', value: 'Bangalore MG Road' }
-        ],
-        ICICI: [
-          { label: 'Chennai T Nagar', value: 'Chennai T Nagar' },
-          { label: 'Delhi Karol Bagh', value: 'Delhi Karol Bagh' }
-        ],
-        Axis: [
-          { label: 'Kolkata Salt Lake', value: 'Kolkata Salt Lake' },
-          { label: 'Pune Hinjewadi', value: 'Pune Hinjewadi' }
-        ]
-      };
-      
+
     useEffect(() => {
         getData();
     }, []);
+
+    const getItemId = (item) => item?.id ?? item?.customerId;
 
     const getData = async () => {
         try {
@@ -61,55 +49,82 @@ const ReusableTableForm = ({
         if (type === 'checkbox') {
             setForm({ ...form, [name]: checked });
         } else if (type === 'file') {
-            setForm({ ...form, [name]: files[0] });
+            setForm({ ...form, [name]: files }); // ✅ Support multiple files
         } else {
             setForm({ ...form, [name]: value });
         }
     };
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-        const data = new FormData();
-        fields.forEach(field => data.append(field.name, form[field.name]));
 
-        let response;
-        if (form.id) {
-            response = await updateData(form.id, data);
-        } else {
-            response = await createData(data);
-        }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
 
-        if (!response.success) {
-            toast.error(response.message || 'Action failed');
-            return; // don’t proceed
-        }
+        try {
+            const data = new FormData();
+            fields.forEach(field => {
+                if (field.type === 'file' && form[field.name]) {
+                    Array.from(form[field.name]).forEach(file => {
+                        data.append(field.name, file); // ✅ Append each file
+                    });
+                } else {
+                    data.append(field.name, form[field.name]);
+                }
+            });
 
-        toast.success(`${title} ${form.id ? 'updated' : 'created'}`);
-        setForm({ ...initialFormState, id: null });
-        getData();
+            let res;
+            const id = form.id ?? form.customerId;
 
-    } catch (error) {
-        toast.error(error.message || 'Unexpected error');
-    } finally {
-        setLoading(false);
+            if (id) {
+                res = await updateData(id, data);
+            } else {
+                res = await createData(data);
+            }
+
+            if (!res.success) {
+                toast.error(res.message);
+                return;
+            }
+
+            toast.success(`${title} ${id ? 'updated' : 'created'} successfully`);
+            setForm({ ...initialFormState, id: null });
+            
+// ✅ Reset file inputs
+fields.forEach(field => {
+    if (field.type === 'file' && fileInputRefs.current[field.name]) {
+        fileInputRefs.current[field.name].value = '';
     }
-};
-
+});
+            getData();
+        } catch (error) {
+            toast.error("Unexpected failure. Check your console.");
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleEdit = (item) => {
-        const updatedForm = { ...item };
+        const updatedForm = { ...form, ...item };
+
         fields.forEach(field => {
-            if (field.type === 'file') updatedForm[field.name] = null;
-            if (field.type === 'date' && item[field.name]) {
-                updatedForm[field.name] = item[field.name].slice(0, 10)
+            const value = item[field.name];
+            if (field.type === 'file') {
+                updatedForm[field.name] = null;
+            } else if (field.type === 'date' && value) {
+                updatedForm[field.name] = value.slice(0, 10);
+            } else if (field.type === 'select' && field.multiple && typeof value === 'string') {
+                updatedForm[field.name] = value.split(',');
+            } else {
+                updatedForm[field.name] = value;
             }
         });
+
+        updatedForm.id = getItemId(item);
         setForm(updatedForm);
     };
 
-    const handleSingleDelete = (id) => {
-        setConfirmDeleteId(id);
+    const handleSingleDelete = (item) => {
+        setConfirmDeleteId(getItemId(item));
         setDeleteType("single");
         setShowDeleteModal(true);
     };
@@ -131,7 +146,7 @@ const handleSubmit = async (e) => {
                 toast.success(`${title} deleted successfully`);
             } else if (deleteType === "bulk") {
                 for (let item of selectedItems) {
-                    await deleteData(item.id);
+                    await deleteData(getItemId(item));
                 }
                 toast.success('Selected items deleted');
                 setSelectedItems([]);
@@ -146,7 +161,6 @@ const handleSubmit = async (e) => {
             setLoading(false);
         }
     };
-
     return (
         <div className="row">
             <div className='mb-2'>
@@ -178,17 +192,17 @@ const handleSubmit = async (e) => {
             )}
 
             {/* Form Column */}
-            <div className="col-lg-4 mb-3">
+            <div className=" col-lg-4 mb-3">
                 <div className="card">
                     <div className="card-header text-center">
                         <h4>{title} Master</h4>
                     </div>
                     <form onSubmit={handleSubmit} encType="multipart/form-data">
                         <div className="card-body">
-                            {fields.map(field => {
+                            <div className="row">                            {fields.map(field => {
                                 if (field.type === 'radio') {
                                     return (
-                                        <div key={field.name} className="mb-2">
+                                        <div key={field.name} className="mb-2 ">
                                             <label className="d-block">{field.label}</label>
                                             {field.options.map(option => (
                                                 <div className="form-check form-check-inline" key={option}>
@@ -207,7 +221,7 @@ const handleSubmit = async (e) => {
                                     );
                                 } else if (field.type === 'checkbox') {
                                     return (
-                                        <div key={field.name} className="form-check mb-2">
+                                        <div key={field.name} className="form-check mb-2 ">
                                             <input
                                                 className="form-check-input"
                                                 type="checkbox"
@@ -218,11 +232,54 @@ const handleSubmit = async (e) => {
                                             <label className="form-check-label">{field.label}</label>
                                         </div>
                                     );
-                                } 
-                                
+                                } else if (field.type === 'file') {
+                                    return (
+                                        <div key={field.name} className="mb-2 ">
+                                            <label className="form-label">{field.label}</label>
+                                            <input
+                                                className="form-control"
+                                                multiple
+                                                type="file"
+                                                name={field.name}
+                                                onChange={(e) => handleChange(e, field)}
+                                                 ref={(el) => (fileInputRefs.current[field.name] = el)}
+                                            />
+                                        </div>
+                                    );
+                                } else if (field.type === 'select') {
+                                    return (
+                                        <div key={field.name} className="mb-2 ">
+                                            {/* <label className="form-label">{field.label}</label> */}
+                                            {field.multiple ? (
+                                                <MultiSelect
+                                                    value={form[field.name]}
+                                                    options={field.options}
+                                                    onChange={(e) => setForm({ ...form, [field.name]: e.value })}
+                                                    optionLabel="label"
+                                                    placeholder={`Select ${field.label}`}
+                                                    display="chip"
+                                                    className="w-100"
+                                                />
+                                            ) : (
+                                                <Dropdown
+                                                    value={form[field.name]}
+                                                    options={field.options}
+                                                    onChange={(e) => setForm({ ...form, [field.name]: e.value })}
+                                                    optionLabel="label"
+                                                    placeholder={`Select ${field.label}`}
+                                                    className="w-100"
+                                                />
+                                            )}
+                                        </div>
+                                    );
+
+
+                                }
+
+
                                 else if (field.type === 'textarea') {
                                     return (
-                                        <div  key={field.name}>
+                                        <div className="" key={field.name}>
                                             <textarea
                                                 placeholder={field.label}
                                                 name={field.name}
@@ -235,47 +292,29 @@ const handleSubmit = async (e) => {
                                         </div>
                                     );
                                 }
-                                else if (field.type === 'file') {
+                                else {
                                     return (
-                                        <div key={field.name} className="mb-2">
-                                            <label className="form-label">{field.label}</label>
+                                        <div className="" key={field.name}>
+                                            {field.type === 'date' && (
+                                                <label className="form-label">{field.label}</label>
+                                            )}
                                             <input
-                                                className="form-control"
-                                                type="file"
+                                                type={field.type || "text"}
+                                                placeholder={field.label}
                                                 name={field.name}
-                                                onChange={(e) => handleChange(e, field)}
-                                            />
-                                        </div>
-                                    );
-                                } else if (field.type === 'select') {
-                                    return (
-                                        <div key={field.name} className="mb-2">
-                                            <label className="form-label">{field.label}</label>
-                                            <Dropdown
                                                 value={form[field.name]}
-                                                options={field.options}
-                                                onChange={(e) => setForm({ ...form, [field.name]: e.value })}
-                                                optionLabel="label"
-                                                placeholder={`Select ${field.label}`}
-                                                className="w-100"
+                                                onChange={(e) => handleChange(e, field)}
+                                                className="form-control mb-2"
+                                                required={field.required}
+                                                disabled={field.disabled || false}
                                             />
                                         </div>
-                                    );
-                                } else {
-                                    return (
-                                        <input
-                                            key={field.name}
-                                            type={field.type || "text"}
-                                            placeholder={field.label}
-                                            name={field.name}
-                                            value={form[field.name]}
-                                            onChange={(e) => handleChange(e, field)}
-                                            className="form-control mb-2"
-                                            required={field.required}
-                                        />
                                     );
                                 }
+
                             })}
+                            </div>
+
                         </div>
                         <div className="card-footer text-center">
                             <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
@@ -333,18 +372,90 @@ const handleSubmit = async (e) => {
                                             </td>
                                             {fields.map(field => (
                                                 <td key={field.name}>
-                                                    {field.type === 'checkbox'
-                                                        ? item[field.name] ? 'Yes' : 'No'
-                                                        : field.type === 'file'
-                                                            ? item[field.name]
-                                                                ? <a href={item[field.name]} target="_blank" rel="noreferrer">View</a>
-                                                                : 'No File'
-                                                            : field.type === 'select'
-                                                                ? (field.options.find(opt => opt.value === item[field.name])?.label || item[field.name])
-                                                                : field.type === 'date' ? item[field.name] ? new Date(item[field.name]).toISOString().slice(0, 10) : ''
-                                                                    : item[field.name]}
+                                                    {field.type === 'file' ? (
+                                                        (() => {
+                                                            const files = item[field.name];
+
+                                                            if (Array.isArray(files) && files.length > 0) {
+                                                                return files.map((file, idx) => {
+                                                                    const isString = typeof file === 'string';
+                                                                    const fileUrl = isString && file.startsWith("http")
+                                                                        ? file
+                                                                        : `http://localhost:2026/uploads/${file}`;
+
+                                                                    return (
+                                                                        <div key={idx} className="mb-2">
+                                                                            <a
+                                                                                href={fileUrl}
+                                                                                target="_blank"
+                                                                                rel="noreferrer"
+                                                                                download
+                                                                                className="d-block text-primary"
+                                                                            >
+                                                                                Download
+                                                                            </a>
+
+                                                                            {/\.(jpg|jpeg|png|gif|webp)$/i.test(file) && (
+                                                                                <img
+                                                                                    src={fileUrl}
+                                                                                    alt="preview"
+                                                                                    width="80"
+                                                                                    className="mt-1 border rounded"
+                                                                                />
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                });
+                                                            }
+
+                                                            if (typeof files === 'string' && files !== '') {
+                                                                const splitFiles = files.split(',');
+                                                                return splitFiles.map((file, idx) => {
+                                                                    const fileUrl = file.startsWith("http")
+                                                                        ? file
+                                                                        : `http://localhost:2026/uploads/${file}`;
+
+                                                                    return (
+                                                                        <div key={idx} className="mb-2">
+                                                                            <a
+                                                                                href={fileUrl}
+                                                                                target="_blank"
+                                                                                rel="noreferrer"
+                                                                                download
+                                                                                className="d-block text-primary"
+                                                                            >
+                                                                                Download
+                                                                            </a>
+
+                                                                            {/\.(jpg|jpeg|png|gif|webp)$/i.test(file) && (
+                                                                                <img
+                                                                                    src={fileUrl}
+                                                                                    alt="preview"
+                                                                                    width="80"
+                                                                                    className="mt-1 border rounded"
+                                                                                />
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                });
+                                                            }
+
+                                                            return 'No File';
+                                                        })()
+                                                    ) : field.type === 'checkbox' ? (
+                                                        item[field.name] ? 'Yes' : 'No'
+                                                    ) : field.type === 'select' ? (
+                                                        field.options?.find(opt => opt.value === item[field.name])?.label || item[field.name]
+                                                    ) : field.type === 'date' ? (
+                                                        item[field.name]
+                                                            ? new Date(item[field.name]).toISOString().slice(0, 10)
+                                                            : ''
+                                                    ) : (
+                                                        item[field.name]
+                                                    )}
                                                 </td>
                                             ))}
+
                                             <td className='d-flex justify-content-center'>
                                                 <button
                                                     id="btn-focus"
@@ -355,7 +466,7 @@ const handleSubmit = async (e) => {
                                                 </button>
                                                 <button
                                                     className="btn btn-sm btn-outline-danger rounded-circle"
-                                                    onClick={() => handleSingleDelete(item.id)}
+                                                    onClick={() => handleSingleDelete(item)}
                                                 >
                                                     <i className='pi pi-trash'></i>
                                                 </button>
@@ -402,4 +513,5 @@ const handleSubmit = async (e) => {
         </div>
     );
 };
+
 export default ReusableTableForm;

@@ -33,6 +33,7 @@ const fields = [
   
   { name: 'projectNameBlock', label: 'Project Name Block', type: 'text', required: true },
   { name: 'flatNo', label: 'Flat No', type: 'number', required: true },
+  { name: 'documents', label: 'Documents', type: 'file', required: true },
   {
     name: 'customerAddress',
     label: 'Address',

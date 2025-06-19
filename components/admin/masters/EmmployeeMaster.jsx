@@ -13,7 +13,7 @@ const fields = [
   { name: 'employeePhone', label: 'Mobile', type: 'number', required: true },
   { name: 'employeeEmail', label: 'Email', type: 'email', required: true },
   { name: 'idType', label: 'Id type', type: 'text', required: true },
-  { name: 'idProof1', label: 'Id Proof 1', type: 'text', required: true },
+  { name: 'idProof1', label: 'Id Proof 1', type: 'file', required: true },
   { name: 'employeeSalary', label: 'Employee Salary', type: 'number', required: true },
   { name: 'department', label: 'Department', type: 'text', required: true },
   {

@@ -60,17 +60,20 @@ const getAuthHeaders = () => ({
 });
 const apiCall = async (method, url, data = null) => {
   try {
-    const isFormData = data instanceof FormData;
-    const headers = isFormData
-      ? getAuthHeaders()
-      : { ...getAuthHeaders(), 'Content-Type': 'application/json' };
+   const isFormData = data instanceof FormData;
+const headers = {
+  ...getAuthHeaders(),
+  ...(isFormData ? {} : { 'Content-Type': 'application/json' })
+};
+
 
     const config = {
       method,
       url,
       headers,
-      withCredentials: true,
-      ...(data !== null && { data }) // ✅ only include data if not null
+      // ⚠️ don't send withCredentials: true unless you're using cookies — for token-based auth it's not needed
+      // withCredentials: true, // ← remove this unless absolutely needed
+      ...(data !== null && { data }),
     };
 
     const response = await axios(config);
@@ -79,6 +82,7 @@ const apiCall = async (method, url, data = null) => {
     return handleErrors(error);
   }
 };
+
 
 
 export const fetchData = async (url) => apiCall("get", url);

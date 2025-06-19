@@ -52,27 +52,31 @@ const ReusableDataTable = ({
             setLoading(false);
         }
     };
+const fetchData = async () => {
+    setLoading(true);
+    try {
+        const filterParams = {};
+        filters.forEach(f => {
+            const selected = filterStates.current[f.field];
+            if (selected?.length > 0) {
+                filterParams[f.queryKey] = selected.map(item => item[f.optionValue]).join(',');
+            }
+        });
 
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const filterParams = {};
-            filters.forEach(f => {
-                const selected = filterStates.current[f.field];
-                if (selected?.length > 0) {
-                    filterParams[f.queryKey] = selected.map(item => item[f.optionValue]).join(',');
-                }
-            });
+        const response = await fetchFunction({ ...filterParams, skip: first, limit: rows });
 
-            const response = await fetchFunction({ ...filterParams, skip: first, limit: rows });
-            setData(response.data);
-            setTotalRecords(response.count);
-        } catch (err) {
-            toast.error('Error fetching data');
-        } finally {
-            setLoading(false);
-        }
-    };
+        console.log("✅ API Data:", response); // Debug log
+
+        // 🔧 Important fix
+        setData(response.data || []);
+        setTotalRecords(response.count || 0);
+    } catch (err) {
+        toast.error('Error fetching data');
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     useEffect(() => {
         fetchData();
