@@ -53,7 +53,7 @@ const InventoryEntryTable = () => {
         setRows(event.rows);
         skipValue.current = event.first;
         limitValue.current = event.rows;
-        getStockDetails();
+        getInventory();
     };
 
 
@@ -116,33 +116,40 @@ const InventoryEntryTable = () => {
         // }
     };
 
+const removeDuplicates = (data, key) => {
+    return Array.from(new Map(data.map(item => [item[key], item])).values());
+};
 
-    const getMaterialDetails = async () => {
-        try {
-            const res = await fetchData(config.getMaterial);
-            setMaterialDetails(Array.isArray(res.data) ? res.data : []);
-        } catch {
-            setMaterialDetails([]);
-        }
-    };
 
-    const getUnitTypeDetails = async () => {
-        try {
-            const res = await fetchData(config.getUnitType);
-            setUnitType(Array.isArray(res.data) ? res.data : []);
-        } catch {
-            setUnitType([]);
-        }
-    };
+const getMaterialDetails = async () => {
+    try {
+        const res = await fetchData(config.getMaterial);
+        const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'material_id'); // or 'materialName'
+        setMaterialDetails(unique);
+    } catch {
+        setMaterialDetails([]);
+    }
+};
 
-    const getVendorDetails = async () => {
-        try {
-            const res = await fetchData(config.getVendorName);
-            setVendorName(Array.isArray(res.data) ? res.data : []);
-        } catch {
-            setVendorName([]);
-        }
-    };
+const getUnitTypeDetails = async () => {
+    try {
+        const res = await fetchData(config.getUnitType);
+        const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'unit');
+        setUnitType(unique);
+    } catch {
+        setUnitType([]);
+    }
+};
+
+const getVendorDetails = async () => {
+    try {
+        const res = await fetchData(config.getVendorName);
+        const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'vendorName');
+        setVendorName(unique);
+    } catch {
+        setVendorName([]);
+    }
+};
 
     const resetFilters = () => {
         setSelectedMaterialId([]);
@@ -228,7 +235,7 @@ const InventoryEntryTable = () => {
                         No Inventory data available.
                     </h6>
                 }
-                showClear={true}
+                // showClear={true}
                 style={{ textAlign: 'center' }}
             >
                 <Column field="material_id" header={() => (
@@ -319,7 +326,41 @@ const InventoryEntryTable = () => {
                         />
                     </label>
                 )} style={{ minWidth: '13rem' }} />
-                <Column field="invoice_attachment" header="Invoice Attachment" style={{ minWidth: '13rem' }} />
+                {/* <Column field="invoice_attachment" header="Invoice Attachment" style={{ minWidth: '13rem' }} /> */}
+
+
+                <Column
+                    header="Invoice Attachment"
+                    body={(rowData) => {
+                        const files = rowData.invoice_attachment
+                            ? rowData.invoice_attachment.split(',')
+                            : [];
+
+                        return files.length > 0 ? (
+                            <div className="flex flex-col gap-1">
+                                {files.map((file, i) => (
+                                   <a
+                                                key={i}
+
+                                                href={`http://localhost:2026/uploads/${file}`}
+                                                target='blank'
+                                                download
+                                                className="btn btn-sm btn-outline-primary"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                Download PDF {i + 1}
+                                            </a>
+
+                                ))}
+                            </div>
+                        ) : (
+                            <span className="text-muted">No Attachment</span>
+                        );
+                    }}
+                    style={{ minWidth: '13rem' }}
+                />
+
+
                 <Column field="entered_by" header="Entered By" style={{ minWidth: '13rem' }} />
 
                 <Column
@@ -329,17 +370,21 @@ const InventoryEntryTable = () => {
                             <Link to={`/inventoryEntryForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                                 <i className="pi pi-pencil"></i>
                             </Link>
-                            <button className="btn btn-outline-danger btn-sm" onClick={() => {
-                                setConfirmDeleteId(rowData.id);
-                                setDeleteType("single");
-                                setShowDeleteModal(true);
-                            }}>
+                            <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => {
+                                    setConfirmDeleteId(rowData.id);
+                                    setDeleteType("single");
+                                    setShowDeleteModal(true);
+                                }}
+                            >
                                 <i className="pi pi-trash"></i>
                             </button>
                         </div>
                     )}
                     style={{ minWidth: '10rem' }}
                 />
+
 
             </DataTable>
             <div className='mt-3'>

@@ -2,7 +2,7 @@ import {
   fetchData,
   putData,
   deleteData,postData
-} from '../apiHandler';
+} from '../apiHandler1';
 
 
 import {host} from '../config'

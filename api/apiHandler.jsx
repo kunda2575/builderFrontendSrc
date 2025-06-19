@@ -8,8 +8,15 @@ const handleErrors = (error) => {
   }
 
   const status = error.response.status;
-  let message = "Unexpected error occurred!";
+  const backendMessage = error.response.data?.error;
 
+  // Prioritize backend message if it exists
+  if (backendMessage) {
+    return { success: false, message: backendMessage };
+  }
+
+  // Default messages by status code
+  let message = "Unexpected error occurred!";
   switch (status) {
     case 400:
       message = "Invalid input! Please check your details.";
@@ -30,13 +37,10 @@ const handleErrors = (error) => {
     case 503:
       message = "Service temporarily unavailable. Try again later.";
       break;
-    default:
-      message = "Unexpected error occurred!";
   }
 
   return { success: false, message };
 };
-
 
 
 // Always get the latest token when needed

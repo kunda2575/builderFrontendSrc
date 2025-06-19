@@ -7,8 +7,10 @@ import 'primeicons/primeicons.css';                                 // PrimeReac
 import { Link } from 'react-router-dom';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+
 import { fetchData, deleteData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
+
 import { Paginator } from 'primereact/paginator';
 import moment from 'moment';
 
@@ -29,6 +31,16 @@ const LeadsTable = () => {
     const [selectedStages, setSelectedStages] = useState([]);
     const [selectedSources, setSelectedSources] = useState([]);      //  select options
     const [selectedMembers, setSelectedMembers] = useState([]);
+
+    const [selectedContactNames, setSelectedContactNames] = useState([]);
+    const selectedContactNamesRef = useRef([]);
+
+    const [selectedContactPhones, setSelectedContactPhones] = useState([]);
+    const selectedContactPhonesRef = useRef([]);
+
+    const [selectedContactEmails, setSelectedContactEmails] = useState([]);
+    const selectedContactEmailsRef = useRef([]);
+
 
     const selectedLeadStageRef = useRef([]);
     const selectedLeadSourceRef = useRef([]);                              // useref for tracking the filter values
@@ -59,29 +71,60 @@ const LeadsTable = () => {
 
 
     const getLeadDetails = async () => {
-        setLoading(true)
+        setLoading(true);
+
         let leadStage = [];
         let leadSource = [];
         let teamMember = [];
+
         if (selectedLeadSourceRef.current?.length > 0) {
             let leadSourceIds = selectedLeadSourceRef.current.map(ele => ele.leadSource);
             leadSource = leadSourceIds;
         }
         if (selectedLeadStageRef.current?.length > 0) {
             let leadStageIds = selectedLeadStageRef.current.map(ele => ele.leadStage);
-            leadStage = leadStageIds
+            leadStage = leadStageIds;
         }
         if (selectedTeamMembersRef.current?.length > 0) {
             let teamMemberIds = selectedTeamMembersRef.current.map(ele => ele.team_name);
-            teamMember = teamMemberIds
+            teamMember = teamMemberIds;
         }
-        await fetchData(`${config.getLeads}?leadSource=${leadSource}&leadStage=${leadStage}&teamMember=${teamMember}&skip=${skipValue.current}&limit=${limitValue.current}`)
-            .then(res => {
-                setFilteredLeads(res.data.leadDetails);
-                setTotalRecords(res.data.leadCount);
-                setLoading(false);
-            })
-    }
+
+        try {
+            const res = await fetchData(`${config.getLeads}?leadSource=${leadSource}&leadStage=${leadStage}&teamMember=${teamMember}&skip=${skipValue.current}&limit=${limitValue.current}`);
+
+            let leads = res.data.leadDetails;
+
+            // Apply contact name filtering
+            if (selectedContactNamesRef.current.length > 0) {
+                leads = leads.filter(lead =>
+                    selectedContactNamesRef.current.includes(lead.contact_name)
+                );
+            }
+
+            // Apply contact phone filtering
+            if (selectedContactPhonesRef?.current?.length > 0) {
+                leads = leads.filter(lead =>
+                    selectedContactPhonesRef.current.includes(lead.contact_phone)
+                );
+            }
+
+            // Apply contact email filtering
+            if (selectedContactEmailsRef?.current?.length > 0) {
+                leads = leads.filter(lead =>
+                    selectedContactEmailsRef.current.includes(lead.contact_email)
+                );
+            }
+
+            setFilteredLeads(leads);
+
+            setTotalRecords(res.data.leadCount);
+        } catch (error) {
+            toast.error("Failed to fetch leads.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const getLeadStageDetails = async () => {
         await fetchData(config.getLeadStage)
@@ -141,6 +184,9 @@ const LeadsTable = () => {
     };
 
 
+
+
+
     return (
         <div className="container-fluid mt-2">
             <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"></i>  Back </Link>
@@ -178,109 +224,6 @@ const LeadsTable = () => {
                 </div>
             )}
 
-            {/* <DataTable
-               value={filteredLeads}
-               stripedRows
-               scrollable
-               scrollHeight="600px"
-               loading={loading}
-               loadingIcon="pi pi-spinner"
-               emptyMessage={<h6 className="p-4">No leads data available.</h6>}
-            >
-                <Column field="contact_name" header="Contact Name" style={{ minWidth: '150px' }} />
-                <Column field="contact_phone" header="Contact Phone" style={{ minWidth: '150px' }} />
-                <Column field="contact_email" header="Contact Email" style={{ minWidth: '150px' }} />
-                <Column field="address" header="Address" style={{ minWidth: '200px' }} />
-                <Column field="customer_profession" header="Contact Profession" style={{ minWidth: '150px' }} />
-                <Column field="native_language" header="Native Language" style={{ minWidth: '150px' }} />
-
-                <Column
-                    field="lead_source"
-                    header={() => (
-                        <label>
-                            Lead Source<br />
-                            <div style={{ minWidth: '150px' }}>
-                                <MultiSelect
-                                    filter
-                                    value={selectedSources}
-                                    options={leadSource}
-                                    optionLabel="leadSource"
-                                    onChange={(e) => {
-                                        setSelectedSources(e.target.value);
-                                        selectedLeadSourceRef.current = e.target.value;
-                                        getLeadDetails();
-                                    }}
-                                    placeholder="Select Lead Source"
-                                    className="w-100"
-                                />
-                            </div>
-                        </label>
-                    )}
-                    style={{ minWidth: '180px', maxWidth: '200px' }}
-                />
-
-                <Column
-                    field="lead_stage"
-                    header={() => (
-                        <label>
-                            Lead Stage<br />
-                            <div style={{ minWidth: '150px' }}>
-                                <MultiSelect
-                                    filter
-                                    value={selectedStages}
-                                    options={leadStage}
-                                    optionLabel="leadStage"
-                                    onChange={(e) => {
-                                        setSelectedStages(e.target.value);
-                                        selectedLeadStageRef.current = e.target.value;
-                                        getLeadDetails();
-                                    }}
-                                    placeholder="Select Lead Stage"
-                                    className="w-100"
-                                />
-                            </div>
-                        </label>
-                    )}
-                    style={{ minWidth: '180px', maxWidth: '200px' }}
-                />
-
-                <Column field="value_in_inr" header="Value In INR" style={{ minWidth: '150px' }} />
-                <Column field="creation_date" header="Creation Date" body={(rowData) => formatDate(rowData.creation_date)} style={{ minWidth: '150px' }} />
-                <Column field="expected_date" header="Expected Date" body={(rowData) => formatDate(rowData.expected_date)} style={{ minWidth: '150px' }} />
-
-                <Column
-                    field="team_member"
-                    header={() => (
-                        <label>
-                            Team Member<br />
-                                <MultiSelect
-                                    filter
-                                    value={selectedMembers}
-                                    options={teamMember}
-                                    optionLabel="team_name"
-                                    onChange={(e) => {
-                                        setSelectedMembers(e.target.value);
-                                        selectedTeamMembersRef.current = e.target.value;
-                                        getLeadDetails();
-                                    }}
-                                    placeholder="Select Team Member"
-                                    className="w-100"
-                                />
-                        </label>
-                    )}
-                    // style={{ minWidth: '180px', maxWidth: '200px' }}
-                />
-
-                <Column
-                    field="last_interacted_on"
-                    header="Last Interacted On"
-                    body={(rowData) => rowData.last_interacted_on ? moment(rowData.last_interacted_on).format("DD-MM-YYYY") : ''}
-                    style={{ minWidth: '150px' }}
-                />
-                <Column field="next_interacted_date" header="Next Interacted Date" body={(rowData) => formatDate(rowData.next_interacted_date)} style={{ minWidth: '150px' }} />
-                <Column field="remarks" header="Remarks" style={{ minWidth: '200px' }} />
-                <Column field="reason_for_lost_customers" header="Reason For Lost Customers" style={{ minWidth: '200px' }} />
-            </DataTable> */}
 
             <DataTable
                 value={filteredLeads}
@@ -289,14 +232,101 @@ const LeadsTable = () => {
                 loading={loading}
                 loadingIcon="pi pi-spinner"
                 stripedRows
-                showClear = {true}
-                emptyMessage="No leads data available"
+                showClear={true}
+                emptyMessage={
+                    <h6 className="text-center" >
+                        No leads data available
+                    </h6>
+                }
+
                 responsiveLayout="scroll" // ✅ makes table responsive on small screens
             // style={{ maxWidth: '100vw', overflowX: 'auto' }}
             >
-                <Column field="contact_name" header="Contact Name" />
-                <Column field="contact_phone" header="Contact Phone" />
-                <Column field="contact_email" header="Contact Email" />
+                {/* <Column field="contact_name" header="Contact Name" /> */}
+
+
+                <Column
+                    field="contact_name"
+                    header={
+                        <>
+                            Contact Name
+                            <br />
+                            <MultiSelect
+                                filter
+                                value={selectedContactNames}
+                                options={[...new Set(filteredLeads.map(lead => lead.contact_name))].map(name => ({ label: name, value: name }))}
+                                onChange={(e) => {
+                                    setSelectedContactNames(e.value);
+                                    selectedContactNamesRef.current = e.value;
+                                    getLeadDetails(); // optional if you want backend filtering
+                                }}
+                                placeholder="Select Contact Name"
+                                className="w-100"
+                                maxSelectedLabels={0}
+                                selectedItemsLabel={`${selectedContactNames.length} selected`}
+                            />
+                        </>
+                    }
+                />
+
+
+                {/* <Column field="contact_phone" header="Contact Phone" /> */}
+
+
+
+                <Column
+                    field="contact_phone"
+                    header={
+                        <>
+                            Contact Phone
+                            <br />
+                            <MultiSelect
+                                filter
+                                value={selectedContactPhones}
+                                options={[...new Set(filteredLeads.map(lead => lead.contact_phone))].map(name => ({ label: name, value: name }))}
+                                onChange={(e) => {
+                                    setSelectedContactPhones(e.value);
+                                    selectedContactPhonesRef.current = e.value;
+                                    getLeadDetails(); // optional if you want backend filtering
+                                }}
+                                placeholder="Select Contact Phone"
+                                className="w-100"
+                                maxSelectedLabels={0}
+                                selectedItemsLabel={`${selectedContactPhones.length} selected`}
+                            />
+                        </>
+                    }
+                />
+
+
+
+                {/* <Column field="contact_email" header="Contact Email" /> */}
+
+                <Column
+                    field="contact_email"
+                    header={
+                        <>
+                            Contact Email
+                            <br />
+                            <MultiSelect
+                                filter
+                                value={selectedContactEmails}
+                                options={[...new Set(filteredLeads.map(lead => lead.contact_email))].map(name => ({ label: name, value: name }))}
+                                onChange={(e) => {
+                                    setSelectedContactEmails(e.value);
+                                    selectedContactEmailsRef.current = e.value;
+                                    getLeadDetails(); // optional if you want backend filtering
+                                }}
+                                placeholder="Select Contact Email"
+                                className="w-100"
+                                maxSelectedLabels={0}
+                                selectedItemsLabel={`${selectedContactEmails.length} selected`}
+                            />
+                        </>
+                    }
+                />
+
+
                 <Column field="address" header="Address" />
                 <Column field="customer_profession" header="Profession" />
                 <Column field="native_language" header="Language" />

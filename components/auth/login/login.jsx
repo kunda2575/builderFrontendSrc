@@ -39,7 +39,8 @@ const Login = () => {
       const success = userDetails?.success;
   
       if ((success === true || success === "Login successful") && token) {
-        login(token);
+        // login(token);
+         login(token, user?.profile); // ✅ Pass token and profile
         localStorage.setItem("fullname", user?.fullname || "User");
         localStorage.setItem("profile", user?.profile || "");
   
@@ -73,7 +74,7 @@ const Login = () => {
           <h2 className="fw-bold">Welcome Back!</h2>
           <p>Sign in to access your account</p>
           <img src={loginimage} alt="Login Illustration" className="img-fluid mt-3 login-image rounded" />
-          <Link to="/" className="btn btn-light btn-sm mt-4">Go to Home</Link>
+          {/* <Link to="/" className="btn btn-light btn-sm mt-4">Go to Home</Link> */}
         </div>
 
         {/* Right Section - Login Form */}

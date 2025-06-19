@@ -36,16 +36,7 @@ const fields = [
     
     { name: 'branch', label: 'Branch', type: 'text', required: true },
 
-    // {
-    //     name: 'status',
-    //     label: 'Status',
-    //     type: 'select',
-    //     options: [
-    //         { label: 'Active', value: 'active' },
-    //         { label: 'Inactive', value: 'inactive' }
-    //     ]
-    // },
-    // { name: 'isVerified', label: 'Verified', type: 'checkbox' }
+    
 ];
 
 const BankMaster = () => {

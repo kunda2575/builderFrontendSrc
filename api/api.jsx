@@ -80,9 +80,16 @@ export const postData = async (url, payload) => {
 };
 
 
-
-// Update Data (PUT)
-export const putData = async (url, data, headers) => apiCall("put", url, data, headers);
+export const putData = async (url, data) => {
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  return response.json();
+};
 
 
 // Delete Data (DELETE)

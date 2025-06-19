@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { Dropdown } from 'primereact/dropdown';
 import { Link } from 'react-router-dom';
@@ -21,7 +21,7 @@ const ReusableForm_Table = ({
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [deleteType, setDeleteType] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-
+    const fileInputRefs = useRef({});
     const rowsPerPageOptions = [
         { label: '5 Rows', value: 5 },
         { label: '10 Rows', value: 10 },
@@ -32,6 +32,8 @@ const ReusableForm_Table = ({
     useEffect(() => {
         getData();
     }, []);
+
+    const getItemId = (item) => item?.id ?? item?.customerId;
 
     const getData = async () => {
         try {
@@ -47,7 +49,7 @@ const ReusableForm_Table = ({
         if (type === 'checkbox') {
             setForm({ ...form, [name]: checked });
         } else if (type === 'file') {
-            setForm({ ...form, [name]: files[0] });
+            setForm({ ...form, [name]: files }); // ✅ Support multiple files
         } else {
             setForm({ ...form, [name]: value });
         }
@@ -56,72 +58,73 @@ const ReusableForm_Table = ({
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+
         try {
             const data = new FormData();
-            fields.forEach(field => data.append(field.name, form[field.name]));
+            fields.forEach(field => {
+                if (field.type === 'file' && form[field.name]) {
+                    Array.from(form[field.name]).forEach(file => {
+                        data.append(field.name, file); // ✅ Append each file
+                    });
+                } else {
+                    data.append(field.name, form[field.name]);
+                }
+            });
 
-            if (form.id) {
-                await updateData(form.id, data);
-                toast.success(`${title} updated`);
+            let res;
+            const id = form.id ?? form.customerId;
+
+            if (id) {
+                res = await updateData(id, data);
             } else {
-                await createData(data);
-                toast.success(`${title} created`);
+                res = await createData(data);
             }
 
+            if (!res.success) {
+                toast.error(res.message);
+                return;
+            }
+
+            toast.success(`${title} ${id ? 'updated' : 'created'} successfully`);
             setForm({ ...initialFormState, id: null });
+
+            // ✅ Reset file inputs
+            fields.forEach(field => {
+                if (field.type === 'file' && fileInputRefs.current[field.name]) {
+                    fileInputRefs.current[field.name].value = '';
+                }
+            });
             getData();
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Action failed');
+            toast.error("Unexpected failure. Check your console.");
+            console.error(error);
         } finally {
             setLoading(false);
         }
     };
 
-    // const handleEdit = (item) => {
-    //     const updatedForm = { ...item };
-    //     fields.forEach(field => {
-    //         if (field.type === 'file') updatedForm[field.name] = null;
-    //         if (field.type === 'date' && item[field.name]) {
-    //             updatedForm[field.name] = item[field.name].slice(0, 10)
-    //         }
-    //     });
-    //     setForm(updatedForm);
-    // };
-
-
     const handleEdit = (item) => {
-        const updatedForm = { ...form, ...item }; // merge to retain defaults
-    
+        const updatedForm = { ...form, ...item };
+
         fields.forEach(field => {
             const value = item[field.name];
-    
-            // For files, don't set value
             if (field.type === 'file') {
                 updatedForm[field.name] = null;
-            }
-    
-            // For dates: format to 'YYYY-MM-DD'
-            else if (field.type === 'date' && value) {
+            } else if (field.type === 'date' && value) {
                 updatedForm[field.name] = value.slice(0, 10);
-            }
-    
-            // For multiselect: ensure it's an array (split from CSV or parse JSON if saved like that)
-            else if (field.type === 'select' && field.multiple && typeof value === 'string') {
-                updatedForm[field.name] = value.split(','); // adjust this if value is JSON string
-            }
-    
-            // For textareas and other types: assign directly
-            else {
+            } else if (field.type === 'select' && field.multiple && typeof value === 'string') {
+                updatedForm[field.name] = value.split(',');
+            } else {
                 updatedForm[field.name] = value;
             }
         });
-    
-        updatedForm.id = item.id;
+
+        updatedForm.id = getItemId(item);
         setForm(updatedForm);
     };
-    
-    const handleSingleDelete = (id) => {
-        setConfirmDeleteId(id);
+
+    const handleSingleDelete = (item) => {
+        setConfirmDeleteId(getItemId(item));
         setDeleteType("single");
         setShowDeleteModal(true);
     };
@@ -143,7 +146,7 @@ const ReusableForm_Table = ({
                 toast.success(`${title} deleted successfully`);
             } else if (deleteType === "bulk") {
                 for (let item of selectedItems) {
-                    await deleteData(item.id);
+                    await deleteData(getItemId(item));
                 }
                 toast.success('Selected items deleted');
                 setSelectedItems([]);
@@ -158,7 +161,6 @@ const ReusableForm_Table = ({
             setLoading(false);
         }
     };
-
     return (
         <div className="row">
             <div className='mb-2'>
@@ -236,9 +238,11 @@ const ReusableForm_Table = ({
                                             <label className="form-label">{field.label}</label>
                                             <input
                                                 className="form-control"
+                                                multiple
                                                 type="file"
                                                 name={field.name}
                                                 onChange={(e) => handleChange(e, field)}
+                                                ref={(el) => (fileInputRefs.current[field.name] = el)}
                                             />
                                         </div>
                                     );
@@ -271,8 +275,8 @@ const ReusableForm_Table = ({
 
 
                                 }
-                                
-                                
+
+
                                 else if (field.type === 'textarea') {
                                     return (
                                         <div className="col-lg-4" key={field.name}>
@@ -302,11 +306,12 @@ const ReusableForm_Table = ({
                                                 onChange={(e) => handleChange(e, field)}
                                                 className="form-control mb-2"
                                                 required={field.required}
+                                                disabled={field.disabled || false}
                                             />
                                         </div>
                                     );
                                 }
-                                
+
                             })}
                             </div>
 
@@ -367,18 +372,91 @@ const ReusableForm_Table = ({
                                             </td>
                                             {fields.map(field => (
                                                 <td key={field.name}>
-                                                    {field.type === 'checkbox'
-                                                        ? item[field.name] ? 'Yes' : 'No'
-                                                        : field.type === 'file'
-                                                            ? item[field.name]
-                                                                ? <a href={item[field.name]} target="_blank" rel="noreferrer">View</a>
-                                                                : 'No File'
-                                                            : field.type === 'select'
-                                                                ? (field.options.find(opt => opt.value === item[field.name])?.label || item[field.name])
-                                                                : field.type === 'date' ? item[field.name] ? new Date(item[field.name]).toISOString().slice(0, 10) : ''
-                                                                    : item[field.name]}
+                                                    {field.type === 'file' ? (
+                                                        (() => {
+                                                            const files = item[field.name];
+
+                                                            if (Array.isArray(files) && files.length > 0) {
+                                                                return files.map((file, idx) => {
+                                                                    const isString = typeof file === 'string';
+                                                                    const fileUrl = isString && file.startsWith("http")
+                                                                        ? file
+                                                                        : `http://localhost:2026/uploads/${file}`;
+
+                                                                    return (
+                                                                        <div key={idx} className="mb-2">
+                                                                            <a
+                                                                                href={fileUrl}
+                                                                                target="_blank"
+                                                                                rel="noreferrer"
+                                                                                download
+                                                                                className="d-block text-primary"
+                                                                            >
+                                                                                {/* 📎 {file} */}
+                                                                                Download
+                                                                            </a>
+
+                                                                            {/\.(jpg|jpeg|png|gif|webp)$/i.test(file) && (
+                                                                                <img
+                                                                                    src={fileUrl}
+                                                                                    alt="preview"
+                                                                                    width="80"
+                                                                                    className="mt-1 border rounded"
+                                                                                />
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                });
+                                                            }
+
+                                                            if (typeof files === 'string' && files !== '') {
+                                                                const splitFiles = files.split(',');
+                                                                return splitFiles.map((file, idx) => {
+                                                                    const fileUrl = file.startsWith("http")
+                                                                        ? file
+                                                                        : `http://localhost:2026/uploads/${file}`;
+
+                                                                    return (
+                                                                        <div key={idx} className="mb-2">
+                                                                            <a
+                                                                                href={fileUrl}
+                                                                                target="_blank"
+                                                                                rel="noreferrer"
+                                                                                download
+                                                                                className="d-block text-primary"
+                                                                            >
+                                                                                Download
+                                                                            </a>
+
+                                                                            {/\.(jpg|jpeg|png|gif|webp)$/i.test(file) && (
+                                                                                <img
+                                                                                    src={fileUrl}
+                                                                                    alt="preview"
+                                                                                    width="80"
+                                                                                    className="mt-1 border rounded"
+                                                                                />
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                });
+                                                            }
+
+                                                            return 'No File';
+                                                        })()
+                                                    ) : field.type === 'checkbox' ? (
+                                                        item[field.name] ? 'Yes' : 'No'
+                                                    ) : field.type === 'select' ? (
+                                                        field.options?.find(opt => opt.value === item[field.name])?.label || item[field.name]
+                                                    ) : field.type === 'date' ? (
+                                                        item[field.name]
+                                                            ? new Date(item[field.name]).toISOString().slice(0, 10)
+                                                            : ''
+                                                    ) : (
+                                                        item[field.name]
+                                                    )}
                                                 </td>
                                             ))}
+
                                             <td className='d-flex justify-content-center'>
                                                 <button
                                                     id="btn-focus"
@@ -389,7 +467,7 @@ const ReusableForm_Table = ({
                                                 </button>
                                                 <button
                                                     className="btn btn-sm btn-outline-danger rounded-circle"
-                                                    onClick={() => handleSingleDelete(item.id)}
+                                                    onClick={() => handleSingleDelete(item)}
                                                 >
                                                     <i className='pi pi-trash'></i>
                                                 </button>

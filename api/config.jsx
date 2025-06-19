@@ -1,5 +1,8 @@
+
 // export const host = "https://buildrviewbackend.onrender.com";
-export const host = `http://localhost:2026`;
+
+
+export const host = "http://localhost:2026"
 
 export const config = {
   host: `${host}`,
@@ -11,6 +14,10 @@ export const config = {
   resetPassword: `${host}/user/reset-password`,
   sendOtp: `${host}/user/send-otp`,
   verifyOtp: `${host}/user/verify-otp`,
+  getUser: `${host}/user/getUser`,
+  emailExist : `${host}/user/check-email`,
+  
+  updateUsers: `${host}/user/updateUser`,
 
   // LEADS
   getLeads: `${host}/api/leads`,
@@ -33,28 +40,27 @@ export const config = {
 
   // INVENTORY ENTRY
   getInventories: `${host}/api/inventory`,
-  getInventoryById: (id) => `${host}/api/inventory/${id}`,
-  getMaterialMaster_Inventory: `${host}/api/inventory/materialMaster`,
-  getUnitTypes_Inventory: `${host}/api/inventory/unitTypes`,
-  getVendors_Inventory: `${host}/api/inventory/vendor`,
-  createInventory: `${host}/api/inventory`,
-  updateInventory: (id) => `${host}/api/inventory/${id}`,
-  deleteInventory: (id) => `${host}/api/inventory/${id}`,
+  getInventoriesById: (id) => `${host}/api/inventory/${id}`,               // GET all inventories
+  getMaterial: `${host}/api/inventory/materialMaster`, // GET material master data
+  getUnitType: `${host}/api/inventory/unitTypes`,    // GET unit types data
+  getVendorName: `${host}/api/inventory/vendor`,        // GET vendor data
+  createInventory: `${host}/api/inventory`,               // POST (create new inventory)
+  updateInventory: (id) => `${host}/api/inventory/${id}`,  // PUT (update inventory by ID)
+  deleteInventory: (id) => `${host}/api/inventory/${id}`,  // DELETE (delete inventory by ID)
 
-  // MATERIAL ISSUE
-  getMaterialIssues: `${host}/api/materialIssue`,
-  getMaterialIssueById: (id) => `${host}/api/materialIssue/${id}`,
-  createMaterialIssue: `${host}/api/materialIssue`,
-  updateMaterialIssue: (id) =>`${host}/api/materialIssue/${id}`,
-  deleteMaterialIssue: (id) => `${host}/api/materialIssue/${id}`,
-  getMaterialMaster_Issue: `${host}/api/materialIssue/materialMaster`,
-  getUnitTypes_Issue: `${host}/api/materialIssue/unitTypes`,
 
-  // EXPENDITURE
-  getExpenditures: `${host}/api/expenditure`,                              // GET all with filters/pagination
-  getExpenditureById: (id) => `${host}/api/expenditure/${id}`,            // GET single expenditure by ID
-  createExpenditure: `${host}/api/expenditure`,                           // POST (create new expenditure)
-  updateExpenditure: (id) => `${host}/api/expenditure/${id}`,             // PUT (update expenditure by ID)
-  deleteExpenditure: (id) => `${host}/api/expenditure/${id}`,             // DELETE (delete expenditure by ID)
-  getExpenditureCategories: `${host}/api/expenditure/categories`,         // GET expenditure category options
+  // Material Issue 
+  getMaterialIsuues: `${host}/api/materialIssue`,                       // GET all with filters/pagination
+  getMaterialIsuuesById: (id) => `${host}/api/materialIssue/${id}`,     // GET single material Issue by ID
+  createMaterialIssue: `${host}/api/materialIssue`,                    // POST (create new material Issue)
+  updateMaterialIssue: (id) => `${host}/api/materialIssue/${id}`,      // PUT (update material Issue by ID)
+  deleteMaterialIssue: (id) => `${host}/api/materialIssue/${id}`,      // DELETE (delete material Issue by ID)
+
+  material_Issue: `${host}/api/materialIssue/materialMaster`,        // GET material master data
+  unitType_Issue: `${host}/api/materialIssue/unitTypes`,             // GET unit type data
+
+
+  // Other unrelated endpoints should have their own unique names
+
 };
+

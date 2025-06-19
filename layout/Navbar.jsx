@@ -1,27 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 import { Avatar } from 'primereact/avatar';
 
-import logo from "/src/assets/auth/build.jpg"
+import logo from "/src/assets/auth/build.jpg";
+import { config } from "../api/config";
+import { fetchData } from "../api/apiHandler";
 
-
-
-import "./nav.css"
+import "./nav.css";
 
 const Navbar = () => {
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
+
   const loginToken = localStorage.getItem('loginToken');
   const fullname = localStorage.getItem('fullname');
-  const profile = localStorage.getItem('profile');
 
-  const [property, setProperty] = useState(null);
+  const fetchUser = async () => {
+    try {
+      const res = await fetchData(config.getUser);
+      console.log("User fetched:", res.data);
+      setUser(res.data.user); // ✅ nested user object
+    } catch (error) {
+      toast.error("Failed to fetch user details.");
+      console.error("Fetch user error:", error);
+    }
+  };
 
   useEffect(() => {
-    setTimeout(() => {
-      setProperty({ id: '123' });
-    }, 1000);
+    if (loginToken) {
+      fetchUser();
+    }
   }, []);
 
   const signOut = () => {
@@ -33,71 +42,99 @@ const Navbar = () => {
   };
 
   return (
-    <nav
-      className="navbar navbar-expand-sm navbar-dark  shadow-sm sticky-top"
-      style={{ backgroundColor: 'black' }} // Light Blue
-    >
+    <nav className="navbar navbar-expand-sm navbar-dark shadow-sm sticky-top" style={{ backgroundColor: 'black' }}>
       <div className="container-fluid">
-        <div className=''>
-          <img
-            src={logo}
-            alt="logo"
-            style={{ width: '50px', height: '50px', borderRadius: '8px', verticalAlign: 'center' }}
-            className='me-2'
-          />
-        </div>
-        <Link to="/" className="navbar-brand fs-4 text-white">
-          BUILDRVIEW
-        </Link>
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#mynavbar"
-        >
+        <img
+          src={logo}
+          alt="logo"
+          style={{ width: '50px', height: '50px', borderRadius: '8px' }}
+          className='me-2'
+        />
+        <Link to="/" className="navbar-brand fs-4 text-white">BUILDRVIEW</Link>
+
+        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
           <span className="navbar-toggler-icon"></span>
         </button>
 
         <div className="collapse navbar-collapse" id="mynavbar">
           <ul className="navbar-nav ms-auto align-items-end">
-           <li className="nav-item ">
-              <Link to="/" className="nav-link text-dark fw-semibold ">
-                Home
-              </Link>
+            <li className="nav-item">
+              <Link to="/" className="nav-link text-white fw-semibold">Home</Link>
             </li>
- 
 
-
-            {/* Avatar Profile Dropdown */}
+            {/* Profile Dropdown */}
             <li className="nav-item dropdown ms-3">
-              <div className="dropdown">
-                <button
-                  className="btn  nav-link dropdown-toggle d-flex align-items-center gap-2 text-white"
-                  type="button"
-                  id="profileDropdown"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  <Avatar
-                    label={fullname ? fullname.charAt(0).toUpperCase() : 'P'}
-                    size="small"
-                    shape="circle"
-                    style={{ backgroundColor: '#0d6efd', color: '#fff' }}
-                  />
-                  <span className="fw-semibold">{fullname || 'Profile'}</span>
-                </button>
-                <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
-                  {loginToken && (
-                    <li>
-                      <button className="dropdown-item " onClick={signOut}>
-                        <i className="pi pi-sign-out me-2"></i> Sign Out
-                      </button>
-                    </li>
-                  )}
-                </ul>
-              </div>
-            </li>
+              
+              <button
+                className="btn nav-link dropdown-toggle d-flex align-items-center gap-2 text-white"
+                type="button"
+                id="profileDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <Avatar
+                  label={fullname ? fullname.charAt(0).toUpperCase() : 'P'}
+                  size="small"
+                  shape="circle"
+                  style={{ backgroundColor: '#0d6efd', color: '#fff' }}
+                />
+                <span className="fw-semibold">{fullname || 'Profile'}</span>
+              </button>
 
+              <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                {user?.username && (
+                  <li className="dropdown-item text-muted">
+                    <strong>User Name: {user.username}</strong>
+                  </li>
+                )}
+                {user?.email && (
+                  <li className="dropdown-item text-muted">
+                    Email: {user.email}
+                  </li>
+                )}
+                {user?.profile && (
+                  <li className="dropdown-item text-muted">
+                    Profile: {user.profile}
+                  </li>
+                )}
+                {user?.password && (
+                  <li className="dropdown-item text-muted">
+                    Password: {user.password}
+                  </li>
+                )}
+
+                <li><hr className="dropdown-divider" /></li>
+
+                {/* ✅ Conditional Edit Profile link to avoid crash */}
+                {user && (
+                  <Link
+                    to={`/edit-profile/${user.userId}`}
+                    className="dropdown-item"
+                    state={{
+                      mode: "edit",
+                      userData: {
+                        fullname: user.fullname,
+                        mobilenumber: user.mobilenumber,
+                        email: user.email,
+                        profile: user.profile,
+                        id: user.userId
+                      }
+                    }}
+                  >
+                    <i className="pi pi-user-edit me-2"></i> Edit Profile
+                  </Link>
+                )}
+
+                {/* Sign Out Button */}
+                {loginToken && (
+                  <li>
+                    <button className="dropdown-item" onClick={signOut}>
+                      <i className="pi pi-sign-out me-2"></i> Sign Out
+                    </button>
+                  </li>
+                )}
+              </ul>
+            </li>
           </ul>
         </div>
       </div>
