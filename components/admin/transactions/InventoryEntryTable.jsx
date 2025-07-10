@@ -10,6 +10,8 @@ import { Column } from 'primereact/column';
 import { fetchData, deleteData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import { Paginator } from 'primereact/paginator';
+import moment from 'moment';
+import ExportInventorysButton from '../reusableExportData/ExportInventoryButton';
 
 const InventoryEntryTable = () => {
     const [loading, setLoading] = useState(true);
@@ -29,6 +31,9 @@ const InventoryEntryTable = () => {
     const [selectedMaterialName, setSelectedMaterialName] = useState([]);
     const [selectedUnitType, setSelectedUnitType] = useState([]);
     const [selectedVendorName, setSelectedVendorName] = useState([]);
+
+
+    const [viewData, setViewData] = useState(null);
 
     const selectedMaterialIdRef = useRef([]);
     const selectedMaterialNameRef = useRef([])
@@ -116,40 +121,87 @@ const InventoryEntryTable = () => {
         // }
     };
 
-const removeDuplicates = (data, key) => {
-    return Array.from(new Map(data.map(item => [item[key], item])).values());
-};
+    const removeDuplicates = (data, key) => {
+        return Array.from(new Map(data.map(item => [item[key], item])).values());
+    };
 
+    const getFileUrl = (fileName) => {
+        return fileName.startsWith('http')
+            ? fileName
+            : `https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/${fileName}`;
+    };
 
-const getMaterialDetails = async () => {
-    try {
-        const res = await fetchData(config.getMaterial);
-        const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'material_id'); // or 'materialName'
-        setMaterialDetails(unique);
-    } catch {
-        setMaterialDetails([]);
-    }
-};
+    const renderFieldValue = (key, value) => {
+        const dateFields = ['invoice_date', 'creation_date', 'expected_date', 'last_interacted_on', 'next_interacted_date'];
 
-const getUnitTypeDetails = async () => {
-    try {
-        const res = await fetchData(config.getUnitType);
-        const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'unit');
-        setUnitType(unique);
-    } catch {
-        setUnitType([]);
-    }
-};
+        if (key === 'invoice_attachment') {
+            if (!value) return <span className="text-muted">No Attachment</span>;
 
-const getVendorDetails = async () => {
-    try {
-        const res = await fetchData(config.getVendorName);
-        const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'vendorName');
-        setVendorName(unique);
-    } catch {
-        setVendorName([]);
-    }
-};
+            const files = typeof value === 'string' ? value.split(',') : value;
+
+            return files.map((file, i) => {
+                const url = getFileUrl(file);
+                const fileName = decodeURIComponent(file.split('/').pop());
+                const docType = fileName?.split('-')[0] || 'Document';
+
+                return (
+                    <a
+                        key={i}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download
+                        className="btn btn-sm btn-outline-primary me-2 mb-1 text-truncate d-inline-block"
+                        title={fileName}
+                    >
+                        <i className="pi pi-download me-1" />
+                        {/* {docType} {files.length > 1 ? i + 1 : ''} */}
+                        {fileName}
+                    </a>
+                );
+            });
+        }
+
+        if (dateFields.includes(key) && value) {
+            return moment(value).format('DD-MM-YYYY');
+        }
+
+        if (Array.isArray(value)) {
+            return value.map((v, i) => <div key={i}>{JSON.stringify(v)}</div>);
+        }
+
+        return String(value);
+    };
+
+    const getMaterialDetails = async () => {
+        try {
+            const res = await fetchData(config.getMaterial);
+            const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'material_id'); // or 'materialName'
+            setMaterialDetails(unique);
+        } catch {
+            setMaterialDetails([]);
+        }
+    };
+
+    const getUnitTypeDetails = async () => {
+        try {
+            const res = await fetchData(config.getUnitType);
+            const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'unit');
+            setUnitType(unique);
+        } catch {
+            setUnitType([]);
+        }
+    };
+
+    const getVendorDetails = async () => {
+        try {
+            const res = await fetchData(config.getVendorName);
+            const unique = removeDuplicates(Array.isArray(res.data) ? res.data : [], 'vendorName');
+            setVendorName(unique);
+        } catch {
+            setVendorName([]);
+        }
+    };
 
     const resetFilters = () => {
         setSelectedMaterialId([]);
@@ -185,9 +237,22 @@ const getVendorDetails = async () => {
         <div className="container-fluid mt-2">
             <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"></i>  Back </Link>
             <h3 className="text-center mb-3">Inventory Management</h3>
-            <div className="text-end">
-                <Link className="text-decoration-none text-primary" to="/inventoryEntryForm"> <button className='btn btn-primary btn-sm mb-2'> Add Details  <i className="pi pi-arrow-right"></i> </button>  </Link>
+
+            <div className="d-flex justify-content-end align-items-center my-2 flex-wrap gap-2">
+                <div className="d-flex flex-wrap gap-2">
+                    <Link className="text-decoration-none" to="/inventoryEntryForm">
+                        <button className="btn btn-primary btn-sm">
+                            Add Details <i className="pi pi-arrow-right"></i>
+                        </button>
+                    </Link>
+
+                    <ExportInventorysButton data={filteredInventory} />
+                </div>
             </div>
+
+
+
+
 
             <div className='row mb-3'>
                 <div className='col-6'>
@@ -219,6 +284,27 @@ const getVendorDetails = async () => {
                                 {loading ? 'Deleting...' : 'Delete'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* View Modal */}
+            {viewData && (
+                <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center z-3">
+                    <div className="bg-white p-4 rounded shadow w-75 max-h-75 overflow-auto">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h5 className="mb-0">Inventory Details</h5>
+                            <button className="btn-close" onClick={() => setViewData(null)}></button>
+                        </div>
+                        <table className="table table-sm table-bordered">
+                            <tbody>
+                                {Object.entries(viewData).map(([key, value]) => (
+                                    <tr key={key}>
+                                        <th style={{ textTransform: 'capitalize' }}>{key.replace(/_/g, ' ')}</th>
+                                        <td>{renderFieldValue(key, value)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             )}
@@ -329,36 +415,6 @@ const getVendorDetails = async () => {
                 {/* <Column field="invoice_attachment" header="Invoice Attachment" style={{ minWidth: '13rem' }} /> */}
 
 
-                <Column
-                    header="Invoice Attachment"
-                    body={(rowData) => {
-                        const files = rowData.invoice_attachment
-                            ? rowData.invoice_attachment.split(',')
-                            : [];
-
-                        return files.length > 0 ? (
-                            <div className="flex flex-col gap-1">
-                                {files.map((file, i) => (
-                                   <a
-                                                key={i}
-
-                                                href={`http://localhost:2026/uploads/${file}`}
-                                                target='blank'
-                                                download
-                                                className="btn btn-sm btn-outline-primary"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                Download PDF {i + 1}
-                                            </a>
-
-                                ))}
-                            </div>
-                        ) : (
-                            <span className="text-muted">No Attachment</span>
-                        );
-                    }}
-                    style={{ minWidth: '13rem' }}
-                />
 
 
                 <Column field="entered_by" header="Entered By" style={{ minWidth: '13rem' }} />
@@ -370,22 +426,19 @@ const getVendorDetails = async () => {
                             <Link to={`/inventoryEntryForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                                 <i className="pi pi-pencil"></i>
                             </Link>
-                            <button
-                                className="btn btn-outline-danger btn-sm"
-                                onClick={() => {
-                                    setConfirmDeleteId(rowData.id);
-                                    setDeleteType("single");
-                                    setShowDeleteModal(true);
-                                }}
-                            >
+                            <button className="btn btn-outline-danger btn-sm" onClick={() => {
+                                setConfirmDeleteId(rowData.id);
+                                setDeleteType("single");
+                                setShowDeleteModal(true);
+                            }}>
                                 <i className="pi pi-trash"></i>
+                            </button>
+                            <button className="btn btn-outline-primary btn-sm" onClick={() => setViewData(rowData)}>
+                                <i className="pi pi-eye"></i>
                             </button>
                         </div>
                     )}
-                    style={{ minWidth: '10rem' }}
                 />
-
-
             </DataTable>
             <div className='mt-3'>
                 <Paginator

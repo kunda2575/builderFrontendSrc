@@ -5,6 +5,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import { fetchData, postData, putData } from '../../../api/apiHandler1';
 import { config } from '../../../api/config';
 import { Calendar } from 'primereact/calendar';
+import { useRef } from 'react';
+import { FileUpload } from 'primereact/fileupload';
+import { Dropdown } from 'primereact/dropdown';
 
 const InventoryEntryForm = () => {
   const [searchParams] = useSearchParams();
@@ -25,8 +28,15 @@ const InventoryEntryForm = () => {
     unit_type: "",
     quantity_received: "",
     invoice_attachment: [],
+    documents: [],       // <--- add here
+    documentType: "",
     entered_by: "",
     id: null,
+  });
+
+  const fileInputRefs = useRef({});
+  const [hasUploadedFirstFile, setHasUploadedFirstFile] = useState({
+    invoice_attachment: false,
   });
 
   useEffect(() => {
@@ -66,54 +76,91 @@ const InventoryEntryForm = () => {
     }
   };
 
-  const fetchEditData = async (id) => {
-    try {
-      const res = await fetchData(config.getInventoriesById(id));
-      const inv = res.data.data;
-      if (inv) {
-        setForm({
-          material_id: inv.material_id || "",
-          material_name: inv.material_name || "",
-          vendor_name: inv.vendor_name || "",
-          invoice_number: inv.invoice_number || "",
-          invoice_date: inv.invoice_date ? new Date(inv.invoice_date) : null,
-          invoice_cost_incl_gst: inv.invoice_cost_incl_gst || "",
-          unit_type: inv.unit_type || "",
-          quantity_received: inv.quantity_received || "",
-          invoice_attachment: [],
-          entered_by: inv.entered_by || "",
-          id: inv.id || null,
-        });
+const fetchEditData = async (id) => {
+  try {
+    const res = await fetchData(config.getInventoriesById(id));
+    const inv = res.data.data;
+
+    if (inv) {
+      // Parse invoice_attachment (as string or array)
+      const urls = Array.isArray(inv.invoice_attachment)
+        ? inv.invoice_attachment
+        : typeof inv.invoice_attachment === 'string'
+          ? inv.invoice_attachment.split(',').map(u => u.trim())
+          : [];
+
+      // Parse documentTypes (as array or JSON stringified array)
+      let types = [];
+      if (Array.isArray(inv.documentTypes)) {
+        types = inv.documentTypes;
+      } else if (typeof inv.documentTypes === 'string') {
+        try {
+          const parsed = JSON.parse(inv.documentTypes);
+          types = Array.isArray(parsed) ? parsed : inv.documentTypes.split(',').map(t => t.trim());
+        } catch {
+          types = inv.documentTypes.split(',').map(t => t.trim());
+        }
       }
-    } catch (error) {
-      toast.error("Failed to load inventory data");
-    }
-  };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
+      // Pair files and document types
+      const docs = urls.map((u, i) => ({
+        file: u,
+        documentType: types[i] || 'Invoice'  // Default to 'Invoice' or any other sensible default
+      }));
 
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length < 1 || files.length > 5) {
-      toast.error("Please upload between 1 and 5 invoice attachments.");
-      return;
+      setForm(prev => ({
+        ...prev,
+        material_id: inv.material_id || "",
+        material_name: inv.material_name || "",
+        vendor_name: inv.vendor_name || "",
+        invoice_number: inv.invoice_number || "",
+        invoice_date: inv.invoice_date ? new Date(inv.invoice_date) : null,
+        invoice_cost_incl_gst: inv.invoice_cost_incl_gst || "",
+        unit_type: inv.unit_type || "",
+        quantity_received: inv.quantity_received || "",
+        entered_by: inv.entered_by || "",
+        documents: docs,
+        id: inv.id || null
+      }));
     }
-    setForm((prev) => ({
+  } catch (err) {
+    toast.error("Failed to load data");
+    console.error(err);
+  }
+};
+
+
+
+
+  const handleFileSelect = (event, fieldName) => {
+    const newFile = event.files?.[0]; // Only allow one file
+    if (!newFile) return;
+
+    setForm(prev => ({
       ...prev,
-      invoice_attachment: files,
+      [fieldName]: [newFile],
     }));
+
+    setHasUploadedFirstFile(prev => ({
+      ...prev,
+      [fieldName]: true,
+    }));
+
+    if (fileInputRefs.current[fieldName]) {
+      fileInputRefs.current[fieldName].clear();
+    }
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     const formData = new FormData();
+
+    // Add other fields
     Object.entries(form).forEach(([key, value]) => {
-      if (key === "invoice_attachment") return;
+      if (["documents", "documentType", "invoice_attachment"].includes(key)) return;
       if (key === "invoice_date" && value) {
         formData.append(key, value.toISOString());
       } else {
@@ -121,9 +168,11 @@ const InventoryEntryForm = () => {
       }
     });
 
-    form.invoice_attachment.forEach((file) => {
-      formData.append("invoice_attachment", file);
+    // Add files + types
+    form.documents.forEach((doc) => {
+      formData.append("documents", doc.file);
     });
+    formData.append("documentTypes", JSON.stringify(form.documents.map(d => d.documentType)));
 
     try {
       if (form.id) {
@@ -134,6 +183,7 @@ const InventoryEntryForm = () => {
         toast.success("Inventory created successfully");
       }
 
+      // Reset
       setForm({
         material_id: "",
         material_name: "",
@@ -143,7 +193,8 @@ const InventoryEntryForm = () => {
         invoice_cost_incl_gst: "",
         unit_type: "",
         quantity_received: "",
-        invoice_attachment: [],
+        documents: [],
+        documentType: "",
         entered_by: "",
         id: null,
       });
@@ -153,6 +204,7 @@ const InventoryEntryForm = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="container-fluid mt-3">
@@ -178,6 +230,7 @@ const InventoryEntryForm = () => {
                 <div className="row">
                   {/* Material ID */}
                   <div className="col-lg-6 mb-1">
+                    <label>Material ID </label>
                     <select
                       name="material_id"
                       value={form.material_id}
@@ -196,6 +249,7 @@ const InventoryEntryForm = () => {
 
                   {/* Material Name */}
                   <div className="col-lg-6 mb-1">
+                    <label> Material Name</label>
                     <select
                       name="material_name"
                       value={form.material_name}
@@ -214,6 +268,7 @@ const InventoryEntryForm = () => {
 
                   {/* Vendor */}
                   <div className="col-lg-6 mb-1">
+                    <label> Vendor Name </label>
                     <select
                       name="vendor_name"
                       value={form.vendor_name}
@@ -232,6 +287,7 @@ const InventoryEntryForm = () => {
 
                   {/* Invoice Number */}
                   <div className="col-lg-6 mb-1">
+                    <label> Invoice Number</label>
                     <input
                       type="number"
                       name="invoice_number"
@@ -261,7 +317,7 @@ const InventoryEntryForm = () => {
 
                   {/* Invoice Cost Incl Gst */}
                   <div className="col-lg-6 mb-1">
-                    <label></label>
+                    <label> Invoice Cost Incl Gst </label>
                     <input
                       type="number"
                       name="invoice_cost_incl_gst"
@@ -275,6 +331,7 @@ const InventoryEntryForm = () => {
 
                   {/* Quantity Received */}
                   <div className="col-lg-6 mb-1">
+                    <label> Quantity Received </label>
                     <input
                       type="number"
                       name="quantity_received"
@@ -288,6 +345,7 @@ const InventoryEntryForm = () => {
 
                   {/* Unit Type */}
                   <div className="col-lg-6 mb-1">
+                    <label>Unit Type </label>
                     <select
                       name="unit_type"
                       value={form.unit_type}
@@ -306,6 +364,7 @@ const InventoryEntryForm = () => {
 
                   {/* Entered By */}
                   <div className="col-lg-6 mb-1">
+                    <label>Entered By </label>
                     <input
                       type="text"
                       name="entered_by"
@@ -318,33 +377,105 @@ const InventoryEntryForm = () => {
                   </div>
 
 
-                  <div className="col-lg-6 mb-1">
-                    <div className="input-group">
-                      <label htmlFor="invoiceAttachment" className="btn btn-outline-secondary">
-                        Invoice Attachment
-                      </label>
-                      <input
-                        id="invoiceAttachment"
-                        type="file"
-                        accept="image/*,application/pdf"
-                        multiple
-                        onChange={(e) => setForm({ ...form, invoice_attachment: Array.from(e.target.files) })}
-                        style={{ display: 'none' }}
-                      />
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Choose file"
-                        value={
-                          form.invoice_attachment && form.invoice_attachment.length > 0
-                            ? form.invoice_attachment.map(file => file.name).join(', ')
-                            : ''
-                        }
-                        readOnly
-                      />
+                  <div className="col-lg-12 mb-3">
+                    <label className="form-label fw-bold">Upload Document</label>
+                    <div className="row align-items-center">
+                      <div className="col-md-5">
+                        <Dropdown
+                          value={form.documentType}
+                          options={[
+                            { label: 'Invoice', value: 'Invoice' },
+                            { label: 'Delivery Note', value: 'Delivery Note' },
+                            { label: 'Packing Slip', value: 'Packing Slip' },
+                            { label: 'Purchase Order', value: 'Purchase Order' },
+                          ]}
+                          onChange={(e) => setForm({ ...form, documentType: e.value })}
+                          placeholder="Select Document Type"
+                          className="w-100"
+                        />
+                      </div>
+                      <div className="col-md-7">
+                        <FileUpload
+                          name="documents"
+                          customUpload
+                          multiple={true}
+                          accept="image/*,application/pdf"
+                          onSelect={(e) => {
+                            const files = e.files || [];
+
+                            if (!form.documentType) {
+                              toast.error("Please select a document type first.");
+                              fileInputRefs.current["documents"]?.clear();
+                              return;
+                            }
+
+                            const newEntries = files.map((file) => ({
+                              file,
+                              documentType: form.documentType,
+                            }));
+
+                            setForm((prev) => ({
+                              ...prev,
+                              documents: [...prev.documents, ...newEntries],
+                            }));
+
+                            fileInputRefs.current["documents"]?.clear();
+                          }}
+                          ref={(el) => (fileInputRefs.current["documents"] = el)}
+                          showUploadButton={false}
+                          showCancelButton={false}
+                          chooseLabel="Add File"
+                          mode="basic"
+                          className="w-100"
+                        />
+                      </div>
                     </div>
 
+                    {form.documents?.length > 0 && (
+                      <div className="mt-2">
+                        <ul className="list-unstyled border rounded p-2">
+                          {form.documents.map((doc, index) => {
+                            const isFileObject = doc.file instanceof File;
+                            const fileName = isFileObject ? doc.file.name : doc.file.split('/').pop();
+                            const fileUrl = isFileObject ? URL.createObjectURL(doc.file) : doc.file;
+
+                            return (
+                              <li
+                                key={index}
+                                className="d-flex align-items-center justify-content-between py-1 border-bottom"
+                              >
+                                <div>
+                                  📄{" "}
+                                  <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                                    <strong>{fileName}</strong>
+                                  </a>
+                                  <span className="text-muted small ms-2">
+                                    ({doc.documentType || "Uploaded"})
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => {
+                                    setForm((prev) => {
+                                      const updatedDocs = [...(prev.documents || [])];
+                                      updatedDocs.splice(index, 1);
+                                      return { ...prev, documents: updatedDocs };
+                                    });
+                                  }}
+                                >
+                                  ❌
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+
                   </div>
+
+
 
 
                 </div>

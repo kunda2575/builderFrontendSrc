@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { fetchData, postData, putData } from '../../../api/apiHandler1';
@@ -8,11 +8,13 @@ import 'react-toastify/dist/ReactToastify.css';
 import { MultiSelect } from 'primereact/multiselect';
 import 'primereact/resources/themes/saga-blue/theme.css'; // Or your theme
 import 'primereact/resources/primereact.min.css';
-
-
+import { FileUpload } from 'primereact/fileupload';
+import { Dropdown } from 'primereact/dropdown';
 const CustomerPaymentsForm = () => {
     const [searchParams] = useSearchParams();
     const editID = searchParams.get('id');
+
+    console.log("edit id  uuuu ", editID)
 
     const [loading, setLoading] = useState(false);
     const [customerPayment, setCustomerPayments] = useState([]);
@@ -23,6 +25,10 @@ const CustomerPaymentsForm = () => {
 
 
     const [customer, setCustomer] = useState([]);
+
+    const [selectedFiles, setSelectedFiles] = useState({});
+    const [hasUploadedFirstFile, setHasUploadedFirstFile] = useState({});
+    const fileInputRefs = useRef({});
 
 
     const [form, setForm] = useState({
@@ -50,17 +56,22 @@ const CustomerPaymentsForm = () => {
     });
 
     useEffect(() => {
-
+        // Fetch all static dropdown data & customers
         fetchCustomerPaymentssForm();
-        fetchPaymentTypes()
-        fetchVerifiedBy()
-        fetchPaymentModes()
-        fetchFundingBank()
-        fetchCustomer()
-        if (editID) {
+        fetchPaymentTypes();
+        fetchVerifiedBy();
+        fetchPaymentModes();
+        fetchFundingBank();
+        fetchCustomer(); // This must run before fetching edit data
+    }, []);
+
+    // ✅ Wait for customer list to load before fetching edit data
+    useEffect(() => {
+        if (editID && customer.length > 0) {
             fetchEditData(editID);
         }
-    }, []);
+    }, [editID, customer]);
+
 
 
 
@@ -156,131 +167,170 @@ const CustomerPaymentsForm = () => {
             toast.error('Failed to fetch payment modes');
         }
     };
+    // At the top
+    const [retainedDocuments, setRetainedDocuments] = useState([]);
+    const [documentTypes, setDocumentTypes] = useState([]);
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+    // Inside handleFileSelect
+    const handleFileSelect = (event, field) => {
+        const newFiles = event.files || [];
 
-    try {
-        const formData = new FormData();
+        setForm(prev => ({
+            ...prev,
+            [field.name]: [...(prev[field.name] || []), ...newFiles]
+        }));
 
-        // Append all text fields
-        formData.append("customer_id", form.customer_id);
-        formData.append("customer_name", form.customer_name);
-        formData.append("contact_number", form.contact_number);
-        formData.append("email", form.email);
-        formData.append("profession", form.profession);
-        formData.append("native_language", Array.isArray(form.native_language) ? form.native_language.join(", ") : form.native_language);
-        formData.append("project_name", form.project_name);
-        formData.append("block_name", form.block_name);
-        formData.append("flat_no", form.flat_no);
-        formData.append("agreed_price", form.agreed_price);
-        formData.append("installment_no", form.installment_no);
-        formData.append("amount_received", form.amount_received);
-        formData.append("payment_mode", form.payment_mode);
-        formData.append("payment_type", form.payment_type);
-        formData.append("verified_by", form.verified_by);
-        formData.append("funding_bank", form.funding_bank);
-        formData.append("flat_hand_over_date", form.flat_hand_over_date);
-        formData.append("flat_area", form.flat_area);
-        formData.append("no_of_bhk", form.no_of_bhk);
+        setSelectedFiles(prev => ({
+            ...prev,
+            [field.name]: [...(prev[field.name] || []), ...newFiles]
+        }));
 
-        // ✅ Append documents
-        if (form.documents && form.documents.length > 0) {
-            for (let i = 0; i < form.documents.length; i++) {
-                formData.append("documents", form.documents[i]);
-            }
+        setHasUploadedFirstFile(prev => ({ ...prev, [field.name]: true }));
+
+        if (fileInputRefs.current[field.name]) {
+            fileInputRefs.current[field.name].clear();
         }
 
-        // Submit form
-        if (form.id) {
-            await putData(config.updateCustomerPayment(form.id), formData, true); // Add `true` if `putData` needs content type override
-            toast.success("Updated successfully!");
-        } else {
-            await postData(config.createCustomerPayment, formData, true); // same here
-            toast.success("Created successfully!");
+        // Optional: Prompt user to specify document types
+        setDocumentTypes(prev => [...prev, ...newFiles.map(() => "receipt")]); // or dynamically assign
+    };
+
+    const handleRemoveFile = (fieldName, index) => {
+        const removedFile = selectedFiles[fieldName][index];
+
+        if (typeof removedFile === "string") {
+            setRetainedDocuments(prev => prev.filter((_, i) => i !== index));
         }
 
-        // Reset form
-        setForm({
-            customer_id: "",
-            customer_name: "",
-            contact_number: "",
-            email: "",
-            profession: "",
-            native_language: [],
-            project_name: "",
-            block_name: "",
-            flat_no: "",
-            agreed_price: "",
-            installment_no: "",
-            amount_received: "",
-            payment_mode: "",
-            payment_type: "",
-            verified_by: "",
-            funding_bank: "",
-            documents: [],
-            flat_hand_over_date: "",
-            flat_area: "",
-            no_of_bhk: "",
-            id: null
+        setSelectedFiles(prev => {
+            const updated = [...(prev[fieldName] || [])];
+            updated.splice(index, 1);
+            return { ...prev, [fieldName]: updated };
         });
 
-        fetchCustomerPaymentssForm();
-    } catch (err) {
-        console.error(err);
-        toast.error("Submission failed.");
-    } finally {
-        setLoading(false);
+        setForm(prev => {
+            const updated = [...(prev[fieldName] || [])];
+            updated.splice(index, 1);
+            return { ...prev, [fieldName]: updated };
+        });
+
+        setDocumentTypes(prev => {
+            const updated = [...prev];
+            updated.splice(index, 1);
+            return updated;
+        });
+    };
+
+    // 🆕 Handle form submit
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            const formData = new FormData();
+
+            Object.entries(form).forEach(([key, value]) => {
+                if (key !== "documents") {
+                    formData.append(key, Array.isArray(value) ? value.join(", ") : value);
+                }
+            });
+
+            // Files
+            selectedFiles["documents"]?.forEach((docObj) => {
+                if (docObj.file) {
+                    formData.append("documents", docObj.file);
+                } else if (typeof docObj === "string") {
+                    // Probably a retained URL, skip (handled separately)
+                }
+            });
+
+
+            // Append retained file keys
+            formData.append("retainedFiles", JSON.stringify(retainedDocuments));
+            const uploadedDocTypes = selectedFiles["documents"]
+                ?.filter(doc => doc.file) // only new uploads
+                .map(doc => doc.documentType || "unknown");
+
+            formData.append("documentTypes", JSON.stringify(uploadedDocTypes));
+
+            let response;
+            if (form.id) {
+                response = await putData(config.updateCustomerPayment(form.id), formData);
+            } else {
+                response = await postData(config.createCustomerPayment, formData);
+            }
+
+            if (response.success) {
+                toast.success(form.id ? "Updated successfully!" : "Created successfully!");
+                // Reset
+                setForm({ ...initialFormState });
+                setSelectedFiles({});
+                setRetainedDocuments([]);
+                setDocumentTypes([]);
+            } else {
+                toast.error(response.message || "Submission failed.");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error(err.message || "Something went wrong.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+  const fetchEditData = async (id) => {
+    try {
+        const res = await fetchData(config.getCustomerPaymentById(id));
+        const data = res.data;
+
+        if (data) {
+            const documentArray = Array.isArray(data.documents)
+                ? data.documents
+                : typeof data.documents === 'string'
+                    ? data.documents.split(',').map(doc => doc.trim())
+                    : [];
+
+            const formattedData = {
+                customer_id: data.customer_id || "",
+                customer_name: data.customer_name || "",
+                contact_number: data.contact_number || "",
+                email: data.email || "",
+                profession: data.profession || "",
+                native_language: typeof data.native_language === 'string'
+                    ? data.native_language.split(',').map(item => item.trim())
+                    : Array.isArray(data.native_language)
+                        ? data.native_language
+                        : [],
+                project_name: data.project_name || "",
+                block_name: data.block_name || "",
+                flat_no: data.flat_no || "",
+                agreed_price: data.agreed_price || "",
+                installment_no: data.installment_no || "",
+                amount_received: data.amount_received || "",
+                payment_mode: data.payment_mode || "",
+                payment_type: data.payment_type || "",
+                verified_by: data.verified_by || "",
+                funding_bank: data.funding_bank || "",
+                documents: documentArray,
+                flat_hand_over_date: data.flat_hand_over_date ? new Date(data.flat_hand_over_date) : "",
+                flat_area: data.flat_area || "",
+                no_of_bhk: data.no_of_bhk || "",
+                id: data.id || null,
+            };
+
+            setForm(formattedData);
+            setSelectedFiles({ documents: documentArray });
+            setRetainedDocuments(documentArray);
+        }
+    } catch (error) {
+        toast.error("Failed to load customer Payment data for editing");
+        console.error("Error loading customer Payment by ID:", error);
     }
 };
 
 
-    const fetchEditData = async (id) => {
-        try {
-            const res = await fetchData(config.getCustomerPaymentById(id)); // Make sure this is the correct customerPayment endpoint
-            const data = res.data;
 
-            if (data) {
-                const formattedData = {
-                    customer_id: data.customer_id || "",
-                    customer_name: data.customer_name || "",
-                    contact_number: data.contact_number || "",
-                    email: data.email || "",
-                    profession: data.profession || "",
-
-                    // ✅ Convert string to array for MultiSelect
-                    native_language: typeof data.native_language === 'string'
-                        ? data.native_language.split(',').map(item => item.trim())
-                        : Array.isArray(data.native_language)
-                            ? data.native_language
-                            : [],
-
-                    project_name: data.project_name || "",
-                    block_name: data.block_name || "",
-                    flat_no: data.flat_no || "",
-                    agreed_price: data.agreed_price || "",
-                    installment_no: data.installment_no || "",
-                    amount_received: data.amount_received || "",
-                    payment_mode: data.payment_mode || "",
-                    payment_type: data.payment_type || "",            // changed from paymentType
-                    verified_by: data.verified_by || "",              // changed from deposit_bank_verifiedBy
-                    funding_bank: data.funding_bank || "",
-                    documents: data.documents || "",
-                    flat_hand_over_date: data.flat_hand_over_date ? new Date(data.flat_hand_over_date) : "",
-                    flat_area: data.flat_area || "",
-                    no_of_bhk: data.no_of_bhk || "",
-                    id: data.id || null,
-                };
-
-                setForm(formattedData);
-            }
-
-        } catch (error) {
-            toast.error("Failed to load customer Payment data for editing");
-            console.error("Error loading customer Payment by ID:", error);
-        }
-    };
 
 
     return (
@@ -328,7 +378,7 @@ const handleSubmit = async (e) => {
 
 
                                     <div className="col-lg-4 mb-2">
-                                        <label></label>
+                                        <label> Customer Id </label>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -340,7 +390,7 @@ const handleSubmit = async (e) => {
 
                                     {/* CUSTOMER NAME SELECT */}
                                     <div className="col-lg-4 mb-2">
-                                        <label>Select Customer</label>
+                                        <label> Select Customer Name </label>
                                         <select
                                             className="form-select"
                                             value={form.customer_id}
@@ -380,7 +430,7 @@ const handleSubmit = async (e) => {
 
                                     {/* CONTACT NUMBER */}
                                     <div className="col-lg-4 mb-2">
-
+                                        <label>Contact Number  </label>
                                         <input
                                             type="number"
                                             className="form-control"
@@ -392,7 +442,7 @@ const handleSubmit = async (e) => {
 
                                     {/* EMAIL */}
                                     <div className="col-lg-4 mb-2">
-
+                                        <label>Email </label>
                                         <input
                                             type="email"
                                             className="form-control"
@@ -404,7 +454,7 @@ const handleSubmit = async (e) => {
 
                                     {/* PROFESSION */}
                                     <div className="col-lg-4 mb-2">
-
+                                        <label>Profession </label>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -416,7 +466,7 @@ const handleSubmit = async (e) => {
 
                                     {/* NATIVE LANGUAGE */}
                                     <div className="col-lg-4 mb-2">
-                                        <label>Native Language</label>
+                                        <label>Native  Language</label>
                                         <MultiSelect
                                             value={Array.isArray(form.native_language) ? form.native_language : []}
                                             onChange={(e) => setForm({ ...form, native_language: e.value })}
@@ -434,7 +484,7 @@ const handleSubmit = async (e) => {
 
                                     {/* PROJECT NAME */}
                                     <div className="col-lg-4 mb-2">
-
+                                        <label> Project Name  </label>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -446,7 +496,7 @@ const handleSubmit = async (e) => {
 
                                     {/* BLOCK NAME */}
                                     <div className="col-lg-4 mb-2">
-
+                                        <label> Block Name</label>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -458,7 +508,7 @@ const handleSubmit = async (e) => {
 
                                     {/* FLAT NO */}
                                     <div className="col-lg-4 mb-2">
-
+                                        <label>Flat No  </label>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -470,7 +520,7 @@ const handleSubmit = async (e) => {
 
                                     {/* AGREED PRICE */}
                                     <div className="col-lg-4 mb-2">
-
+                                        <label>Agreed Price  </label>
                                         <input
                                             type="number"
                                             className="form-control"
@@ -482,7 +532,7 @@ const handleSubmit = async (e) => {
 
                                     {/* INSTALLMENT NO */}
                                     <div className="col-lg-4 mb-2">
-
+                                        <label>Installment No </label>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -494,7 +544,7 @@ const handleSubmit = async (e) => {
 
                                     {/* AMOUNT RECEIVED */}
                                     <div className="col-lg-4 mb-2">
-
+                                        <label>Amount Received  </label>
                                         <input
                                             type="number"
                                             className="form-control"
@@ -508,7 +558,7 @@ const handleSubmit = async (e) => {
 
                                     {/* PAYMENT MODE */}
                                     <div className="col-lg-4 mb-2">
-                                        {/* <label>Payment Mode</label> */}
+                                        <label>Payment Mode</label>
                                         <select
                                             className="form-select"
                                             value={form.payment_mode}
@@ -525,7 +575,7 @@ const handleSubmit = async (e) => {
 
                                     {/* PAYMENT TYPE */}
                                     <div className="col-lg-4 mb-2">
-                                        {/* <label>Payment Type</label> */}
+                                        <label>Payment Type</label>
                                         <select
                                             className="form-select"
                                             value={form.payment_type}
@@ -542,7 +592,7 @@ const handleSubmit = async (e) => {
 
                                     {/* VERIFIED BY */}
                                     <div className="col-lg-4 mb-2">
-                                        {/* <label>Verified By</label> */}
+                                        <label>Verfied By</label>
                                         <select
                                             className="form-select"
                                             value={form.verified_by}
@@ -557,25 +607,10 @@ const handleSubmit = async (e) => {
                                         </select>
                                     </div>
 
-                                    {/* FUNDING BANK */}
-                                    {/* <div className="col-lg-4 mb-2">
-                                
-                                         <select
-                                            className="form-select"
-                                            value={form.funding_bank}
-                                            onChange={(e) => setForm({ ...form, funding_bank: e.target.value })}
-                                        >
-                                            <option value="">Select Funding Bank</option>
-                                            {fundingBank.map(bank => (
-                                                <option key={bank.id} value={bank.bankName}>
-                                                    {bank.bankName}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div> */}
 
                                     {/* FUNDING BANK */}
                                     <div className="col-lg-4 mb-2">
+                                        <label> Funding Bank</label>
                                         <select
                                             className="form-select"
                                             value={form.funding_bank}
@@ -592,20 +627,13 @@ const handleSubmit = async (e) => {
 
 
                                     {/* DOCUMENTS */}
-                                    <div className="col-lg-4 mb-2">
-                                        <label className="form-label">Documents</label>
-                                        <input
-                                            type="file"
-                                            className="form-control"
-                                            multiple // ✅ Allow multiple file uploads
-                                            onChange={(e) => setForm({ ...form, documents: e.target.files })} // ✅ Store files directly
-                                        />
-                                    </div>
+
+
 
 
                                     {/* FLAT AREA */}
                                     <div className="col-lg-4 mb-2">
-
+                                        <label>Flat Area</label>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -615,6 +643,7 @@ const handleSubmit = async (e) => {
                                         />
                                     </div>
                                     <div className="col-lg-4 mb-2">
+                                        <label> Number of BHK</label>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -623,6 +652,100 @@ const handleSubmit = async (e) => {
                                             placeholder='Number of BHK'
                                         />
                                     </div>
+
+
+                                    <div className="col-lg-12 mb-3">
+                                        <label className="form-label">Documents</label>
+                                        <div className="row align-items-center">
+                                            <div className="col-md-3">
+                                                <Dropdown
+                                                    value={form.documentType}
+                                                    options={[
+                                                        { label: 'Invoice', value: 'Invoice' },
+                                                        { label: 'Delivery Note', value: 'Delivery Note' },
+                                                        { label: 'Packing Slip', value: 'Packing Slip' },
+                                                        { label: 'Purchase Order', value: 'Purchase Order' },
+                                                    ]}
+                                                    onChange={(e) => setForm({ ...form, documentType: e.value })}
+                                                    placeholder="Document Type"
+                                                    className="w-100"
+                                                />
+                                            </div>
+                                            <div className="col-md-9">
+                                                <FileUpload
+                                                    name="documents"
+                                                    customUpload
+                                                    multiple
+                                                    accept="image/*,application/pdf"
+                                                    onSelect={(e) => {
+                                                        const files = e.files || [];
+
+                                                        if (!form.documentType) {
+                                                            toast.error("Please select a document type first.");
+                                                            fileInputRefs.current["documents"]?.clear();
+                                                            return;
+                                                        }
+
+                                                        const newEntries = files.map((file) => ({
+                                                            file,
+                                                            documentType: form.documentType,
+                                                        }));
+
+                                                        setForm((prev) => ({
+                                                            ...prev,
+                                                            documents: [...(prev.documents || []), ...newEntries],
+                                                        }));
+
+                                                        setSelectedFiles((prev) => ({
+                                                            ...prev,
+                                                            documents: [...(prev.documents || []), ...newEntries],
+                                                        }));
+
+                                                        fileInputRefs.current["documents"]?.clear();
+                                                    }}
+                                                    ref={(el) => (fileInputRefs.current["documents"] = el)}
+                                                    showUploadButton={false}
+                                                    showCancelButton={false}
+                                                    chooseLabel="Add File"
+                                                    mode="basic"
+                                                    className="w-100"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {selectedFiles["documents"]?.length > 0 && (
+                                            <ul className="mt-3 list-unstyled">
+                                                {selectedFiles["documents"].map((item, idx) => {
+                                                    const isString = typeof item === 'string';
+                                                    const fileName = isString ? item.split('/').pop() : item.file.name;
+                                                    const fileUrl = isString
+                                                        ? item
+                                                        : URL.createObjectURL(item.file);
+
+                                                    return (
+                                                        <li key={idx} className="d-flex align-items-center justify-content-between mb-2">
+                                                            <div className="d-flex flex-column">
+                                                                <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="fw-semibold">
+                                                                    {fileName}
+                                                                </a>
+                                                                <small className="text-muted">
+                                                                    {isString ? item.documentType || 'Uploaded' : item.documentType}
+                                                                </small>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-sm btn-outline-danger"
+                                                                onClick={() => handleRemoveFile("documents", idx)}
+                                                            >
+                                                                ❌
+                                                            </button>
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>
+                                        )}
+                                    </div>
+
                                 </div>
                             </div>
 

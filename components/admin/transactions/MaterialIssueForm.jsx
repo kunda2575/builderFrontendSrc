@@ -86,44 +86,44 @@ const MaterialIssueForm = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-        try {
-            const formData = { ...form };
+  try {
+    const formData = { ...form };
 
-            if (form.id) {
-                // Update existing material issue
-                await putData(config.updateMaterialIssue(form.id), formData);
-                toast.success('Material Issue updated successfully');
-            } else {
-                // Create new material issue
-                await postData(config.createMaterialIssue, formData);
-                toast.success('Material Issue created successfully');
-            }
+    let response;
+    if (form.id) {
+      response = await putData(config.updateMaterialIssue(form.id), formData);
+    } else {
+      response = await postData(config.createMaterialIssue, formData);
+    }
 
-            // Reset form
-            setForm({
-                material_name: "",
-                unit_type: "",
-                quantity_issued : "",
-                issued_by : "",
-                issued_to : "",
-                issue_date : "",
-                id: null
-            });
+    if (response.success) {
+      toast.success(form.id ? "Material Issue updated successfully" : "Material Issue created successfully");
 
-            // Refetch materials list if needed
-            fetchMaterialsIssues();
+      setForm({
+        material_name: "",
+        unit_type: "",
+        quantity_issued: "",
+        issued_by: "",
+        issued_to: "",
+        issue_date: "",
+        id: null
+      });
 
-        } catch (error) {
-            console.error('Error in form submission:', error);
-            toast.error('Action failed');
-        } finally {
-            setLoading(false);
-        }
-    };
+      fetchMaterialsIssues();
+    } else {
+      toast.error(response.message || "Action failed due to validation errors.");
+    }
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    toast.error('Something went wrong.');
+  } finally {
+    setLoading(false);
+  }
+};
 
     const fetchEditData = async (id) => {
         try {
@@ -167,6 +167,7 @@ const MaterialIssueForm = () => {
 
                                     {/* Material Name */}
                                     <div className="col-lg-12 mb-1">
+                                        <label> Material Name </label>
                                         <select
                                             name='material_name'
                                             value={form.material_name}
@@ -187,6 +188,7 @@ const MaterialIssueForm = () => {
 
                                     {/* Unit Type */}
                                     <div className="col-lg-12 mb-1">
+                                        <label>Unit Type </label>
                                         <select
                                             name='unit_type'
                                             value={form.unit_type}
@@ -206,6 +208,7 @@ const MaterialIssueForm = () => {
                                     </div>
 
                                     <div className="col-lg-12 mb-1">
+                                        <label> Quantity Issued</label>
                                         <input
                                             type="number"
                                             name="quantity_issued"
@@ -218,6 +221,7 @@ const MaterialIssueForm = () => {
                                     </div>
 
                                     <div className="col-lg-12 mb-1">
+                                        <label>Issued By </label>
                                         <input
                                             type="text"
                                             name="issued_by"
@@ -230,6 +234,7 @@ const MaterialIssueForm = () => {
                                     </div>
 
                                     <div className="col-lg-12 mb-1">
+                                        <label> Issued To </label>
                                         <input
                                             type="text"
                                             name="issued_to"

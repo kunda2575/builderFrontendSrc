@@ -7,12 +7,15 @@ import 'primeicons/primeicons.css';                                 // PrimeReac
 import { Link } from 'react-router-dom';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-
+import ImportData from '../resusableComponents/ResuableImportData';
 import { fetchData, deleteData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
-
 import { Paginator } from 'primereact/paginator';
 import moment from 'moment';
+import { CSVLink } from 'react-csv';
+import { Button } from 'primereact/button'; // Optional for styled export button
+import axios from 'axios';
+import ExportLeadsButton from '../reusableExportData/ExportLeadsButton';
 
 
 const LeadsTable = () => {
@@ -52,6 +55,8 @@ const LeadsTable = () => {
     const skipValue = useRef(0);
     const limitValue = useRef(10);
 
+    const [viewData, setViewData] = useState(null);
+
     const onPageChange = (event) => {
         setFirst(event.first);
         setRows(event.rows);
@@ -67,6 +72,35 @@ const LeadsTable = () => {
         getLeadSource();                  //  inital load
         getLeadStageDetails();
         getTeamMembers();
+    }, []);
+
+
+
+    const [leads, setLeads] = useState([]);
+
+    // ✅ Handle Excel Import
+    const handleExcelImport = async (data) => {
+        try {
+            const response = await axios.post(`${API_BASE_URL}/leads/import`, { leads: data });
+            toast.success("Leads imported successfully!");
+            fetchLeads(); // Optionally refresh data
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.error || "Failed to import leads.");
+        }
+    };
+
+    const fetchLeads = async () => {
+        try {
+            const res = await axios.get(`${API_BASE_URL}/leads`);
+            setLeads(res.data.leadDetails);
+        } catch (err) {
+            console.error("Failed to fetch leads:", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchLeads();
     }, []);
 
 
@@ -183,16 +217,41 @@ const LeadsTable = () => {
         }
     };
 
-
-
-
-
     return (
         <div className="container-fluid mt-2">
             <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"></i>  Back </Link>
             <h3 className="text-center mb-3">Leads Management</h3>
-            <div className="text-end">
-                <Link className="text-decoration-none text-primary" to="/leads"> <button className='btn btn-primary btn-sm mb-2'> Add Details  <i className="pi pi-arrow-right"></i> </button>  </Link>
+            <div className="d-flex justify-content-end flex-wrap gap-2 my-2">
+                <Link className="text-decoration-none text-primary" to="/leads">
+                    <button className="btn btn-primary btn-sm">
+                        Add Details <i className="pi pi-arrow-right"></i>
+                    </button>
+                </Link>
+
+                <ImportData
+                    headers={[
+                        "contact_name",
+                        "contact_phone",
+                        "contact_email",
+                        "address",
+                        "customer_profession",
+                        "native_language",
+                        "lead_source",
+                        "lead_stage",
+                        "value_in_inr",
+                        "creation_date",
+                        "expected_date",
+                        "team_member",
+                        "last_interacted_on",
+                        "next_interacted_date",
+                        "remarks",
+                        "reason_for_lost_customers"
+                    ]}
+                    fileName="Leads"
+                    uploadData={handleExcelImport}
+                />
+
+                <ExportLeadsButton data={filteredLeads} />
             </div>
 
             <div className='row mb-3'>
@@ -220,6 +279,66 @@ const LeadsTable = () => {
                                 {loading ? 'Deleting...' : 'Delete'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+
+
+            {viewData && (
+                <div
+                    className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center"
+                    style={{ zIndex: 1050 }} // Bootstrap modal z-index range
+                >
+                    <div
+                        className="bg-white p-4 rounded shadow w-75"
+                        style={{ maxHeight: '90vh', overflowY: 'auto' }}
+                    >
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h5 className="mb-0">Lead Details</h5>
+                            <button className="btn-close" onClick={() => setViewData(null)} />
+                        </div>
+
+                        <table className="table table-sm table-bordered">
+                            <tbody>
+                                {Object.entries(viewData).map(([key, value]) => (
+                                    <tr key={key}>
+                                        <th style={{ textTransform: 'capitalize' }}>
+                                            {key.replace(/_/g, ' ')}
+                                        </th>
+                                        <td>
+                                            {key === 'invoice_attachment' ? (
+                                                value ? (
+                                                    value.split(',').map((file, i) => (
+                                                        <a
+                                                            key={i}
+                                                            href={`http://localhost:2026/uploads/${file}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            download
+                                                            className="btn btn-sm btn-outline-primary me-2 mb-1"
+                                                        >
+                                                            Download PDF {i + 1}
+                                                        </a>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-muted">No Attachment</span>
+                                                )
+                                            ) : ['invoice_date', 'creation_date', 'expected_date', 'last_interacted_on', 'next_interacted_date'].includes(key) && value ? (
+                                                moment(value).format('DD-MM-YYYY')
+                                            ) : Array.isArray(value) ? (
+                                                value.map((v, i) => (
+                                                    <div key={i}>{JSON.stringify(v)}</div>
+                                                ))
+                                            ) : (
+                                                String(value)
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+
+                        </table>
                     </div>
                 </div>
             )}
@@ -445,6 +564,9 @@ const LeadsTable = () => {
                                 setShowDeleteModal(true);
                             }}>
                                 <i className="pi pi-trash"></i>
+                            </button>
+                            <button className="btn btn-outline-primary btn-sm" onClick={() => setViewData(rowData)}>
+                                <i className="pi pi-eye"></i>
                             </button>
                         </div>
                     )}

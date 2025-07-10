@@ -10,7 +10,7 @@ import ReusableTableForm from './ReusableTableForm';
 
 const fields = [
  
-  { name: 'documentsUpload', label: ' Documents Upload', type: 'file', required: true },
+  { name: 'documentsUpload', label: ' Documents Upload', type: 'file', required: true , showInTable: false},
   
  
 ];

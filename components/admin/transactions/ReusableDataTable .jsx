@@ -5,6 +5,7 @@ import { MultiSelect } from 'primereact/multiselect';
 import { Paginator } from 'primereact/paginator';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
+import moment from 'moment';
 
 const ReusableDataTable = ({
     title = '',
@@ -14,7 +15,10 @@ const ReusableDataTable = ({
     columns = [],
     actions,
     addButtonLink,
-    backButtonLink
+    backButtonLink,
+    exportData = [], // ✅ Accept as prop
+    ExportButtonComponent = null // ✅ Optional: allow dynamic export button
+
 }) => {
     const [data, setData] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
@@ -24,6 +28,8 @@ const ReusableDataTable = ({
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+
+    const [viewData, setViewData] = useState(null); // New: Modal view data
 
     const filterStates = useRef({});
 
@@ -43,7 +49,7 @@ const ReusableDataTable = ({
         try {
             await deleteFunction(deleteId);
             toast.success('Deleted successfully');
-            fetchData(); // Refresh after delete
+            fetchData();
         } catch (err) {
             console.error("Error deleting item:", err);
             toast.error('Failed to delete');
@@ -52,31 +58,28 @@ const ReusableDataTable = ({
             setLoading(false);
         }
     };
-const fetchData = async () => {
-    setLoading(true);
-    try {
-        const filterParams = {};
-        filters.forEach(f => {
-            const selected = filterStates.current[f.field];
-            if (selected?.length > 0) {
-                filterParams[f.queryKey] = selected.map(item => item[f.optionValue]).join(',');
-            }
-        });
 
-        const response = await fetchFunction({ ...filterParams, skip: first, limit: rows });
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const filterParams = {};
+            filters.forEach(f => {
+                const selected = filterStates.current[f.field];
+                if (selected?.length > 0) {
+                    filterParams[f.queryKey] = selected.map(item => item[f.optionValue]).join(',');
+                }
+            });
 
-        console.log("✅ API Data:", response); // Debug log
+            const response = await fetchFunction({ ...filterParams, skip: first, limit: rows });
 
-        // 🔧 Important fix
-        setData(response.data || []);
-        setTotalRecords(response.count || 0);
-    } catch (err) {
-        toast.error('Error fetching data');
-    } finally {
-        setLoading(false);
-    }
-};
-
+            setData(response.data || []);
+            setTotalRecords(response.count || 0);
+        } catch (err) {
+            toast.error('Error fetching data');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         fetchData();
@@ -104,21 +107,25 @@ const fetchData = async () => {
 
             <h3 className="text-center">{title}</h3>
 
-            <div className="d-flex justify-content-between my-2">
+            <div className="d-flex justify-content-between my-2 flex-wrap gap-2">
                 <div>Total Records: {totalRecords}</div>
-                <div>
+                <div className="d-flex align-items-center gap-2 flex-wrap">
                     {filters.some(f => filterStates.current[f.field]?.length > 0) && (
                         <button className="btn btn-danger btn-sm" onClick={resetFilters}>
                             Reset Filters
                         </button>
                     )}
+                    {ExportButtonComponent && (
+                        <ExportButtonComponent data={exportData} />
+                    )}
                     {addButtonLink && (
-                        <Link to={addButtonLink} className="btn btn-primary btn-sm ms-2">
+                        <Link to={addButtonLink} className="btn btn-primary btn-sm">
                             Add Details <i className="pi pi-plus" />
                         </Link>
                     )}
                 </div>
             </div>
+
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
@@ -134,6 +141,138 @@ const fetchData = async () => {
                     </div>
                 </div>
             )}
+
+            {/* View Details Modal */}
+
+            {viewData && (
+                <div
+                    className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center"
+                    style={{ zIndex: 1050 }}
+                >
+                    <div className="bg-white p-4 rounded shadow w-75" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h5 className="mb-0">Details</h5>
+                            <button className="btn-close" onClick={() => setViewData(null)}></button>
+                        </div>
+
+                        <table className="table table-sm table-bordered">
+                            <tbody>
+                                {Object.entries(viewData).map(([key, value]) => {
+                                    const isDateKey = ['invoice_date', 'creation_date', 'created_at', 'expected_date'].includes(key);
+                                    let counter = 1;
+
+                                    // 🧹 Sanitize URL utility
+                                    const sanitizeUrl = (url) => {
+                                        if (!url) return '';
+                                        if (url.includes('https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/https://')) {
+                                            return url.substring(url.indexOf('https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/'));
+                                        }
+                                        return url.startsWith('http')
+                                            ? url
+                                            : `https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/${url}`;
+                                    };
+
+                                    return (
+                                        <tr key={key}>
+                                            <th style={{ textTransform: 'capitalize' }}>{key.replace(/_/g, ' ')}</th>
+                                            <td>
+                                                {isDateKey && value ? (
+                                                    moment(value).format('DD-MM-YYYY')
+                                                ) : Array.isArray(value) ? (
+                                                    <div className="d-flex flex-wrap gap-2">
+                                                        {value.map((v, i) => {
+                                                            const rawUrl = typeof v === 'string' ? v : v?.url || '';
+                                                            const fileUrl = sanitizeUrl(rawUrl);
+                                                            const filename = typeof v === 'string'
+                                                                ? rawUrl.split('/').pop()
+                                                                : v?.filename || `File ${i + 1}`;
+
+                                                            const isImage = /\.(jpg|jpeg|png|gif)$/i.test(filename);
+                                                            const isPDF = /\.pdf$/i.test(filename);
+                                                            const downloadLabel = isPDF ? `Download PDF ${counter}` : `Download ${counter}`;
+                                                            counter++;
+
+                                                            return (
+                                                                <div key={i} className="position-relative text-center" style={{ width: '120px' }}>
+                                                                    {isImage ? (
+                                                                        <>
+                                                                            <img
+                                                                                src={fileUrl}
+                                                                                alt={filename}
+                                                                                className="img-thumbnail"
+                                                                                style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                                                                            />
+                                                                            <div
+                                                                                className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-50 text-white"
+                                                                                style={{ opacity: 0, transition: 'opacity 0.3s' }}
+                                                                                onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
+                                                                                onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
+                                                                            >
+                                                                                <a href={fileUrl} target="_blank" download className="btn btn-sm btn-light">
+                                                                                    {downloadLabel}
+                                                                                </a>
+                                                                            </div>
+                                                                        </>
+                                                                    ) : (
+                                                                        <a
+                                                                            href={fileUrl}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="btn btn-sm btn-outline-primary"
+                                                                        >
+                                                                            {downloadLabel}
+                                                                        </a>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : typeof value === 'string' && /\.(jpg|jpeg|png|gif)$/i.test(value) ? (
+                                                    <div className="position-relative text-center" style={{ width: '120px' }}>
+                                                        <img
+                                                            src={sanitizeUrl(value)}
+                                                            alt="Attachment"
+                                                            className="img-thumbnail"
+                                                            style={{ width: '100%', objectFit: 'cover' }}
+                                                        />
+                                                        <div
+                                                            className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-50 text-white"
+                                                            style={{ opacity: 0, transition: 'opacity 0.3s' }}
+                                                            onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
+                                                            onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
+                                                        >
+                                                            <a
+                                                                href={sanitizeUrl(value)} target="_blank"
+                                                                download
+                                                                className="btn btn-sm btn-light"
+                                                            >
+                                                                Download 1
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                ) : typeof value === 'string' && /\.pdf$/i.test(value) ? (
+                                                    <a
+                                                        href={sanitizeUrl(value)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="btn btn-sm btn-outline-primary"
+                                                    >
+                                                        Download PDF 1
+                                                    </a>
+                                                ) : (
+                                                    String(value)
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+
 
             <DataTable
                 value={data}
@@ -165,41 +304,19 @@ const fetchData = async () => {
                         style={{ minWidth: '12rem' }}
                     />
                 ))}
-
-                {columns.map(col => (
-                    <Column
-                        key={col.field}
-                        field={col.field}
-                        header={col.header}
-                        style={col.style || {}}
-                        body={col.field === 'payment_reference' || col.field === 'payment_evidence'
-                            ? (rowData) => {
-                                const files = rowData[col.field]?.split(',').filter(f => f.trim() !== '') || [];
-                                return files.length ? (
-                                    <div className="d-flex flex-column gap-1">
-                                        {files.map((file, i) => (
-                                            <a
-                                                key={i}
-
-                                                href={`http://localhost:2026/uploads/${file}`}
-                                                target='blank'
-                                                download
-                                                className="btn btn-sm btn-outline-primary"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                Download PDF {i + 1}
-                                            </a>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <span className="text-muted">No Attachment</span>
-                                );
-                            }
-                            : col.body || undefined // use custom renderer if provided
-                        }
-
-                    />
-                ))}
+                {columns
+                    .filter(col =>
+                        !['documents', 'payment_reference', 'payment_evidence'].includes(col.field) // ❌ exclude these
+                    )
+                    .map(col => (
+                        <Column
+                            key={col.field}
+                            field={col.field}
+                            header={col.header}
+                            style={col.style || {}}
+                            body={col.body}
+                        />
+                    ))}
 
                 <Column
                     header="Actions"
@@ -209,7 +326,8 @@ const fetchData = async () => {
                                 onDelete: (id) => {
                                     setDeleteId(id);
                                     setShowDeleteModal(true);
-                                }
+                                },
+                                onView: (row) => setViewData(row)
                             })}
                         </div>
                     )}

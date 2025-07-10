@@ -14,7 +14,7 @@ const UpdateData = () => {
     { name: "Customer Master", path: "/customerMaster" },
     { name: "User Master", path: "/userMaster" },
     { name: "Roles Master", path: "/rolesMaster" },
-    { name: "Builder Master", path: "/builderMaster" },
+    // { name: "Builder Master", path: "/builderMaster" },
     { name: "Project Master", path: "/projectMaster" },
     { name: "Block Master", path: "/blockMaster" },
     { name: "Payment Mode Master", path: "/paymentModeMaster" },
@@ -34,7 +34,7 @@ const UpdateData = () => {
     user?.profile === "Admin"
       ? allData.filter(
           (item) =>
-            !["Builder Master", "Fund Purpose", "Fund Source"].includes(item.name)
+            !["Builder Master","Bank Master","Block Master", "User Master","Roles Master","Fund Purpose", "Project Master","Fund Source"].includes(item.name)
         )
       : allData;
 

@@ -3,63 +3,61 @@ import { useNavigate, Link } from 'react-router-dom';
 import ReusableDataTable from './ReusableDataTable ';
 import { fetchData, deleteData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
+import ExportCustomerPaymentsButton from '../reusableExportData/ExportCustomerPaymentsButton'; // ✅ Import the export button
 
 const CustomerPaymentsTable = () => {
     const [paymentType, setPaymentType] = useState([]);
     const [verifiedBy, setVerifiedBy] = useState([]);
-    const [fundingBank, setFundingBank] = useState([])
+    const [fundingBank, setFundingBank] = useState([]);
     const [paymentMode, setPaymentMode] = useState([]);
+    const [exportData, setExportData] = useState([]); // ✅ Track data for export
+
     useEffect(() => {
-        // Remove duplicates based on a key
         const removeDuplicates = (data, key) => {
             return Array.from(new Map(data.map(item => [item[key], item])).values());
         };
 
         fetchData(config.getPaymentTypeCp).then(res => {
-            const unique = removeDuplicates(res.data || [], 'paymentType');
-            setPaymentType(unique);
+            setPaymentType(removeDuplicates(res.data || [], 'paymentType'));
         });
 
         fetchData(config.getVerifiedByCp).then(res => {
-            const unique = removeDuplicates(res.data || [], 'employeeName');
-            setVerifiedBy(unique);
+            setVerifiedBy(removeDuplicates(res.data || [], 'employeeName'));
         });
 
         fetchData(config.getFundingBankCp).then(res => {
-            const unique = removeDuplicates(res.data || [], 'bankName');
-            setFundingBank(unique);
+            setFundingBank(removeDuplicates(res.data || [], 'bankName'));
         });
 
         fetchData(config.getPaymentModePc).then(res => {
-            const unique = removeDuplicates(res.data || [], 'paymentMode');
-            setPaymentMode(unique);
+            setPaymentMode(removeDuplicates(res.data || [], 'paymentMode'));
         });
     }, []);
 
-const fetchProjectCredits = async ({ payment_type, verified_by, funding_bank, payment_mode, skip, limit }) => {
-    const url = `${config.getCustomerPayments}?payment_type=${payment_type || ''}&verified_by=${verified_by || ''}&funding_bank=${funding_bank || ''}&payment_mode=${payment_mode || ''}&skip=${skip}&limit=${limit}`;
-    
-    const res = await fetchData(url);
-
-    return {
-        data: res.data?.data || [],
-        count: res.data?.count || 0,
+    const fetchProjectCredits = async ({ payment_type, verified_by, funding_bank, payment_mode, skip, limit }) => {
+        const url = `${config.getCustomerPayments}?payment_type=${payment_type || ''}&verified_by=${verified_by || ''}&funding_bank=${funding_bank || ''}&payment_mode=${payment_mode || ''}&skip=${skip}&limit=${limit}`;
+        const res = await fetchData(url);
+        const data = res.data?.data || [];
+        setExportData(data); // ✅ Save fetched data for export
+        return {
+            data,
+            count: res.data?.count || 0,
+        };
     };
-};
-
 
     return (
         <div>
-            {/* Action Buttons */}
-
+          
             <ReusableDataTable
                 title="Customer Payments Table"
                 fetchFunction={fetchProjectCredits}
                 deleteFunction={(id) => deleteData(config.deleteCustomerPayment(id))}
+                exportData={exportData}
+               ExportButtonComponent={ExportCustomerPaymentsButton}
                 filters={[
                     {
                         field: 'payment_type',
-                        header: 'payment Type',
+                        header: 'Payment Type',
                         options: paymentType,
                         optionLabel: 'paymentType',
                         optionValue: 'paymentType',
@@ -67,7 +65,7 @@ const fetchProjectCredits = async ({ payment_type, verified_by, funding_bank, pa
                     },
                     {
                         field: 'verified_by',
-                        header: 'verified By',
+                        header: 'Verified By',
                         options: verifiedBy,
                         optionLabel: 'employeeName',
                         optionValue: 'employeeName',
@@ -75,7 +73,7 @@ const fetchProjectCredits = async ({ payment_type, verified_by, funding_bank, pa
                     },
                     {
                         field: 'funding_bank',
-                        header: 'funding Bank',
+                        header: 'Funding Bank',
                         options: fundingBank,
                         optionLabel: 'bankName',
                         optionValue: 'bankName',
@@ -88,8 +86,7 @@ const fetchProjectCredits = async ({ payment_type, verified_by, funding_bank, pa
                         optionLabel: 'paymentMode',
                         optionValue: 'paymentMode',
                         queryKey: 'payment_mode'
-                    },
-
+                    }
                 ]}
                 columns={[
                     { field: 'customer_id', header: 'Customer Id' },
@@ -109,39 +106,49 @@ const fetchProjectCredits = async ({ payment_type, verified_by, funding_bank, pa
                         header: 'Documents',
                         body: (rowData) => {
                             if (rowData.documents && rowData.documents.length > 0) {
-                                // If documents is a comma-separated string, convert to array
                                 const documentsArray = typeof rowData.documents === 'string'
                                     ? rowData.documents.split(',').map(doc => doc.trim())
                                     : rowData.documents;
 
+                                const sanitizeUrl = (url) => {
+                                    const r2Prefix = 'https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/';
+                                    if (!url.startsWith('http')) return r2Prefix + url;
+                                    return url.includes(r2Prefix + r2Prefix)
+                                        ? url.substring(url.indexOf(r2Prefix))
+                                        : url;
+                                };
+
                                 return (
                                     <div className="d-flex flex-wrap gap-1">
-                                        {documentsArray.map((fileUrl, index) => (
-                                            <a
-                                                key={index}
-                                                href={fileUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="btn btn-sm btn-outline-primary"
-                                            >
-                                                Download {index + 1}
-                                            </a>
-                                        ))}
+                                        {documentsArray.map((fileUrl, index) => {
+                                            const safeUrl = sanitizeUrl(fileUrl);
+                                            return (
+                                                <a
+                                                    key={index}
+                                                    href={safeUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="btn btn-sm btn-outline-primary"
+                                                >
+                                                    Download {index + 1}
+                                                </a>
+                                            );
+                                        })}
                                     </div>
                                 );
                             }
                             return <span className="text-muted">N/A</span>;
                         }
                     },
-
                     { field: 'flat_hand_over_date', header: 'Flat Hand Over Date' },
                     { field: 'flat_area', header: 'Flat Area' },
                     { field: 'no_of_bhk', header: 'No Of Bhk' },
-
-
                 ]}
-                actions={(rowData, { onDelete }) => (
+                actions={(rowData, { onDelete, onView }) => (
                     <>
+                        <button className="btn btn-outline-primary btn-sm" onClick={() => onView(rowData)}>
+                            <i className="pi pi-eye" />
+                        </button>
                         <Link to={`/customerPaymentsForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                             <i className="pi pi-pencil" />
                         </Link>

@@ -84,62 +84,62 @@ const Leads = () => {
         }
     };
 
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            // Prepare the form data for submission
-            const formData = { ...form };
+  try {
+    // Prepare form data for submission
+    const formData = { ...form };
 
-            // Convert array values to comma-separated string (e.g., native_language)
-            if (Array.isArray(formData.native_language)) {
-                formData.native_language = formData.native_language.join(',');
-            }
+    // Convert array fields to CSV strings (if any)
+    if (Array.isArray(formData.native_language)) {
+      formData.native_language = formData.native_language.join(',');
+    }
 
-            // Add similar logic for other array fields if necessary
-            // Example:
-            // if (Array.isArray(formData.someOtherField)) {
-            //     formData.someOtherField = formData.someOtherField.join(',');
-            // }
+    let response;
+    if (form.id) {
+      response = await putData(config.updateLead(form.id), formData);
+    } else {
+      response = await postData(config.createLead, formData);
+    }
 
-            if (form.id) {
-                await putData(config.updateLead(form.id), formData);
-                toast.success('Leads updated successfully');
-            } else {
-                await postData(config.createLead, formData);
-                toast.success('Leads created successfully');
-            }
+    if (response.success) {
+      toast.success(form.id ? 'Leads updated successfully' : 'Leads created successfully');
+      
+      setForm({
+        contact_name: '',
+        contact_phone: '',
+        contact_email: '',
+        address: '',
+        customer_profession: '',
+        native_language: [],
+        lead_source: '',
+        lead_stage: '',
+        value_in_inr: '',
+        creation_date: '',
+        expected_date: '',
+        team_member: '',
+        last_interacted_on: '',
+        next_interacted_date: '',
+        remarks: '',
+        reason_for_lost_customers: '',
+        id: null
+      });
 
-            // Reset the form fields after submit
-            setForm({
-                contact_name: '',
-                contact_phone: '',
-                contact_email: '',
-                address: '',
-                customer_profession: '',
-                native_language: [],  // reset to an empty array for MultiSelect
-                lead_source: '',
-                lead_stage: '',
-                value_in_inr: '',
-                creation_date: '',
-                expected_date: '',
-                team_member: '',
-                last_interacted_on: '',
-                next_interacted_date: '',
-                remarks: '',
-                reason_for_lost_customers: '',
-                id: null
-            });
+      fetchLeads();  // reload list or whatever needed
+    } else {
+      // Show backend validation or other errors here
+      toast.error(response.message || 'Action failed');
+    }
+  } catch (error) {
+    // This catches unexpected JS errors or network errors
+    toast.error(error.message || 'Action failed');
+  } finally {
+    setLoading(false);
+  }
+};
 
-            // Fetch leads again after submit
-            fetchLeads();
-        } catch (error) {
-            toast.error('Action failed');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const fetchEditData = async (id) => {
         try {
@@ -195,6 +195,7 @@ const Leads = () => {
                             <div className="card-body">
                                 <div className="row">
                                     <div className="col-lg-3">
+                                        <label>Contact Name </label>
                                         <input
                                             type="text"
                                             placeholder="Contact Name"
@@ -205,7 +206,7 @@ const Leads = () => {
                                         />
                                     </div>
                                     <div className="col-lg-3">
-
+                            <label> Contact Phone</label>
                                         <input
                                             type="number"
                                             placeholder="Contact Phone"
@@ -216,6 +217,7 @@ const Leads = () => {
                                         />
                                     </div>
                                     <div className="col-lg-3">
+                                        <label>Contact Email </label>
                                         <input
                                             type="email"
                                             placeholder="Contact Email"
@@ -227,6 +229,7 @@ const Leads = () => {
                                     </div>
 
                                     <div className="col-lg-3">
+                                        <label> Contact Profession</label>
                                         <input
                                             type="text"
                                             placeholder="Contact Profession"
@@ -237,6 +240,7 @@ const Leads = () => {
                                         />
                                     </div>
                                     <div className="col-lg-3">
+                                        <label>Native Language </label>
                                         <MultiSelect
                                             value={form.native_language}
                                             options={[
@@ -252,6 +256,7 @@ const Leads = () => {
                                     </div>
 
                                     <div className="col-lg-3">
+                                        <label> Lead Source</label>
                                         <select
                                             name='leadSource'
                                             value={form.lead_source}
@@ -274,6 +279,7 @@ const Leads = () => {
                                     </div>
 
                                     <div className="col-lg-3">
+                                        <label> Lead Stage</label>
                                         <select
                                             name='leadStage'
                                             value={form.lead_stage}
@@ -294,6 +300,7 @@ const Leads = () => {
                                         </select>
                                     </div>
                                     <div className="col-lg-3">
+                                        <label> Team Member </label>
                                         <select
                                             name='teamMember'
                                             value={form.team_member}
@@ -316,17 +323,8 @@ const Leads = () => {
                                     </div>
 
                                     <div className="col-lg-3">
-                                        <label className='mb-1'> Creation date</label>
-                                        {/* <input
-                                            type="date"
-                                            placeholder="Creation date"
-
-                                            value={form.creation_date}
-                                            onChange={(e) => setForm({ ...form, creation_date: e.target.value })}
-                                            className="form-control mb-2"
-                                            required
-                                        /> */}
-
+                                        <label> Creation date</label>
+                                       
                                         <Calendar
                                             value={form.creation_date}
                                             onChange={(e) => setForm({ ...form, creation_date: e.value })}
@@ -341,10 +339,7 @@ const Leads = () => {
 
                                     </div>
                                     <div className="col-lg-3">
-                                        <label className='mb-1'>Expected close date </label>
-
-
-
+                                        <label>Expected close date </label>
                                         <Calendar
                                             value={form.expected_date}
                                             onChange={(e) => setForm({ ...form, expected_date: e.value })}
@@ -359,7 +354,7 @@ const Leads = () => {
                                     </div>
 
                                     <div className="col-lg-3">
-                                        <label className='mb-1'> Last interacted on </label>
+                                        <label > Last interacted on </label>
 
                                         <Calendar
                                             value={form.last_interacted_on}
@@ -374,7 +369,7 @@ const Leads = () => {
                                         />
                                     </div>
                                     <div className="col-lg-3">
-                                        <label className='mb-1'>Next interacted date </label>
+                                        <label>Next interacted date </label>
 
                                         <Calendar
                                             value={form.next_interacted_date}
@@ -389,6 +384,7 @@ const Leads = () => {
                                         />
                                     </div>
                                     <div className="col-lg-3">
+                                        <label>Value in INR </label>
                                         <input
                                             type="text"
                                             placeholder="Value in INR"
@@ -399,9 +395,10 @@ const Leads = () => {
                                         />
                                     </div>
                                     <div className="col-lg-3">
+                                        <label>Remarks </label>
                                         <input
                                             type="text"
-                                            placeholder="Remarks "
+                                            placeholder="Remarks"
                                             value={form.remarks}
 
                                             onChange={(e) => setForm({ ...form, remarks: e.target.value })}
@@ -410,6 +407,7 @@ const Leads = () => {
                                         />
                                     </div>
                                     <div className="col-lg-3">
+                                        <label>Reason for lost customers </label>
                                         <input
                                             type="text"
                                             placeholder="Reason for lost customers"
@@ -420,6 +418,7 @@ const Leads = () => {
                                         />
                                     </div>
                                     <div className="col-lg-3">
+                                        <label> Address</label>
                                         <textarea
                                             placeholder='Address'
                                             value={form.address}

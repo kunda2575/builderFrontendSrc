@@ -1,8 +1,8 @@
 
-export const host = "https://buildrviewbackend.onrender.com";    // server api
+// export const host = "https://buildrviewbackend.onrender.com";    // server api
 
 
-// export const host = "http://localhost:2026"        // local api
+export const host = "http://localhost:2026"        // local api
 
 export const config = {
   host: `${host}`,

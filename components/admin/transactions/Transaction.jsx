@@ -14,7 +14,7 @@ const Transaction = () => {
     { name: "Expenditure", path: "/expenditureTable" },
     { name: "Project Debits", path: "/projectDebitTable" },
     { name: "Project Credits", path: "/projectCreditTable" },
-    { name: "Customer Payments", path: "/customerPaymentsTable" },
+    { name: "Customer Pay", path: "/customerPaymentsTable" },
   ];
 
   // ✅ Filter "Project Credits" if admin
@@ -23,9 +23,6 @@ const Transaction = () => {
     : allData;
 
   return (
-
-
-
 
    <div className="container-fluid  no-scroll py-5 px-3">
       <div className="row w-100 d-flex flex-column flex-lg-row">

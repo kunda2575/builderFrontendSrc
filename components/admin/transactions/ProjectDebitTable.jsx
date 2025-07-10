@@ -3,21 +3,22 @@ import { useNavigate, Link } from 'react-router-dom';
 import ReusableDataTable from './ReusableDataTable ';
 import { fetchData, deleteData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
+import ExportProjectDebitsButton from '../reusableExportData/ExportProjectDebitsButton';
 
 const ProjectDebitTable = () => {
     const [vendorName, setVendorName] = useState([]);
     const [payedTo, setPayedTo] = useState([]);
     const [paymentMode, setPaymentMode] = useState([]);
     const [paymentBank, setPaymentBank] = useState([]);
-
+ const [exportData, setExportData] = useState([]);
 
     useEffect(() => {
         fetchData(config.getVendorNamePd).then(res => setVendorName(res.data || []));
         // fetchData(config.getPayToPd).then(res => setPayedTo(res.data || []));
-         fetchData(config.getPayToPd).then(res => {
-        console.log("🚀 PayedTo Response:", res.data);
-        setPayedTo(res.data || []);
-    });
+        fetchData(config.getPayToPd).then(res => {
+            console.log("🚀 PayedTo Response:", res.data);
+            setPayedTo(res.data || []);
+        });
         fetchData(config.getPaymentModePd).then(res => setPaymentMode(res.data || []));
         fetchData(config.getPaymentBankPd).then(res => setPaymentBank(res.data || []));
     }, []);
@@ -26,8 +27,13 @@ const ProjectDebitTable = () => {
         // const params = { vendor_name, payed_to, payment_mode, payment_bank, skip, limit };
         const url = `${config.getProjectDebits}?vendor_name=${vendor_name || ''}&payed_to=${payed_to || ''}&payment_mode=${payment_mode || ''}&payment_bank=${payment_bank || ''}&skip=${skip}&limit=${limit}`;
         const res = await fetchData(url);
+        const data = res.data?.projectDebitDetails || [];
+      if (skip === 0) {
+            setExportData(data); // ✅ Save first page for export
+        }
+
         return {
-            data: res.data?.projectDebitDetails || [],
+            data,
             count: res.data?.projectDebitDetailsCount || 0,
         };
     };
@@ -40,6 +46,8 @@ const ProjectDebitTable = () => {
             <ReusableDataTable
                 title="Project Debit's Table"
                 fetchFunction={fetchProjectDebit}
+                 exportData={exportData}
+            ExportButtonComponent={ExportProjectDebitsButton}
                 deleteFunction={(id) => deleteData(`${config.host}/api/projectDebit/${id}`)}
                 filters={[
                     {
@@ -50,7 +58,7 @@ const ProjectDebitTable = () => {
                         optionValue: 'vendorName',
                         queryKey: 'vendor_name'
                     },
-                    
+
                     {
                         field: 'payed_to',
                         header: 'Payed To',
@@ -84,16 +92,20 @@ const ProjectDebitTable = () => {
 
 
                 ]}
-                actions={(rowData, { onDelete }) => (
+                actions={(rowData, { onDelete, onView }) => (
                     <>
-                        <Link to={`/projectDebitForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
+                        <Link to={`/stockAvailabilityForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                             <i className="pi pi-pencil" />
                         </Link>
                         <button className="btn btn-outline-danger btn-sm" onClick={() => onDelete(rowData.id)}>
                             <i className="pi pi-trash" />
                         </button>
+                        <button className="btn btn-outline-primary btn-sm" onClick={() => onView(rowData)}>
+                            <i className="pi pi-eye" />
+                        </button>
                     </>
                 )}
+
                 addButtonLink="/projectDebitForm"
                 backButtonLink="/transaction"
             />

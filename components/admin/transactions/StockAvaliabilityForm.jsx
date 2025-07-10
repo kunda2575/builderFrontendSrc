@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { fetchData, postData, putData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
-import ReusableForm from './ReusableForm '; // adjust path
 
 const MaterialForm = () => {
     const [searchParams] = useSearchParams();
@@ -66,33 +65,48 @@ const MaterialForm = () => {
         const { name, value } = e.target;
         setForm(prev => ({ ...prev, [name]: value }));
     };
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-
-        try {
-            if (form.id) {
-                await putData(config.updateStock(form.id), form);
+    try {
+        let response;
+        if (form.id) {
+            response = await putData(config.updateStock(form.id), form);
+            if (response?.success) {
                 toast.success('Material updated successfully');
+                setForm({
+                    material_id: "",
+                    material_name: "",
+                    unit_type: "",
+                    available_stock: "",
+                    id: null
+                });
             } else {
-                await postData(config.createStock, form);
-                toast.success('Material created successfully');
+                toast.error(response?.message || 'Update failed');
             }
-
-            setForm({
-                material_id: "",
-                material_name: "",
-                unit_type: "",
-                available_stock: "",
-                id: null
-            });
-        } catch (error) {
-            toast.error('Action failed');
-        } finally {
-            setLoading(false);
+        } else {
+            response = await postData(config.createStock, form);
+            if (response?.success) {
+                toast.success('Material created successfully');
+                setForm({
+                    material_id: "",
+                    material_name: "",
+                    unit_type: "",
+                    available_stock: "",
+                    id: null
+                });
+            } else {
+                toast.error(response?.message || 'Creation failed');
+            }
         }
-    };
+    } catch (error) {
+        console.error('Submission error:', error);
+        toast.error(error.message || 'Action failed');
+    } finally {
+        setLoading(false);
+    }
+};
 
     const formFields = [
         {
@@ -148,14 +162,50 @@ const MaterialForm = () => {
                             <h4 className='text-center'>Materials Form Transactions</h4>
                         </div>
 
-                        <ReusableForm
-                            fields={formFields}
-                            formData={form}
-                            onChange={handleChange}
-                            onSubmit={handleSubmit}
-                            loading={loading}
-                            submitLabel={form.id ? "Update" : "Create"}
-                        />
+                        {/* Merged Reusable Form Here */}
+                        <form onSubmit={handleSubmit}>
+                            <div className="card-body">
+                                <div className="row">
+                                    {formFields.map(field => (
+                                        <div className="col-lg-12 mb-2" key={field.name}>
+                                            <label className="form-label">{field.label}</label>
+                                            {field.type === 'select' ? (
+                                                <select
+                                                    name={field.name}
+                                                    value={form[field.name]}
+                                                    onChange={handleChange}
+                                                    className="form-select"
+                                                    required={field.required}
+                                                >
+                                                    <option value="">{field.placeholder}</option>
+                                                    {field.options.map(option => (
+                                                        <option key={option.value} value={option.value}>
+                                                            {option.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            ) : (
+                                                <input
+                                                    type={field.type}
+                                                    name={field.name}
+                                                    placeholder={field.placeholder}
+                                                    value={form[field.name]}
+                                                    onChange={handleChange}
+                                                    className="form-control"
+                                                    required={field.required}
+                                                />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="card-footer text-center">
+                                <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
+                                    {loading ? 'Processing...' : form.id ? "Update" : "Create"}
+                                </button>
+                            </div>
+                        </form>
+                        {/* End of Merged Form */}
                     </div>
                 </div>
             </div>

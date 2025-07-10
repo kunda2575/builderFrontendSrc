@@ -126,21 +126,26 @@ const ProjectDebitForm = () => {
 
 
 
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-             const formData = { ...form };
-            if (form.id) {
-              await putData(config.updateProjectDebit(form.id), formData);
-  toast.success("Updated successfully!");
-            } else {
-                await postData(`${config.createProjectDebit}`, formData);
-                toast.success("Created successfully!");
-            }
-            setForm({
-              date: null,
+  try {
+    const formData = { ...form };
+    let response;
+
+    if (form.id) {
+      response = await putData(config.updateProjectDebit(form.id), formData);
+    } else {
+      response = await postData(config.createProjectDebit, formData);
+    }
+
+    // Assuming your response has a success flag and message
+    if (response?.success) {
+      toast.success(form.id ? "Updated successfully!" : "Created successfully!");
+
+      setForm({
+        date: null,
         vendor_name: '',
         payed_to: '',
         amount_inr: '',
@@ -150,14 +155,20 @@ const ProjectDebitForm = () => {
         payment_reference: '',
         payment_evidence: '',
         id: null
-            })
-            fetchProjectDebitsForm();
-        } catch (err) {
-            toast.error("Submission failed.");
-        } finally {
-            setLoading(false);
-        }
-    };
+      });
+
+      fetchProjectDebitsForm();
+    } else {
+      // Show backend validation or other errors here
+      toast.error(response?.message || 'Action failed');
+    }
+  } catch (error) {
+    // This catches unexpected JS errors or network errors
+    toast.error(error.message || 'Action failed');
+  } finally {
+    setLoading(false);
+  }
+};
 
    const fetchEditData = async (id) => {
     try {
@@ -223,7 +234,7 @@ const ProjectDebitForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                        <label> </label>
+                                        <label> Vendor Name</label>
                                         <select
                                             name='vendor_name'
                                             value={form.vendor_name}
@@ -241,7 +252,7 @@ const ProjectDebitForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                   
+                                   <label> Pay To </label>
                                         <select
                                             name='payed_to'
                                             value={form.payed_to}
@@ -259,7 +270,7 @@ const ProjectDebitForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                  
+                                  <label>Payment Mode </label>
                                         <select
                                             name='payment_mode'
                                             value={form.payment_mode}
@@ -277,7 +288,7 @@ const ProjectDebitForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                      
+                                      <label>Payment Bank </label>
                                         <select
                                             name='payment_bank'
                                             value={form.payment_bank}
@@ -295,6 +306,7 @@ const ProjectDebitForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
+                                        <label>Invoice Number </label>
                                         <input
                                             type="text"
                                             name="invoice_number"
@@ -306,6 +318,7 @@ const ProjectDebitForm = () => {
                                         />
                                     </div>
                                     <div className="col-lg-6 mb-1">
+                                        <label>Amount INR </label>
                                         <input
                                             type="text"
                                             name="amount_inr"

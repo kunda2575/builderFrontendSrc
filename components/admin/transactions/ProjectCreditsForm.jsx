@@ -121,35 +121,44 @@ const ProjectreditsForm = () => {
         }
     };
 
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  
+  try {
+    const formData = { ...form };
+    let response;
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            const formData = { ...form };
-            if (form.id) {
-                await putData(config.updateProjectCredits(form.id), formData);
-                toast.success("Updated successfully!");
-            } else {
-                await postData(`${config.createProjectCredits}`, formData);
-                toast.success("Created successfully!");
-            }
-            setForm({
-                date: null,
-                source: '',
-                deposit_bank,
-                purpose: '',
-                amount_inr: '',
-                payment_mode: '',
-                id: null
-            })
-            fetchProjectCreditssForm();
-        } catch (err) {
-            toast.error("Submission failed.");
-        } finally {
-            setLoading(false);
-        }
-    };
+    if (form.id) {
+      response = await putData(config.updateProjectCredits(form.id), formData);
+    } else {
+      response = await postData(config.createProjectCredits, formData);
+    }
+
+    // Optionally check response success here if your API returns status info
+    toast.success(form.id ? "Updated successfully!" : "Created successfully!");
+
+    setForm({
+      date: null,
+      source: '',
+      deposit_bank: '',
+      purpose: '',
+      amount_inr: '',
+      payment_mode: '',
+      id: null
+    });
+
+    fetchProjectCreditssForm();
+
+  } catch (err) {
+    // Show backend error message if available
+    const errorMessage = err?.response?.data?.message || err.message || "Submission failed.";
+    toast.error(errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     const fetchEditData = async (id) => {
         try {
@@ -212,7 +221,7 @@ const ProjectreditsForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-                                        <label> </label>
+                                        <label> Source Name</label>
                                         <select
                                             name='source'
                                             value={form.source}
@@ -230,7 +239,7 @@ const ProjectreditsForm = () => {
                                     </div>
 
                                     <div className="col-lg-6 mb-1">
-
+                                            <label> Deposite Bank </label>
                                         <select
                                             name='deposit_bank'
                                             value={form.deposit_bank}
@@ -247,7 +256,7 @@ const ProjectreditsForm = () => {
                                         </select>
                                     </div>
                                     <div className="col-lg-6 mb-1">
-
+                                            <label>Fund Purpose </label>
                                         <select
                                             name='purpose'
                                             value={form.purpose}
@@ -264,7 +273,7 @@ const ProjectreditsForm = () => {
                                         </select>
                                     </div>
                                     <div className="col-lg-6 mb-1">
-
+                                            <label>Payment Mode </label>
                                         <select
                                             name='payment_mode'
                                             value={form.payment_mode}
@@ -283,6 +292,7 @@ const ProjectreditsForm = () => {
 
 
                                     <div className="col-lg-6 mb-1">
+                                        <label> Amount INR</label>
                                         <input
                                             type="text"
                                             name="amount_inr"
