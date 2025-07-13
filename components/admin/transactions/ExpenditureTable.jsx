@@ -1,16 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ReusableDataTable from './ReusableDataTable ';
-import { fetchData, deleteData } from '../../../api/apiHandler';
+import { fetchData, deleteData ,postData} from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import ExportExpendituresButton from '../reusableExportData/ExportExpendituresButton';
-
+import ImportData from '../resusableComponents/ResuableImportData';
+import { toast } from 'react-toastify';
 const ExpenditureTable = () => {
     const [vendorName, setVendorName] = useState([]);
     const [expenseHead, setExpenseHead] = useState([]);
     const [paymentMode, setPaymentMode] = useState([]);
     const [paymentBank, setPaymentBank] = useState([]);
     const [exportData, setExportData] = useState([]); // ✅ Track data for export
+
+ const [expenditures, setExpenditures] = useState([]);
+
+    const handleExcelImport = async (data) => {
+        try {
+            const response = await postData(config.createExpenditureImport, { expenditures: data }); // ✅ send expenditures in body
+            toast.success("Expenditures imported successfully!");
+
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.error || "Failed to import expenditures.");
+        }
+    };
+
+
+    const ExpenditureImportButton = () => (
+        <ImportData
+            headers={[
+                "date",
+                "vendor_name",
+                "expense_head",
+                "amount_inr",
+                "invoice_number",
+                "payment_mode",
+                "payment_bank",
+                "payment_reference",
+                "payment_evidence",
+               
+            ]}
+            fileName="Expenditure"
+            uploadData={handleExcelImport}
+        />
+    );
+
 
     useEffect(() => {
         const removeDuplicates = (data, key) =>
@@ -62,6 +97,7 @@ const ExpenditureTable = () => {
                 title="Expenditure Table"
                 fetchFunction={fetchExpenditure}
                 exportData={exportData}
+                 ImportButtonComponent={ExpenditureImportButton}
                  ExportButtonComponent={ExportExpendituresButton}
                 deleteFunction={async (id) => {
                     try {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { fetchData, postData, putData } from '../../../api/apiHandler1';
 import { config } from '../../../api/config';
@@ -49,52 +49,52 @@ const ExpenditureForm = () => {
 
 
 
-   const sanitizeUrl = (url) => {
-    if (!url) return '';
-    const prefix = 'https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/';
-    if (url.includes(prefix + prefix)) {
-        return url.substring(url.indexOf(prefix));
-    }
-    return url.startsWith('http') ? url : prefix + url;
-};
-
-const normalizeFileField = (field, defaultType) => {
-    if (!field) return [];
-    if (Array.isArray(field)) {
-        return field.map(url => ({ file: sanitizeUrl(url), documentType: defaultType }));
-    }
-    if (typeof field === 'string') {
-        return field
-            .split(',')
-            .filter(url => url)
-            .map(url => ({ file: sanitizeUrl(url.trim()), documentType: defaultType }));
-    }
-    return [];
-};
-
-const fetchEditData = async (id) => {
-    try {
-        const res = await fetchData(config.getExpenditureById(id));
-        const data = res.data.data;
-        if (data) {
-            setForm((prev) => ({
-                ...prev,
-                date: data.date ? new Date(data.date) : "",
-                vendor_name: data.vendor_name || '',
-                expense_head: data.expense_head || '',
-                amount_inr: data.amount_inr || '',
-                invoice_number: data.invoice_number || '',
-                payment_mode: data.payment_mode || '',
-                payment_bank: data.payment_bank || '',
-                payment_reference: normalizeFileField(data.payment_reference, 'Invoice'),
-                payment_evidence: normalizeFileField(data.payment_evidence, 'Receipt'),
-                id: data.id || null
-            }));
+    const sanitizeUrl = (url) => {
+        if (!url) return '';
+        const prefix = 'https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/';
+        if (url.includes(prefix + prefix)) {
+            return url.substring(url.indexOf(prefix));
         }
-    } catch {
-        toast.error("Failed to load expenditure data for editing");
-    }
-};
+        return url.startsWith('http') ? url : prefix + url;
+    };
+
+    const normalizeFileField = (field, defaultType) => {
+        if (!field) return [];
+        if (Array.isArray(field)) {
+            return field.map(url => ({ file: sanitizeUrl(url), documentType: defaultType }));
+        }
+        if (typeof field === 'string') {
+            return field
+                .split(',')
+                .filter(url => url)
+                .map(url => ({ file: sanitizeUrl(url.trim()), documentType: defaultType }));
+        }
+        return [];
+    };
+
+    const fetchEditData = async (id) => {
+        try {
+            const res = await fetchData(config.getExpenditureById(id));
+            const data = res.data.data;
+            if (data) {
+                setForm((prev) => ({
+                    ...prev,
+                    date: data.date ? new Date(data.date) : "",
+                    vendor_name: data.vendor_name || '',
+                    expense_head: data.expense_head || '',
+                    amount_inr: data.amount_inr || '',
+                    invoice_number: data.invoice_number || '',
+                    payment_mode: data.payment_mode || '',
+                    payment_bank: data.payment_bank || '',
+                    payment_reference: normalizeFileField(data.payment_reference, 'Invoice'),
+                    payment_evidence: normalizeFileField(data.payment_evidence, 'Receipt'),
+                    id: data.id || null
+                }));
+            }
+        } catch {
+            toast.error("Failed to load expenditure data for editing");
+        }
+    };
 
 
 
@@ -169,7 +169,7 @@ const fetchEditData = async (id) => {
         }
     };
 
-   const handleFileUpload = (e, field) => {
+   const handleFileUpload = async (e, field) => {
     const files = e.files || [];
     const selectedDocType = form.documentTypeTemp[field];
 
@@ -179,29 +179,59 @@ const fetchEditData = async (id) => {
         return;
     }
 
-    // Prevent duplicates using a map of existing file name + size
+    // Prevent duplicate file names + sizes
     const existingFileMap = new Set(
-        form[field].map(doc => `${doc.file.name}-${doc.file.size}`)
+        form[field].map(doc => `${doc.filename}-${doc.size}`)
     );
 
-    const newDocs = files
-        .filter(file => !existingFileMap.has(`${file.name}-${file.size}`))
-        .map(file => ({
-            file,
-            documentType: selectedDocType
-        }));
+    const newDocs = [];
 
-    if (newDocs.length === 0) {
-        toast.warning("This file is already added.");
+    for (const file of files) {
+        const fileKey = `${file.name}-${file.size}`;
+        if (existingFileMap.has(fileKey)) {
+            continue;
+        }
+
+        try {
+            // 🔐 Get signed upload URL from backend (replace with your actual logic)
+            const res = await fetch(`/api/upload-url?filename=${encodeURIComponent(file.name)}&type=${file.type}`);
+            const { uploadUrl, publicUrl } = await res.json();
+
+            // ⬆️ Upload to R2 directly
+            await fetch(uploadUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': file.type,
+                },
+                body: file
+            });
+
+            // ✅ Add to form state with uploaded public URL
+            newDocs.push({
+                file: publicUrl,
+                filename: file.name,
+                size: file.size,
+                documentType: selectedDocType
+            });
+
+        } catch (err) {
+            console.error("Upload failed:", err);
+            toast.error(`Failed to upload file: ${file.name}`);
+        }
     }
 
-    setForm(prev => ({
-        ...prev,
-        [field]: [...prev[field], ...newDocs]
-    }));
+    if (newDocs.length > 0) {
+        setForm(prev => ({
+            ...prev,
+            [field]: [...prev[field], ...newDocs]
+        }));
+    } else {
+        toast.warning("No new files added.");
+    }
 
     fileInputRefs.current[field]?.clear();
 };
+
 
 
     const renderPaymentReferenceUpload = () => (
@@ -317,39 +347,80 @@ const fetchEditData = async (id) => {
                 </div>
             </div>
 
-            {form.payment_evidence.length > 0 && (
-                <div className="mt-2">
-                    <ul className="list-unstyled border rounded p-2">
-                        {form.payment_evidence.map((doc, index) => {
-                            const isFile = doc.file instanceof File;
-                            const fileName = isFile ? doc.file.name : doc.file.split('/').pop();
-                            const fileUrl = isFile ? URL.createObjectURL(doc.file) : doc.file;
+           {form.payment_evidence.length > 0 && (
+  <div className="mt-2">
+    <ul className="list-unstyled border rounded p-2">
+      {form.payment_evidence.map((doc, index) => {
+        const isFile = doc.file instanceof File;
+        const fileName = isFile ? doc.file.name : doc.file.split('/').pop();
+        const fileUrl = isFile ? URL.createObjectURL(doc.file) : doc.file;
+        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+        const isPDF = /\.pdf$/i.test(fileName);
 
-                            return (
-                                <li key={index} className="d-flex align-items-center justify-content-between py-1 border-bottom">
-                                    <div>
-                                        📄 <a href={fileUrl} target="_blank" rel="noopener noreferrer"><strong>{fileName}</strong></a>
-                                        <span className="text-muted small ms-2">({doc.documentType})</span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        className="btn btn-sm btn-outline-danger"
-                                        onClick={() => {
-                                            setForm((prev) => {
-                                                const updated = [...prev.payment_evidence];
-                                                updated.splice(index, 1);
-                                                return { ...prev, payment_evidence: updated };
-                                            });
-                                        }}
-                                    >
-                                        ❌
-                                    </button>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </div>
-            )}
+        return (
+          <li
+            key={index}
+            className="d-flex flex-column flex-md-row align-items-start justify-content-between py-2 border-bottom gap-2"
+          >
+            <div className="flex-grow-1">
+              <div className="fw-bold">
+                {isImage ? '🖼️' : '📄'} {fileName}
+              </div>
+              <div className="text-muted small mb-2">({doc.documentType})</div>
+
+              {/* Inline Preview */}
+              {isImage && (
+                <img
+                  src={fileUrl}
+                  alt={fileName}
+                  className="img-thumbnail"
+                  style={{ maxWidth: '200px', maxHeight: '150px', objectFit: 'contain' }}
+                />
+              )}
+              {isPDF && (
+                <iframe
+                  src={fileUrl}
+                  title={fileName}
+                  width="100%"
+                  height="200px"
+                  style={{ border: '1px solid #ccc' }}
+                />
+              )}
+            </div>
+
+            <div className="d-flex flex-column gap-2">
+              {/* ✅ Download button (safe for both blob and URL) */}
+              <a
+                href={fileUrl}
+                download={fileName}
+                className="btn btn-sm btn-outline-primary"
+              >
+                Download
+              </a>
+
+              {/* ❌ Remove button */}
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-danger"
+                onClick={() => {
+                  setForm((prev) => {
+                    const updated = [...prev.payment_evidence];
+                    updated.splice(index, 1);
+                    return { ...prev, payment_evidence: updated };
+                  });
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+)}
+
+
         </div>
     );
 

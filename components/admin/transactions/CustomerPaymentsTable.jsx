@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ReusableDataTable from './ReusableDataTable ';
-import { fetchData, deleteData } from '../../../api/apiHandler';
+import { fetchData, deleteData,postData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import ExportCustomerPaymentsButton from '../reusableExportData/ExportCustomerPaymentsButton'; // ✅ Import the export button
-
+import ImportData from '../resusableComponents/ResuableImportData';
+import { toast } from 'react-toastify';
 const CustomerPaymentsTable = () => {
     const [paymentType, setPaymentType] = useState([]);
     const [verifiedBy, setVerifiedBy] = useState([]);
@@ -34,6 +35,50 @@ const CustomerPaymentsTable = () => {
         });
     }, []);
 
+    const [customers, setCustomers] = useState([]);
+
+    const handleExcelImport = async (data) => {
+        try {
+            const response = await postData(config.createCustomerImport, { customers: data }); // ✅ send customers in body
+            toast.success("Customers imported successfully!");
+
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.error || "Failed to import customers.");
+        }
+    };
+
+
+    const CustomerImportButton = () => (
+        <ImportData
+            headers={[
+                "customer_id",
+                "customer_name",
+                "contact_number",
+                "email",
+                "profession",
+                "native_language",
+                "project_name",
+                "block_name",
+                "flat_no",
+                "agreed_price",
+                "installment_no",
+                "amount_received",
+                "payment_mode",
+                "payment_type",
+                "verified_by",
+                "funding_bank",
+                "documents",
+                "flat_hand_over_date",
+                "flat_area",
+                "no_of_bhk"
+            ]}
+            fileName="Customer"
+            uploadData={handleExcelImport}
+        />
+    );
+
+
     const fetchProjectCredits = async ({ payment_type, verified_by, funding_bank, payment_mode, skip, limit }) => {
         const url = `${config.getCustomerPayments}?payment_type=${payment_type || ''}&verified_by=${verified_by || ''}&funding_bank=${funding_bank || ''}&payment_mode=${payment_mode || ''}&skip=${skip}&limit=${limit}`;
         const res = await fetchData(url);
@@ -47,13 +92,14 @@ const CustomerPaymentsTable = () => {
 
     return (
         <div>
-          
+
             <ReusableDataTable
                 title="Customer Payments Table"
                 fetchFunction={fetchProjectCredits}
                 deleteFunction={(id) => deleteData(config.deleteCustomerPayment(id))}
                 exportData={exportData}
-               ExportButtonComponent={ExportCustomerPaymentsButton}
+                ExportButtonComponent={ExportCustomerPaymentsButton}
+              ImportButtonComponent={CustomerImportButton}
                 filters={[
                     {
                         field: 'payment_type',

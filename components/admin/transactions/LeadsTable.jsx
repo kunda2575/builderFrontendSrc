@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import ImportData from '../resusableComponents/ResuableImportData';
-import { fetchData, deleteData } from '../../../api/apiHandler';
+import { fetchData, deleteData,postData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import { Paginator } from 'primereact/paginator';
 import moment from 'moment';
@@ -78,30 +78,30 @@ const LeadsTable = () => {
 
     const [leads, setLeads] = useState([]);
 
-    // ✅ Handle Excel Import
-    const handleExcelImport = async (data) => {
-        try {
-            const response = await axios.post(`${API_BASE_URL}/leads/import`, { leads: data });
-            toast.success("Leads imported successfully!");
-            fetchLeads(); // Optionally refresh data
-        } catch (err) {
-            console.error(err);
-            toast.error(err.response?.data?.error || "Failed to import leads.");
-        }
-    };
+   const handleExcelImport = async (data) => {
+    try {
+        const response = await postData(config.createIMport, { leads: data }); // ✅ send leads in body
+        toast.success("Leads imported successfully!");
+        // getLeadDetails(); 
+    } catch (err) {
+        console.error(err);
+        toast.error(err.response?.data?.error || "Failed to import leads.");
+    }
+};
 
-    const fetchLeads = async () => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/leads`);
-            setLeads(res.data.leadDetails);
-        } catch (err) {
-            console.error("Failed to fetch leads:", err);
-        }
-    };
 
-    useEffect(() => {
-        fetchLeads();
-    }, []);
+    // const fetchLeads = async () => {
+    //     try {
+    //         const res = await axios.get(`${API_BASE_URL}/leads`);
+    //         setLeads(res.data.leadDetails);
+    //     } catch (err) {
+    //         console.error("Failed to fetch leads:", err);
+    //     }
+    // };
+
+    // useEffect(() => {
+    //     fetchLeads();
+    // }, []);
 
 
     const getLeadDetails = async () => {

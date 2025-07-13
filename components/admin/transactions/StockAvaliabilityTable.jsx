@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import ReusableDataTable from './ReusableDataTable ';
-import { fetchData, deleteData } from '../../../api/apiHandler';
+import { fetchData, deleteData,postData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import { Link } from 'react-router-dom';
 import ExportMaterialsButton from '../reusableExportData/ExportMaterialsButton';
-
+import ImportData from '../resusableComponents/ResuableImportData';
+import { toast } from 'react-toastify';
 const StockAvailabilityTable = () => {
     const [materialDetails, setMaterialDetails] = useState([]);
     const [unitTypes, setUnitTypes] = useState([]);
-  const [exportData, setExportData] = useState([]);
+    const [exportData, setExportData] = useState([]);
     useEffect(() => {
         fetchData(config.material).then(res => setMaterialDetails(res.data || []));
         fetchData(config.unitType).then(res => setUnitTypes(res.data || []));
@@ -17,9 +18,9 @@ const StockAvailabilityTable = () => {
     const fetchStocks = async ({ material_id, materialName, unit, skip, limit }) => {
         const url = `${config.getStocks}?material_id=${material_id || ''}&materialName=${materialName || ''}&unit=${unit || ''}&skip=${skip}&limit=${limit}`;
         const res = await fetchData(url);
-        const data= res.data?.materialDetails || [];
+        const data = res.data?.materialDetails || [];
 
-         if (skip === 0) {
+        if (skip === 0) {
             setExportData(data); // ✅ Save first page for export
         }
 
@@ -27,14 +28,43 @@ const StockAvailabilityTable = () => {
             data,
             count: res.data?.materialDetailsCount || 0,
         };
-       
+
     };
+
+
+    const [stockAvailability, setStockAvailabilitys] = useState([]);
+
+    const handleExcelImport = async (data) => {
+        try {
+            const response = await postData(config.createStockAvailabilityImport, { stockAvailability: data }); // ✅ send stockAvailability in body
+            toast.success("StockAvailabilitys imported successfully!");
+
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.error || "Failed to import stockAvailability.");
+        }
+    };
+
+
+    const StockAvailabilityImportButton = () => (
+        <ImportData
+            headers={[
+                "material_id",
+                "material_name",
+                "unit_type",
+                "available_stock",
+            ]}
+            fileName="StockAvailability"
+            uploadData={handleExcelImport}
+        />
+    );
     return (
-     
+
         <ReusableDataTable
             title="Stock Availability Management"
             fetchFunction={fetchStocks}
-              exportData={exportData}
+            exportData={exportData}
+            ImportButtonComponent={StockAvailabilityImportButton}
             ExportButtonComponent={ExportMaterialsButton}
             deleteFunction={(id) => deleteData(config.deleteStock(id))}
             filters={[

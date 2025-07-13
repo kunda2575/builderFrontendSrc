@@ -17,8 +17,8 @@ const ReusableDataTable = ({
     addButtonLink,
     backButtonLink,
     exportData = [], // ✅ Accept as prop
-    ExportButtonComponent = null // ✅ Optional: allow dynamic export button
-
+    ExportButtonComponent = null, // ✅ Optional: allow dynamic export button
+ImportButtonComponent=null
 }) => {
     const [data, setData] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
@@ -107,6 +107,8 @@ const ReusableDataTable = ({
 
             <h3 className="text-center">{title}</h3>
 
+          
+
             <div className="d-flex justify-content-between my-2 flex-wrap gap-2">
                 <div>Total Records: {totalRecords}</div>
                 <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -115,13 +117,17 @@ const ReusableDataTable = ({
                             Reset Filters
                         </button>
                     )}
-                    {ExportButtonComponent && (
-                        <ExportButtonComponent data={exportData} />
-                    )}
+                  
                     {addButtonLink && (
                         <Link to={addButtonLink} className="btn btn-primary btn-sm">
                             Add Details <i className="pi pi-plus" />
                         </Link>
+                    )}
+                      {ImportButtonComponent && (
+                        <ImportButtonComponent />
+                    )}
+                    {ExportButtonComponent && (
+                        <ExportButtonComponent data={exportData} />
                     )}
                 </div>
             </div>

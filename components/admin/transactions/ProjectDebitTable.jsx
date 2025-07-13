@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ReusableDataTable from './ReusableDataTable ';
-import { fetchData, deleteData } from '../../../api/apiHandler';
+import { fetchData, deleteData,postData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import ExportProjectDebitsButton from '../reusableExportData/ExportProjectDebitsButton';
-
+import ImportData from '../resusableComponents/ResuableImportData';
+import { toast } from 'react-toastify';
 const ProjectDebitTable = () => {
     const [vendorName, setVendorName] = useState([]);
     const [payedTo, setPayedTo] = useState([]);
@@ -22,6 +23,38 @@ const ProjectDebitTable = () => {
         fetchData(config.getPaymentModePd).then(res => setPaymentMode(res.data || []));
         fetchData(config.getPaymentBankPd).then(res => setPaymentBank(res.data || []));
     }, []);
+
+
+      const [projectDebits, setProjectDebits] = useState([]);
+    
+        const handleExcelImport = async (data) => {
+            try {
+                const response = await postData(config.createProjectDebitImport, { projectDebits: data }); // ✅ send projectDebits in body
+                toast.success("ProjectDebits imported successfully!");
+    
+            } catch (err) {
+                console.error(err);
+                toast.error(err.response?.data?.error || "Failed to import projectDebits.");
+            }
+        };
+    
+        
+     const ProjectDebitImportButton = () => (
+        <ImportData
+            headers={[
+                "date",
+                "payed_to",
+                "vendor_name",
+                "amount_inr",
+                "invoice_number",
+                "payment_mode",
+                "payment_bank",
+               
+            ]}
+            fileName="ProjectDebit"
+            uploadData={handleExcelImport}
+        />
+    );
 
     const fetchProjectDebit = async ({ vendor_name, payed_to, payment_mode, payment_bank, skip, limit }) => {
         // const params = { vendor_name, payed_to, payment_mode, payment_bank, skip, limit };
@@ -47,6 +80,7 @@ const ProjectDebitTable = () => {
                 title="Project Debit's Table"
                 fetchFunction={fetchProjectDebit}
                  exportData={exportData}
+                   ImportButtonComponent={ProjectDebitImportButton}
             ExportButtonComponent={ExportProjectDebitsButton}
                 deleteFunction={(id) => deleteData(`${config.host}/api/projectDebit/${id}`)}
                 filters={[

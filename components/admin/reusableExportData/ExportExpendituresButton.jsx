@@ -1,3 +1,4 @@
+import { Button } from "primereact/button";
 import React, { useRef } from 'react';
 import { CSVLink } from 'react-csv';
 import { toast } from 'react-toastify';
@@ -30,9 +31,13 @@ const ExportExpendituresButton = ({ data }) => {
 
   return (
     <>
-      <button className="btn btn-success btn-sm me-2" onClick={handleExport}>
-       <i className="pi pi-download me-2"></i>  Export Expenditures
-      </button>
+     
+            <Button
+                   label="Export Data"
+                   icon="pi pi-download"
+                   onClick={handleExport}
+                   className="btn btn-sm btn-primary"
+                 />
       <CSVLink
         data={data}
         headers={headers}

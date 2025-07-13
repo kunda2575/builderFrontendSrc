@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { CSVLink } from "react-csv";
 import axios from "axios";
-
+import { Button } from "primereact/button";
 const ExportCSVButton = () => {
   const [csvData, setCsvData] = useState([]);
   const csvLinkRef = useRef();
@@ -32,9 +32,12 @@ const ExportCSVButton = () => {
 
   return (
     <div>
-   <button onClick={handleExport} className="btn btn-primary">
-  <i className="pi pi-download me-2"></i> Export Users as CSV
-</button>
+      <Button
+        label="Export Data"
+        icon="pi pi-download"
+        onClick={handleExport}
+        className="btn btn-sm btn-primary"
+      />
 
 
 

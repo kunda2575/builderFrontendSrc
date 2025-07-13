@@ -1,5 +1,5 @@
 
-// export const host = "https://buildrviewbackend.onrender.com";    // server api
+// export const host = "https://backend-fz38.onrender.com";    // server api
 
 
 export const host = "http://localhost:2026"        // local api
@@ -23,7 +23,8 @@ export const config = {
   getLeads: `${host}/api/leads`,                           // GET all leads
   getLeadStage: `${host}/api/leads/leadStage`,                // GET lead stages
   getLeadSource: `${host}/api/leads/leadSource`,              // GET lead sources
-  createLead: `${host}/api/leads`,                         // POST (create a new lead)
+  createLead: `${host}/api/leads`,   
+  createIMport :`${host}/api/leads/leads/import`,                   // POST (create a new lead)
   updateLead: (id) => `${host}/api/leads/${id}`,           // PUT (update a lead by ID)
   deleteLead: (id) => `${host}/api/leads/${id}`,           // DELETE (delete a lead by ID)
   getLeadById: (id) => `${host}/api/leads/${id}`,     // GET single stock by ID
@@ -35,6 +36,7 @@ export const config = {
   getStocks: `${host}/api/stocks`,                       // GET all with filters/pagination
   getStockById: (id) => `${host}/api/stocks/${id}`,     // GET single stock by ID
   createStock: `${host}/api/stocks`,                    // POST (create new stock)
+  createStockAvailabilityImport: `${host}/api/stocks/import`,                    // POST (create new stock)
   updateStock: (id) => `${host}/api/stocks/${id}`,      // PUT (update stock by ID)
   deleteStock: (id) => `${host}/api/stocks/${id}`,      // DELETE (delete stock by ID)
 
@@ -49,6 +51,7 @@ export const config = {
   getUnitType: `${host}/api/inventory/unitTypes`,    // GET unit types data
   getVendorName: `${host}/api/inventory/vendor`,        // GET vendor data
   createInventory: `${host}/api/inventory`,               // POST (create new inventory)
+  createInventoryImport: `${host}/api/inventory/import`,               // POST (create new inventory)
   updateInventory: (id) => `${host}/api/inventory/${id}`,  // PUT (update inventory by ID)
   deleteInventory: (id) => `${host}/api/inventory/${id}`,  // DELETE (delete inventory by ID)
 
@@ -57,6 +60,7 @@ export const config = {
   getMaterialIsuues: `${host}/api/materialIssue`,                       // GET all with filters/pagination
   getMaterialIsuuesById: (id) => `${host}/api/materialIssue/${id}`,     // GET single material Issue by ID
   createMaterialIssue: `${host}/api/materialIssue`,                    // POST (create new material Issue)
+  createMaterialImport: `${host}/api/materialIssue/import`,                    // POST (create new material Issue)
   updateMaterialIssue: (id) => `${host}/api/materialIssue/${id}`,      // PUT (update material Issue by ID)
   deleteMaterialIssue: (id) => `${host}/api/materialIssue/${id}`,      // DELETE (delete material Issue by ID)
 
@@ -70,6 +74,7 @@ export const config = {
   // Expenditure CRUD
   getExpenditures:         `${host}/api/expenditure`,            // GET all (with filters/pagination)
   createExpenditure:       `${host}/api/expenditure`,            // POST
+  createExpenditureImport:       `${host}/api/expenditure/import`,            // POST
   updateExpenditure:       (id) => `${host}/api/expenditure/${id}`,// PUT
   deleteExpenditure:       (id) => `${host}/api/expenditure/${id}`,// DELETE
   
@@ -87,6 +92,7 @@ export const config = {
 
   getProjectCredits:         `${host}/api/projectCredit`,            // GET all (with filters/pagination)
   createProjectCredits:       `${host}/api/projectCredit`,            // POST
+  createProjectCreditImport:       `${host}/api/projectCredit/import`,            // POST
   updateProjectCredits:       (id) => `${host}/api/projectCredit/${id}`,// PUT
   deleteProjectCredits:       (id) => `${host}/api/projectCredit/${id}`,// DELETE
   
@@ -95,7 +101,6 @@ export const config = {
   getPurpose:          `${host}/api/projectCredit/purpose`,
   getPaymentModePc:          `${host}/api/projectCredit/paymentMode`,
   getDepositeBankPc:          `${host}/api/projectCredit/depositeBank`,
-  
   getProjectCreditsById:      (id) => `${host}/api/projectCredit/${id}`,// GET single
   
   
@@ -103,6 +108,7 @@ export const config = {
   // ProjectDebit CRUD
   getProjectDebits:         `${host}/api/projectDebit`,            // GET all (with filters/pagination)
   createProjectDebit:       `${host}/api/projectDebit`,            // POST
+  createProjectDebitImport:       `${host}/api/projectDebit/import`,            // POST
   updateProjectDebit:       (id) => `${host}/api/projectDebit/${id}`,// PUT
   deleteProjectDebit:       (id) => `${host}/api/projectDebit/${id}`,// DELETE
   
@@ -118,6 +124,7 @@ export const config = {
   // CustomerPayment CRUD
   getCustomerPayments:         `${host}/api/customerPayments`,            // GET all (with filters/pagination)
   createCustomerPayment:       `${host}/api/customerPayments`,            // POST
+  createCustomerImport:       `${host}/api/customerPayments/import`,            // POST
   updateCustomerPayment:       (id) => `${host}/api/customerPayments/${id}`,// PUT
   deleteCustomerPayment:       (id) => `${host}/api/customerPayments/${id}`,// DELETE
   

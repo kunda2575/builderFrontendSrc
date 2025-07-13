@@ -7,12 +7,12 @@ import 'primeicons/primeicons.css';
 import { Link } from 'react-router-dom';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { fetchData, deleteData } from '../../../api/apiHandler';
+import { fetchData, deleteData, postData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import { Paginator } from 'primereact/paginator';
 import moment from 'moment';
 import ExportInventorysButton from '../reusableExportData/ExportInventoryButton';
-
+import ImportData from '../resusableComponents/ResuableImportData';
 const InventoryEntryTable = () => {
     const [loading, setLoading] = useState(true);
 
@@ -52,6 +52,22 @@ const InventoryEntryTable = () => {
         getInventory();
         getVendorDetails();
     }, []);
+
+
+
+    const [inventorys, setInventorys] = useState([]);
+
+    const handleExcelImport = async (data) => {
+        try {
+            const response = await postData(config.createInventoryImport, { inventorys: data }); // ✅ send inventorys in body
+            toast.success("Inventorys imported successfully!");
+
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.error || "Failed to import inventorys.");
+        }
+    };
+
 
     const onPageChange = (event) => {
         setFirst(event.first);
@@ -108,17 +124,7 @@ const InventoryEntryTable = () => {
             setLoading(false);
         }
 
-        // try {
-        //     const res = await fetchData(
-        //         `${config.getInventories}?material_id=${material_id}&materialName=${materialName}&unit=${unit}&vendorName=${vendorName}&skip=${skipValue.current}&limit=${limitValue.current}`
-        //     );
-        //     setFilteredInventory(res.data?.inventoryDetails || []);
-        //     setTotalRecords(res.data?.inventoryDetailsCount || 0);
-        // } catch (error) {
-        //     toast.error("Error fetching stock data");
-        // } finally {
-        //     setLoading(false);
-        // }
+
     };
 
     const removeDuplicates = (data, key) => {
@@ -245,6 +251,23 @@ const InventoryEntryTable = () => {
                             Add Details <i className="pi pi-arrow-right"></i>
                         </button>
                     </Link>
+                    <ImportData
+                        headers={[
+                            "material_id",
+                            "material_name",
+                            "vendor_name",
+                            "invoice_number",
+                            "invoice_date",
+                            "invoice_cost_incl_gst",
+                            "unit_type",
+                            "quantity_received",
+                            "invoice_attachment",
+                            "entered_by",
+
+                        ]}
+                        fileName="Inventorys"
+                        uploadData={handleExcelImport}
+                    />
 
                     <ExportInventorysButton data={filteredInventory} />
                 </div>

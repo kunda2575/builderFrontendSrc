@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { fetchData, deleteData } from '../../../api/apiHandler';
+import { fetchData, deleteData,postData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import ReusableDataTable from './ReusableDataTable ';
 import ExportMaterialIssueButton from '../reusableExportData/ExportMaterialIssueButton';
-
+import ImportData from '../resusableComponents/ResuableImportData';
 
 const MaterialIssueTable = () => {
     const [materialDetails, setMaterialDetails] = useState([]);
@@ -16,6 +16,35 @@ const MaterialIssueTable = () => {
         fetchData(config.unitType_Issue).then(res => setUnitTypes(res.data || []));
     }, []);
 
+
+    const [materials, setMaterials] = useState([]);
+
+    const handleExcelImport = async (data) => {
+        try {
+            const response = await postData(config.createMaterialImport, { materials: data }); // ✅ send materials in body
+            toast.success("Materials imported successfully!");
+
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.error || "Failed to import materials.");
+        }
+    };
+
+    
+ const MaterialImportButton = () => (
+    <ImportData
+        headers={[
+            "material_name",
+            "unit_type",
+            "quantity_issued",
+            "issued_by",
+            "issued_to",
+            "issue_date",
+        ]}
+        fileName="MaterialIssues"
+        uploadData={handleExcelImport}
+    />
+);
 
 
     const fetchMaterials = async ({ material_name, unit, skip, limit }) => {
@@ -34,12 +63,16 @@ const MaterialIssueTable = () => {
         };
     };
 
+  
+
+
     return (
         <ReusableDataTable
             title="Material Issues "
             fetchFunction={fetchMaterials}
             exportData={exportData}
             ExportButtonComponent={ExportMaterialIssueButton}
+             ImportButtonComponent={MaterialImportButton}
             deleteFunction={(id) => deleteData(config.deleteMaterialIssue(id))}
             filters={[
                 {

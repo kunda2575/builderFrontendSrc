@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ReusableDataTable from './ReusableDataTable ';
-import { fetchData, deleteData } from '../../../api/apiHandler';
+import { fetchData, deleteData,postData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import ExportProjectCreditsButton from '../reusableExportData/ExportProjectCreditsButton';
-
+    import ImportData from '../resusableComponents/ResuableImportData';
+import { toast } from 'react-toastify';
 const ProjectCreditsTable = () => {
     const [source, setSource] = useState([]);
     const [purpose, setPurpose] = useState([]);
@@ -20,6 +21,37 @@ const [exportData, setExportData] = useState([]);
 
     }, []);
 
+
+      const [projectCredits, setProjectCredits] = useState([]);
+
+    const handleExcelImport = async (data) => {
+        try {
+            const response = await postData(config.createProjectCreditImport, { projectCredits: data }); // ✅ send projectCredits in body
+            toast.success("ProjectCredits imported successfully!");
+
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.error || "Failed to import projectCredits.");
+        }
+    };
+
+    
+ const ProjectCreditImportButton = () => (
+    <ImportData
+        headers={[
+            "date",
+            "source",
+            "amount_inr",
+            "payment_mode",
+            "purpose",
+            "deposit_bank",
+        ]}
+        fileName="ProjectCredit"
+        uploadData={handleExcelImport}
+    />
+);
+
+
     const fetchProjectCredits = async ({ source, deposite_bank, purpose, payment_mode, skip, limit }) => {
        
         const url = `${config.getProjectCredits}?source=${source || ''}&purpose=${purpose || ''}&payment_mode=${payment_mode || ''}&deposite_bank=${deposite_bank || ''}&skip=${skip}&limit=${limit}`;
@@ -29,6 +61,7 @@ const [exportData, setExportData] = useState([]);
         setExportData(data); // ✅ Save first page for export
         }
         return {
+            data,
             count: res.data?.projectCreditsDetailsCount || 0,
         };
     };
@@ -42,6 +75,7 @@ const [exportData, setExportData] = useState([]);
                 title="Project Credits Table"
                 fetchFunction={fetchProjectCredits}
                  exportData={exportData}
+                   ImportButtonComponent={ProjectCreditImportButton}
             ExportButtonComponent={ExportProjectCreditsButton}
                 deleteFunction={(id) => deleteData(config.deleteProjectCredits(id))}
                 filters={[
