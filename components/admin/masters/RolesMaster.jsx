@@ -4,7 +4,8 @@ import {
   getRoles,
   createRole,
   updateRole,
-  deleteRole
+  deleteRole,
+  importRole
 } from '../../../api/updateApis/rolesMasterApi'; // Your API functions
 
 const fields = [
@@ -20,11 +21,13 @@ const RoleMaster = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Role"
+          backend="roles"
         fields={fields}
         fetchData={getRoles}
         createData={createRole}
         updateData={updateRole}
         deleteData={deleteRole}
+         importData={importRole}
       />
     </div>
   );

@@ -8,7 +8,7 @@ import { FileUpload } from 'primereact/fileupload';
 import { Dropdown } from 'primereact/dropdown';
 import 'react-toastify/dist/ReactToastify.css';
 
-const DOCUMENT_TYPE_OPTIONS = ["Invoice", "Receipt", "GST", "PAN", "Other"];
+
 
 const ExpenditureForm = () => {
     const [searchParams] = useSearchParams();
@@ -33,10 +33,15 @@ const ExpenditureForm = () => {
         payment_reference: [],
         payment_evidence: [],
         id: null,
-        documentTypeTemp: {
+        documentType: {
             payment_reference: '',
             payment_evidence: ''
         }
+    });
+
+    const [selectedFiles, setSelectedFiles] = useState({
+        payment_reference: [],
+        payment_evidence: [],
     });
 
     useEffect(() => {
@@ -108,15 +113,22 @@ const ExpenditureForm = () => {
         });
     };
 
-    const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+
+        // Safety check to ensure payment_reference and payment_evidence are defined
+        if (!form.payment_reference || !form.payment_evidence) {
+            toast.error('Please upload all required documents');
+            setLoading(false);
+            return;
+        }
 
         const payment_reference = uniqueFiles(form.payment_reference);
         const payment_evidence = uniqueFiles(form.payment_evidence);
 
-        if ((payment_reference.length && !form.documentTypeTemp.payment_reference) ||
-            (payment_evidence.length && !form.documentTypeTemp.payment_evidence)) {
+        if ((payment_reference.length && !form.documentType.payment_reference) ||
+            (payment_evidence.length && !form.documentType.payment_evidence)) {
             toast.error("Please select a document type for each uploaded file.");
             setLoading(false);
             return;
@@ -154,7 +166,7 @@ const ExpenditureForm = () => {
                     payment_reference: [],
                     payment_evidence: [],
                     id: null,
-                    documentTypeTemp: {
+                    documentType: {
                         payment_reference: '',
                         payment_evidence: ''
                     }
@@ -169,68 +181,6 @@ const ExpenditureForm = () => {
         }
     };
 
-   const handleFileUpload = async (e, field) => {
-    const files = e.files || [];
-    const selectedDocType = form.documentTypeTemp[field];
-
-    if (!selectedDocType) {
-        toast.error("Please select a document type first.");
-        fileInputRefs.current[field]?.clear();
-        return;
-    }
-
-    // Prevent duplicate file names + sizes
-    const existingFileMap = new Set(
-        form[field].map(doc => `${doc.filename}-${doc.size}`)
-    );
-
-    const newDocs = [];
-
-    for (const file of files) {
-        const fileKey = `${file.name}-${file.size}`;
-        if (existingFileMap.has(fileKey)) {
-            continue;
-        }
-
-        try {
-            // 🔐 Get signed upload URL from backend (replace with your actual logic)
-            const res = await fetch(`/api/upload-url?filename=${encodeURIComponent(file.name)}&type=${file.type}`);
-            const { uploadUrl, publicUrl } = await res.json();
-
-            // ⬆️ Upload to R2 directly
-            await fetch(uploadUrl, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': file.type,
-                },
-                body: file
-            });
-
-            // ✅ Add to form state with uploaded public URL
-            newDocs.push({
-                file: publicUrl,
-                filename: file.name,
-                size: file.size,
-                documentType: selectedDocType
-            });
-
-        } catch (err) {
-            console.error("Upload failed:", err);
-            toast.error(`Failed to upload file: ${file.name}`);
-        }
-    }
-
-    if (newDocs.length > 0) {
-        setForm(prev => ({
-            ...prev,
-            [field]: [...prev[field], ...newDocs]
-        }));
-    } else {
-        toast.warning("No new files added.");
-    }
-
-    fileInputRefs.current[field]?.clear();
-};
 
 
 
@@ -240,18 +190,21 @@ const ExpenditureForm = () => {
             <div className="row align-items-center">
                 <div className="col-md-5">
                     <Dropdown
-                        value={form.documentTypeTemp.payment_reference}
-                        options={DOCUMENT_TYPE_OPTIONS.map(type => ({ label: type, value: type }))}
-                        onChange={(e) =>
-                            setForm((prev) => ({
-                                ...prev,
-                                documentTypeTemp: {
-                                    ...prev.documentTypeTemp,
-                                    payment_reference: e.value,
-                                }
-                            }))
-                        }
-                        placeholder="Select Document Type"
+                        value={form.documentType.payment_reference} // Bind to payment_reference
+                        options={[
+                            { label: 'Invoice', value: 'Invoice' },
+                            { label: 'Delivery Note', value: 'Delivery Note' },
+                            { label: 'Packing Slip', value: 'Packing Slip' },
+                            { label: 'Purchase Order', value: 'Purchase Order' },
+                        ]}
+                        onChange={(e) => setForm({
+                            ...form,
+                            documentType: {
+                                ...form.documentType,
+                                payment_reference: e.value // Update payment_reference documentType
+                            }
+                        })}
+                        placeholder="Document Type"
                         className="w-100"
                     />
                 </div>
@@ -261,8 +214,39 @@ const ExpenditureForm = () => {
                         customUpload
                         multiple
                         accept="image/*,application/pdf"
-                        disabled={!form.documentTypeTemp.payment_reference}
-                        onSelect={(e) => handleFileUpload(e, 'payment_reference')}
+                        onSelect={(e) => {
+                            const files = e.files || [];
+
+                            // Check if document type is selected
+                            if (!form.documentType.payment_reference) {
+                                toast.error("Please select a document type first.");
+                                fileInputRefs.current["payment_reference"]?.clear(); // Reset the file input
+                                return;
+                            }
+
+                            const newEntries = files.map((file) => ({
+                                file,
+                                documentType: form.documentType.payment_reference, // Use correct document type
+                            }));
+
+                            setForm((prev) => ({
+                                ...prev,
+                                payment_reference: [
+                                    ...(prev.payment_reference || []),
+                                    ...newEntries
+                                ],
+                            }));
+
+                            setSelectedFiles((prev) => ({
+                                ...prev,
+                                payment_reference: [
+                                    ...(prev.payment_reference || []),
+                                    ...newEntries
+                                ],
+                            }));
+
+                            fileInputRefs.current["payment_reference"]?.clear();
+                        }}
                         ref={(el) => (fileInputRefs.current['payment_reference'] = el)}
                         showUploadButton={false}
                         showCancelButton={false}
@@ -284,7 +268,9 @@ const ExpenditureForm = () => {
                             return (
                                 <li key={index} className="d-flex align-items-center justify-content-between py-1 border-bottom">
                                     <div>
-                                        📄 <a href={fileUrl} target="_blank" rel="noopener noreferrer"><strong>{fileName}</strong></a>
+                                        📄 <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                                            <strong>{fileName}</strong>
+                                        </a>
                                         <span className="text-muted small ms-2">({doc.documentType})</span>
                                     </div>
                                     <button
@@ -292,6 +278,12 @@ const ExpenditureForm = () => {
                                         className="btn btn-sm btn-outline-danger"
                                         onClick={() => {
                                             setForm((prev) => {
+                                                const updated = [...prev.payment_reference];
+                                                updated.splice(index, 1);
+                                                return { ...prev, payment_reference: updated };
+                                            });
+
+                                            setSelectedFiles((prev) => {
                                                 const updated = [...prev.payment_reference];
                                                 updated.splice(index, 1);
                                                 return { ...prev, payment_reference: updated };
@@ -314,18 +306,21 @@ const ExpenditureForm = () => {
             <div className="row align-items-center">
                 <div className="col-md-5">
                     <Dropdown
-                        value={form.documentTypeTemp.payment_evidence}
-                        options={DOCUMENT_TYPE_OPTIONS.map(type => ({ label: type, value: type }))}
-                        onChange={(e) =>
-                            setForm((prev) => ({
-                                ...prev,
-                                documentTypeTemp: {
-                                    ...prev.documentTypeTemp,
-                                    payment_evidence: e.value,
-                                }
-                            }))
-                        }
-                        placeholder="Select Document Type"
+                        value={form.documentType.payment_evidence} // Bind to payment_evidence
+                        options={[
+                            { label: 'Invoice', value: 'Invoice' },
+                            { label: 'Delivery Note', value: 'Delivery Note' },
+                            { label: 'Packing Slip', value: 'Packing Slip' },
+                            { label: 'Purchase Order', value: 'Purchase Order' },
+                        ]}
+                        onChange={(e) => setForm({
+                            ...form,
+                            documentType: {
+                                ...form.documentType,
+                                payment_evidence: e.value // Update payment_evidence documentType
+                            }
+                        })}
+                        placeholder="Document Type"
                         className="w-100"
                     />
                 </div>
@@ -335,8 +330,39 @@ const ExpenditureForm = () => {
                         customUpload
                         multiple
                         accept="image/*,application/pdf"
-                        disabled={!form.documentTypeTemp.payment_evidence}
-                        onSelect={(e) => handleFileUpload(e, 'payment_evidence')}
+                        onSelect={(e) => {
+                            const files = e.files || [];
+
+                            // Check if document type is selected
+                            if (!form.documentType.payment_evidence) {
+                                toast.error("Please select a document type first.");
+                                fileInputRefs.current["payment_evidence"]?.clear(); // Reset the file input
+                                return;
+                            }
+
+                            const newEntries = files.map((file) => ({
+                                file,
+                                documentType: form.documentType.payment_evidence, // Use correct document type
+                            }));
+
+                            setForm((prev) => ({
+                                ...prev,
+                                payment_evidence: [
+                                    ...(prev.payment_evidence || []),
+                                    ...newEntries
+                                ],
+                            }));
+
+                            setSelectedFiles((prev) => ({
+                                ...prev,
+                                payment_evidence: [
+                                    ...(prev.payment_evidence || []),
+                                    ...newEntries
+                                ],
+                            }));
+
+                            fileInputRefs.current["payment_evidence"]?.clear();
+                        }}
                         ref={(el) => (fileInputRefs.current['payment_evidence'] = el)}
                         showUploadButton={false}
                         showCancelButton={false}
@@ -347,82 +373,50 @@ const ExpenditureForm = () => {
                 </div>
             </div>
 
-           {form.payment_evidence.length > 0 && (
-  <div className="mt-2">
-    <ul className="list-unstyled border rounded p-2">
-      {form.payment_evidence.map((doc, index) => {
-        const isFile = doc.file instanceof File;
-        const fileName = isFile ? doc.file.name : doc.file.split('/').pop();
-        const fileUrl = isFile ? URL.createObjectURL(doc.file) : doc.file;
-        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
-        const isPDF = /\.pdf$/i.test(fileName);
+            {form.payment_evidence.length > 0 && (
+                <div className="mt-2">
+                    <ul className="list-unstyled border rounded p-2">
+                        {form.payment_evidence.map((doc, index) => {
+                            const isFile = doc.file instanceof File;
+                            const fileName = isFile ? doc.file.name : doc.file.split('/').pop();
+                            const fileUrl = isFile ? URL.createObjectURL(doc.file) : doc.file;
 
-        return (
-          <li
-            key={index}
-            className="d-flex flex-column flex-md-row align-items-start justify-content-between py-2 border-bottom gap-2"
-          >
-            <div className="flex-grow-1">
-              <div className="fw-bold">
-                {isImage ? '🖼️' : '📄'} {fileName}
-              </div>
-              <div className="text-muted small mb-2">({doc.documentType})</div>
+                            return (
+                                <li key={index} className="d-flex align-items-center justify-content-between py-1 border-bottom">
+                                    <div>
+                                        📄 <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                                            <strong>{fileName}</strong>
+                                        </a>
+                                        <span className="text-muted small ms-2">({doc.documentType})</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-outline-danger"
+                                        onClick={() => {
+                                            setForm((prev) => {
+                                                const updated = [...prev.payment_evidence];
+                                                updated.splice(index, 1);
+                                                return { ...prev, payment_evidence: updated };
+                                            });
 
-              {/* Inline Preview */}
-              {isImage && (
-                <img
-                  src={fileUrl}
-                  alt={fileName}
-                  className="img-thumbnail"
-                  style={{ maxWidth: '200px', maxHeight: '150px', objectFit: 'contain' }}
-                />
-              )}
-              {isPDF && (
-                <iframe
-                  src={fileUrl}
-                  title={fileName}
-                  width="100%"
-                  height="200px"
-                  style={{ border: '1px solid #ccc' }}
-                />
-              )}
-            </div>
-
-            <div className="d-flex flex-column gap-2">
-              {/* ✅ Download button (safe for both blob and URL) */}
-              <a
-                href={fileUrl}
-                download={fileName}
-                className="btn btn-sm btn-outline-primary"
-              >
-                Download
-              </a>
-
-              {/* ❌ Remove button */}
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-danger"
-                onClick={() => {
-                  setForm((prev) => {
-                    const updated = [...prev.payment_evidence];
-                    updated.splice(index, 1);
-                    return { ...prev, payment_evidence: updated };
-                  });
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
-  </div>
-)}
-
-
+                                            setSelectedFiles((prev) => {
+                                                const updated = [...prev.payment_evidence];
+                                                updated.splice(index, 1);
+                                                return { ...prev, payment_evidence: updated };
+                                            });
+                                        }}
+                                    >
+                                        ❌
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+            )}
         </div>
     );
+
 
 
 

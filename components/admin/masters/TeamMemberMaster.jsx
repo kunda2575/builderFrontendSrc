@@ -4,7 +4,8 @@ import {
   getTeamMembers,
   createTeamMember,
   updateTeamMember,
-  deleteTeamMember
+  deleteTeamMember,
+  importTeamMember
 } from '../../../api/updateApis/teamMemberApi'; // Your API functions
 
 const fields = [
@@ -26,11 +27,13 @@ const TeamMemberMaster = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Team Member"
+          backend="teamMembers"
         fields={fields}
         fetchData={getTeamMembers}
         createData={createTeamMember}
         updateData={updateTeamMember}
         deleteData={deleteTeamMember}
+         importData={importTeamMember}
       />
     </div>
   );

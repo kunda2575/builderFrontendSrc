@@ -4,7 +4,8 @@ import {
   getLostReasons,
   createLostReason,
   updateLostReason,
-  deleteLostReason
+  deleteLostReason,
+  importLostReason
 } from '../../../api/updateApis/lostReasonsApi'; // Your API functions
 
 const fields = [
@@ -20,11 +21,13 @@ const LostReason = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Lost Reason"
+         backend="reasons"
         fields={fields}
         fetchData={getLostReasons}
         createData={createLostReason}
         updateData={updateLostReason}
         deleteData={deleteLostReason}
+         importData={importLostReason}
       />
     </div>
   );

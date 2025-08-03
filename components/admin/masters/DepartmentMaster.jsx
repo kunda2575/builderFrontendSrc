@@ -4,7 +4,8 @@ import {
   getDepartmentsDetails,
   createDepartmentDetails,
   updateDepartmentDetails,
-  deleteDepartmentDetails
+  deleteDepartmentDetails,
+  importDepartmentDetails
 } from '../../../api/updateApis/departmentApi'; // Your API functions
 
 const fields = [
@@ -20,11 +21,13 @@ const DepartmentMaster = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Department"
+         backend="department"
         fields={fields}
         fetchData={getDepartmentsDetails}
         createData={createDepartmentDetails}
         updateData={updateDepartmentDetails}
         deleteData={deleteDepartmentDetails}
+         importData={importDepartmentDetails}
       />
     </div>
   );

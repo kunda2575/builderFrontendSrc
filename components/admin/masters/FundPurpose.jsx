@@ -4,7 +4,8 @@ import {
   getFundPurposes,
   createFundPurpose,
   updateFundPurpose,
-  deleteFundPurpose
+  deleteFundPurpose,
+  importFundPurpose
 } from '../../../api/updateApis/fundPurposeApi'; // Your API functions
 
 const fields = [
@@ -19,11 +20,13 @@ const FundPurpose = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Fund Pourpose"
+           backend="purposes"
         fields={fields}
         fetchData={getFundPurposes}
         createData={createFundPurpose}
         updateData={updateFundPurpose}
         deleteData={deleteFundPurpose}
+         importData={importFundPurpose}
       />
     </div>
   );

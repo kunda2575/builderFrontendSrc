@@ -4,7 +4,8 @@ import {
   createCustomerDetails,
   updateCustomerDetails,
   deleteCustomerDetails,
-  getLeadDetails
+  getLeadDetails,
+  importCustomerDetails
 } from '../../../api/updateApis/customerApi';
 
 import ReusableTableForm from './ReusableTableForm';
@@ -54,7 +55,7 @@ const CustomerMaster = () => {
         setForm(prev => ({
           ...prev,
           customerName: selectedValue,
-      
+
           customerPhone: selectedObj?.phone || '',
           customerEmail: selectedObj?.email || '',
           customerAddress: selectedObj?.address || '',
@@ -91,31 +92,31 @@ const CustomerMaster = () => {
       required: true
     },
 
-// {
-//   name: 'documentType',
-//   label: 'Document Type',
-//   type: 'select',
-//   required: true,
-//   options: [
-//     { label: 'Aadhaar', value: 'aadhaar' },
-//     { label: 'PAN', value: 'pan' },
-//     { label: 'Voter ID', value: 'voterId' }
-//   ],
-//   onChange: (value, _, setForm) => {
-//     setForm(prev => ({
-//       ...prev,
-//       documentType: value
-//     }));
-//   }
-// },
+    // {
+    //   name: 'documentType',
+    //   label: 'Document Type',
+    //   type: 'select',
+    //   required: true,
+    //   options: [
+    //     { label: 'Aadhaar', value: 'aadhaar' },
+    //     { label: 'PAN', value: 'pan' },
+    //     { label: 'Voter ID', value: 'voterId' }
+    //   ],
+    //   onChange: (value, _, setForm) => {
+    //     setForm(prev => ({
+    //       ...prev,
+    //       documentType: value
+    //     }));
+    //   }
+    // },
 
-{
-  name: 'documents',
-  label: 'Upload Document',
-  type: 'file',
-  required: false,
-  showInTable: false
-}
+    {
+      name: 'documents',
+      label: 'Upload Document',
+      type: 'file',
+      required: false,
+      showInTable: false
+    }
 
   ];
 
@@ -123,15 +124,17 @@ const CustomerMaster = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Customer"
+        backend="customer"
         fields={fields}
         fetchData={getCustomerDetails}
         createData={createCustomerDetails}
         updateData={updateCustomerDetails}
         deleteData={deleteCustomerDetails}
+        importData={importCustomerDetails}
         fcolumnClass="col-lg-12 mb-3"
         tcolumnClass="col-lg-12 mb-3"
         ccolumnClass="col-lg-4 mb-3"
-             dcolumnClass="col-lg-12 mb-3"
+        dcolumnClass="col-lg-12 mb-3"
       />
     </div>
   );

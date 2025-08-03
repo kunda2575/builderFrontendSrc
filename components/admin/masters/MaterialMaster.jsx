@@ -4,7 +4,8 @@ import {
   getMaterialMasters,
   createMaterialMaster,
   updateMaterialMaster,
-  deleteMaterialMaster
+  deleteMaterialMaster,
+  importMaterialMaster
 } from '../../../api/updateApis/materialMasterApi'; // Your API functions
 
 const fields = [
@@ -21,11 +22,13 @@ const MaterialMaster = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Material Name"
+         backend="materials"
         fields={fields}
         fetchData={getMaterialMasters}
         createData={createMaterialMaster}
         updateData={updateMaterialMaster}
         deleteData={deleteMaterialMaster}
+         importData={importMaterialMaster}
       />
     </div>
   );

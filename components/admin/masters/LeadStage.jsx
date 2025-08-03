@@ -4,7 +4,8 @@ import {
   getLeadStages,
   createLeadStage,
   updateLeadStage,
-  deleteLeadStage
+  deleteLeadStage,
+  importLeadStage
 } from '../../../api/updateApis/leadStageApi'; // Your API functions
 
 const fields = [
@@ -20,11 +21,13 @@ const LeadStage = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Lead Stage"
+          backend="stages"
         fields={fields}
         fetchData={getLeadStages}
         createData={createLeadStage}
         updateData={updateLeadStage}
         deleteData={deleteLeadStage}
+         importData={importLeadStage}
       />
     </div>
   );

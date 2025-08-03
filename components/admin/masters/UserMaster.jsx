@@ -1,62 +1,63 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReusableTableForm from './ReusableTableForm';
 import {
   getUsers,
-  createUser,
   updateUser,
   deleteUser,
-  getProjectDetails
+  importUser
 } from '../../../api/updateApis/userMasterApi';
 
-const UserMaster = () => {
-  const [projectOptions, setProjectOptions] = useState([]);
+import Signup from '../../auth/signup/signup';
 
-  const fetchProjects = async () => {
+const UserMaster = () => {
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userData, setUserData] = useState([]);
+
+  // ✅ Refresh users from API
+  const fetchUserData = async () => {
     try {
-      const res = await getProjectDetails();  // <-- Call the function here
-      if (res?.data && Array.isArray(res.data)) {
-        const formatted = res.data.map(project => ({
-          label: project.projectName,  // Make sure this matches your API response
-          value: project.projectName
-        }));
-        setProjectOptions(formatted);
-      } else {
-        console.log('No projects found or invalid data format.');
-        setProjectOptions([]);
-      }
-    } catch (error) {
-      console.error('Error fetching projects:', error);
+      const res = await getUsers();
+      setUserData(res.data);
+    } catch (err) {
+      console.error("Error fetching users", err);
     }
   };
 
   useEffect(() => {
-    fetchProjects();
+    fetchUserData(); // Load data on mount
   }, []);
 
   const fields = [
-    { name: 'userName', label: 'User Name', type: 'text', required: true },
-    { name: 'password', label: 'Password', type: 'password', required: true },
-    { name: 'role', label: 'Role', type: 'text', required: true },
-    { name: 'phone', label: 'Phone', type: 'number', required: true },
-    { name: 'email', label: 'Email', type: 'email', required: true },
-    {
-      name: 'projectName',
-      label: 'Project',
-      type: 'select',
-      required: true,
-      options: projectOptions
-    }
+    { name: 'fullname', label: 'Full Name' },
+    { name: 'username', label: 'Username' },
+    { name: 'mobilenumber', label: 'Mobile Number' },
+    { name: 'email', label: 'Email' },
+    { name: 'password', label: 'Password' },
+    { name: 'profile', label: 'Profile Image' },
+    { name: 'projectName', label: 'Project Name' }
   ];
 
   return (
     <div className="container-fluid">
+      <Signup
+        userToEdit={selectedUser}
+        setUserToEdit={setSelectedUser}
+        onCancelEdit={() => setSelectedUser(null)}
+        updateData={fetchUserData} // ✅ passed here
+      />
+
       <ReusableTableForm
-        title="User"
+        title="Users"
+        backend="users"
         fields={fields}
         fetchData={getUsers}
-        createData={createUser}
         updateData={updateUser}
         deleteData={deleteUser}
+        createData={() => {}}
+        importData={importUser}
+        onEditUser={setSelectedUser}
+        tableData={userData}         // ✅ pass the current data
+        tcolumnClass=" mb-2 col-lg-12 "
       />
     </div>
   );

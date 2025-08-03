@@ -4,7 +4,8 @@ import {
     getBankDetails,
     createBankDetails,
     updateBankDetails,
-    deleteBankDetails
+    deleteBankDetails,
+    importBankDetails,
 } from '../../../api/updateApis/banksApi'; // Your API functions
 
 const fields = [
@@ -44,11 +45,13 @@ const BankMaster = () => {
         <div className="container-fluid">
             <ReusableTableForm
                 title="Bank"
+                backend="banks"
                 fields={fields}
                 fetchData={getBankDetails}
                 createData={createBankDetails}
                 updateData={updateBankDetails}
                 deleteData={deleteBankDetails}
+                importData={importBankDetails}
             />
         </div>
     );

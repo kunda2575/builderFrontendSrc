@@ -1,18 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ReusableDataTable from './ReusableDataTable ';
-import { fetchData, deleteData,postData } from '../../../api/apiHandler';
+import { fetchData, deleteData, postData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
-import ExportCustomerPaymentsButton from '../reusableExportData/ExportCustomerPaymentsButton'; // ✅ Import the export button
+import ExportCustomerPaymentsButton from '../reusableExportData/ExportCustomerPaymentsButton'; // Import the export button
 import ImportData from '../resusableComponents/ResuableImportData';
 import { toast } from 'react-toastify';
+import ImportErrorModal from '../resusableComponents/ImportErrorModal';
+
 const CustomerPaymentsTable = () => {
     const [paymentType, setPaymentType] = useState([]);
     const [verifiedBy, setVerifiedBy] = useState([]);
     const [fundingBank, setFundingBank] = useState([]);
     const [paymentMode, setPaymentMode] = useState([]);
-    const [exportData, setExportData] = useState([]); // ✅ Track data for export
+    const [exportData, setExportData] = useState([]); // Track data for export
 
+    const [importErrors, setImportErrors] = useState([]);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+
+
+    const tableRef = useRef();
     useEffect(() => {
         const removeDuplicates = (data, key) => {
             return Array.from(new Map(data.map(item => [item[key], item])).values());
@@ -35,16 +42,41 @@ const CustomerPaymentsTable = () => {
         });
     }, []);
 
+
+    const fetchProjectCredits = async ({ payment_type, verified_by, funding_bank, payment_mode, skip, limit }) => {
+        const url = `${config.getCustomerPayments}?payment_type=${payment_type || ''}&verified_by=${verified_by || ''}&funding_bank=${funding_bank || ''}&payment_mode=${payment_mode || ''}&skip=${skip}&limit=${limit}`;
+        const res = await fetchData(url);
+        const data = res.data?.data || [];
+        setExportData(data); //  Save fetched data for export
+        return {
+            data,
+            count: res.data?.count || 0,
+        };
+    };
+
+
     const [customers, setCustomers] = useState([]);
 
     const handleExcelImport = async (data) => {
         try {
-            const response = await postData(config.createCustomerImport, { customers: data }); // ✅ send customers in body
-            toast.success("Customers imported successfully!");
+            const response = await postData(config.createCustomerImport, { customers: data });
+            if (response.success) {
+                toast.success("customer payments imported successfully!");
+                if (tableRef.current) {
+                    tableRef.current.refresh(); //  Refresh the table data
+                }
+            } else {
+                toast.error(response.message || "Failed to import customer payments.");
 
+                // Optional: show backend validation errors
+                if (response.data?.errors?.length) {
+                    setImportErrors(response.data.errors);
+                    setShowErrorModal(true);
+                }
+            }
         } catch (err) {
             console.error(err);
-            toast.error(err.response?.data?.error || "Failed to import customers.");
+            toast.error(err.response?.data?.error || "Failed to import customers payment.");
         }
     };
 
@@ -68,7 +100,7 @@ const CustomerPaymentsTable = () => {
                 "payment_type",
                 "verified_by",
                 "funding_bank",
-                "documents",
+                // "documents",
                 "flat_hand_over_date",
                 "flat_area",
                 "no_of_bhk"
@@ -79,27 +111,22 @@ const CustomerPaymentsTable = () => {
     );
 
 
-    const fetchProjectCredits = async ({ payment_type, verified_by, funding_bank, payment_mode, skip, limit }) => {
-        const url = `${config.getCustomerPayments}?payment_type=${payment_type || ''}&verified_by=${verified_by || ''}&funding_bank=${funding_bank || ''}&payment_mode=${payment_mode || ''}&skip=${skip}&limit=${limit}`;
-        const res = await fetchData(url);
-        const data = res.data?.data || [];
-        setExportData(data); // ✅ Save fetched data for export
-        return {
-            data,
-            count: res.data?.count || 0,
-        };
-    };
 
     return (
         <div>
-
+            <ImportErrorModal
+                show={showErrorModal}
+                errors={importErrors}
+                onClose={() => setShowErrorModal(false)}
+            />
             <ReusableDataTable
                 title="Customer Payments Table"
+                ref={tableRef}
                 fetchFunction={fetchProjectCredits}
                 deleteFunction={(id) => deleteData(config.deleteCustomerPayment(id))}
                 exportData={exportData}
                 ExportButtonComponent={ExportCustomerPaymentsButton}
-              ImportButtonComponent={CustomerImportButton}
+                ImportButtonComponent={CustomerImportButton}
                 filters={[
                     {
                         field: 'payment_type',
@@ -150,41 +177,41 @@ const CustomerPaymentsTable = () => {
                     {
                         field: 'documents',
                         header: 'Documents',
-                        body: (rowData) => {
-                            if (rowData.documents && rowData.documents.length > 0) {
-                                const documentsArray = typeof rowData.documents === 'string'
-                                    ? rowData.documents.split(',').map(doc => doc.trim())
-                                    : rowData.documents;
+                        // body: (rowData) => {
+                        //     if (rowData.documents && rowData.documents.length > 0) {
+                        //         const documentsArray = typeof rowData.documents === 'string'
+                        //             ? rowData.documents.split(',').map(doc => doc.trim())
+                        //             : rowData.documents;
 
-                                const sanitizeUrl = (url) => {
-                                    const r2Prefix = 'https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/';
-                                    if (!url.startsWith('http')) return r2Prefix + url;
-                                    return url.includes(r2Prefix + r2Prefix)
-                                        ? url.substring(url.indexOf(r2Prefix))
-                                        : url;
-                                };
+                        //         const sanitizeUrl = (url) => {
+                        //             const r2Prefix = 'https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/';
+                        //             if (!url.startsWith('http')) return r2Prefix + url;
+                        //             return url.includes(r2Prefix + r2Prefix)
+                        //                 ? url.substring(url.indexOf(r2Prefix))
+                        //                 : url;
+                        //         };
 
-                                return (
-                                    <div className="d-flex flex-wrap gap-1">
-                                        {documentsArray.map((fileUrl, index) => {
-                                            const safeUrl = sanitizeUrl(fileUrl);
-                                            return (
-                                                <a
-                                                    key={index}
-                                                    href={safeUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="btn btn-sm btn-outline-primary"
-                                                >
-                                                    Download {index + 1}
-                                                </a>
-                                            );
-                                        })}
-                                    </div>
-                                );
-                            }
-                            return <span className="text-muted">N/A</span>;
-                        }
+                        //         return (
+                        //             <div className="d-flex flex-wrap gap-1">
+                        //                 {documentsArray.map((fileUrl, index) => {
+                        //                     const safeUrl = sanitizeUrl(fileUrl);
+                        //                     return (
+                        //                         <a
+                        //                             key={index}
+                        //                             href={safeUrl}
+                        //                             target="_blank"
+                        //                             rel="noopener noreferrer"
+                        //                             className="btn btn-sm btn-outline-primary"
+                        //                         >
+                        //                             Download {index + 1}
+                        //                         </a>
+                        //                     );
+                        //                 })}
+                        //             </div>
+                        //         );
+                        //     }
+                        //     return <span className="text-muted">N/A</span>;
+                        // }
                     },
                     { field: 'flat_hand_over_date', header: 'Flat Hand Over Date' },
                     { field: 'flat_area', header: 'Flat Area' },

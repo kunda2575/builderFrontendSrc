@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { MultiSelect } from 'primereact/multiselect';
@@ -7,7 +7,9 @@ import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 
-const ReusableDataTable = ({
+import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
+
+const ReusableDataTable = forwardRef(({
     title = '',
     fetchFunction,
     deleteFunction,
@@ -16,10 +18,10 @@ const ReusableDataTable = ({
     actions,
     addButtonLink,
     backButtonLink,
-    exportData = [], // ✅ Accept as prop
-    ExportButtonComponent = null, // ✅ Optional: allow dynamic export button
-ImportButtonComponent=null
-}) => {
+    exportData = [],
+    ExportButtonComponent = null,
+    ImportButtonComponent = null
+}, ref) => {
     const [data, setData] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
     const [first, setFirst] = useState(0);
@@ -28,11 +30,9 @@ ImportButtonComponent=null
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
-
-    const [viewData, setViewData] = useState(null); // New: Modal view data
+    const [viewData, setViewData] = useState(null);
 
     const filterStates = useRef({});
-
     filters.forEach(f => {
         if (!filterStates.current[f.field]) {
             filterStates.current[f.field] = [];
@@ -40,18 +40,14 @@ ImportButtonComponent=null
     });
 
     const handleDelete = async () => {
-        if (!deleteId) {
-            toast.error("Invalid ID to delete");
-            return;
-        }
-
+        if (!deleteId) return toast.error("Invalid ID to delete");
         setLoading(true);
         try {
             await deleteFunction(deleteId);
             toast.success('Deleted successfully');
             fetchData();
         } catch (err) {
-            console.error("Error deleting item:", err);
+            console.error("Delete error:", err);
             toast.error('Failed to delete');
         } finally {
             setShowDeleteModal(false);
@@ -71,7 +67,6 @@ ImportButtonComponent=null
             });
 
             const response = await fetchFunction({ ...filterParams, skip: first, limit: rows });
-
             setData(response.data || []);
             setTotalRecords(response.count || 0);
         } catch (err) {
@@ -80,6 +75,13 @@ ImportButtonComponent=null
             setLoading(false);
         }
     };
+
+    // ✅ Expose the refresh method to parent
+    useImperativeHandle(ref, () => ({
+        refresh: () => {
+            fetchData();
+        }
+    }));
 
     useEffect(() => {
         fetchData();
@@ -107,7 +109,7 @@ ImportButtonComponent=null
 
             <h3 className="text-center">{title}</h3>
 
-          
+
 
             <div className="d-flex justify-content-between my-2 flex-wrap gap-2">
                 <div>Total Records: {totalRecords}</div>
@@ -117,13 +119,13 @@ ImportButtonComponent=null
                             Reset Filters
                         </button>
                     )}
-                  
+
                     {addButtonLink && (
                         <Link to={addButtonLink} className="btn btn-primary btn-sm">
                             Add Details <i className="pi pi-plus" />
                         </Link>
                     )}
-                      {ImportButtonComponent && (
+                    {ImportButtonComponent && (
                         <ImportButtonComponent />
                     )}
                     {ExportButtonComponent && (
@@ -168,14 +170,22 @@ ImportButtonComponent=null
                                     let counter = 1;
 
                                     // 🧹 Sanitize URL utility
+                                    const R2_PUBLIC_BASE = 'https://pub-e302b8d3d26f46dbb628164c5af04d61.r2.dev';
+
                                     const sanitizeUrl = (url) => {
                                         if (!url) return '';
-                                        if (url.includes('https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/https://')) {
-                                            return url.substring(url.indexOf('https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/'));
+
+                                        // Fix URLs that include the base URL *twice* (nested)
+                                        if (url.includes(`${R2_PUBLIC_BASE}/https://`)) {
+                                            const splitIndex = url.lastIndexOf('/https://');
+                                            return url.substring(splitIndex + 1); // return the proper "https://..."
                                         }
-                                        return url.startsWith('http')
-                                            ? url
-                                            : `https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/${url}`;
+
+                                        // If already a valid http/https URL, return as-is
+                                        if (url.startsWith('http')) return url;
+
+                                        // Otherwise, prepend the base URL
+                                        return `${R2_PUBLIC_BASE}/${url}`;
                                     };
 
                                     return (
@@ -185,89 +195,59 @@ ImportButtonComponent=null
                                                 {isDateKey && value ? (
                                                     moment(value).format('DD-MM-YYYY')
                                                 ) : Array.isArray(value) ? (
-                                                    <div className="d-flex flex-wrap gap-2">
-                                                        {value.map((v, i) => {
-                                                            const rawUrl = typeof v === 'string' ? v : v?.url || '';
-                                                            const fileUrl = sanitizeUrl(rawUrl);
-                                                            const filename = typeof v === 'string'
-                                                                ? rawUrl.split('/').pop()
-                                                                : v?.filename || `File ${i + 1}`;
+                                                    value.map((v, i) => {
+                                                        const url = typeof v === 'string' ? v : v?.url || '';
 
-                                                            const isImage = /\.(jpg|jpeg|png|gif)$/i.test(filename);
-                                                            const isPDF = /\.pdf$/i.test(filename);
-                                                            const downloadLabel = isPDF ? `Download PDF ${counter}` : `Download ${counter}`;
-                                                            counter++;
-
-                                                            return (
-                                                                <div key={i} className="position-relative text-center" style={{ width: '120px' }}>
-                                                                    {isImage ? (
-                                                                        <>
-                                                                            <img
-                                                                                src={fileUrl}
-                                                                                alt={filename}
-                                                                                className="img-thumbnail"
-                                                                                style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
-                                                                            />
-                                                                            <div
-                                                                                className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-50 text-white"
-                                                                                style={{ opacity: 0, transition: 'opacity 0.3s' }}
-                                                                                onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
-                                                                                onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
-                                                                            >
-                                                                                <a href={fileUrl} target="_blank" download className="btn btn-sm btn-light">
-                                                                                    {downloadLabel}
-                                                                                </a>
-                                                                            </div>
-                                                                        </>
-                                                                    ) : (
-                                                                        <a
-                                                                            href={fileUrl}
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            className="btn btn-sm btn-outline-primary"
-                                                                        >
-                                                                            {downloadLabel}
-                                                                        </a>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                ) : typeof value === 'string' && /\.(jpg|jpeg|png|gif)$/i.test(value) ? (
-                                                    <div className="position-relative text-center" style={{ width: '120px' }}>
-                                                        <img
-                                                            src={sanitizeUrl(value)}
-                                                            alt="Attachment"
-                                                            className="img-thumbnail"
-                                                            style={{ width: '100%', objectFit: 'cover' }}
-                                                        />
-                                                        <div
-                                                            className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-50 text-white"
-                                                            style={{ opacity: 0, transition: 'opacity 0.3s' }}
-                                                            onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
-                                                            onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
-                                                        >
-                                                            <a
-                                                                href={sanitizeUrl(value)} target="_blank"
-                                                                download
-                                                                className="btn btn-sm btn-light"
-                                                            >
-                                                                Download 1
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                ) : typeof value === 'string' && /\.pdf$/i.test(value) ? (
+                                                        return (
+                                                            <div key={i} style={{ marginBottom: '8px' }}>
+                                                                <a
+                                                                    href={url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="btn btn-sm btn-outline-primary"
+                                                                    style={{
+                                                                        display: 'inline-block',
+                                                                        padding: '6px 12px',
+                                                                        borderRadius: '4px',
+                                                                        textDecoration: 'none',
+                                                                        whiteSpace: 'nowrap',
+                                                                        overflow: 'hidden',
+                                                                        textOverflow: 'ellipsis',
+                                                                        maxWidth: '300px' // adjust max width as needed
+                                                                    }}
+                                                                    title={url} // tooltip to show full URL on hover
+                                                                >
+                                                                    {url}
+                                                                </a>
+                                                            </div>
+                                                        );
+                                                    })
+                                                ) : typeof value === 'string' && value.startsWith('http') ? (
                                                     <a
-                                                        href={sanitizeUrl(value)}
+                                                        href={value}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="btn btn-sm btn-outline-primary"
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            borderRadius: '4px',
+                                                            textDecoration: 'none',
+                                                            whiteSpace: 'nowrap',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            maxWidth: '300px'
+                                                        }}
+                                                        title={value}
                                                     >
-                                                        Download PDF 1
+                                                        {value}
                                                     </a>
                                                 ) : (
                                                     String(value)
                                                 )}
+
+
+
+
                                             </td>
                                         </tr>
                                     );
@@ -354,6 +334,6 @@ ImportButtonComponent=null
             />
         </div>
     );
-};
+});
 
 export default ReusableDataTable;

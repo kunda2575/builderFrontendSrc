@@ -4,14 +4,46 @@ import {
   deleteData,
   postData
 } from '../apiHandler';
-import {host} from '../config'
+import { config, host } from '../config';
 
-const BASE_URL =`${host}/api/userMaster`;
+const BASE_URL = `${host}/api/userMaster`;
+
+// Get all users, with formatted project names
+export const getUsers = async () => {
+  try {
+    const res = await fetch(config.getUsers);
+    if (!res.ok) throw new Error(`Error: ${res.status}`);
+    const json = await res.json();
+
+    console.log("User fetched:", json);
+
+    const users = Array.isArray(json.users) ? json.users : [];
+
+    const formatted = users.map(user => ({
+      ...user,
+      projectName: user.projects?.map(p => p.projectName).join(', ') || 'N/A'
+    }));
+
+    return { data: formatted };
+  } catch (error) {
+    console.error('Failed to fetch users:', error);
+    return { data: [], error: error.message };
+  }
+};
 
 
-export const getUsers = () => fetchData(BASE_URL);
+// Update user by ID
+export const updateUser = (id, data) => putData(`${config.updateUsers}/${id}`, data);
 
-export const getProjectDetails = () => fetchData(`${BASE_URL}/project`);
+// Get project details (used for populating project dropdowns etc)
+export const getProjectDetails = () => fetchData(config.getProject);
+
+// Create new user
 export const createUser = (data) => postData(BASE_URL, data);
-export const updateUser = (id, data) => putData(`${BASE_URL}/${id}`, data);
-export const deleteUser = (id) => deleteData(`${BASE_URL}/${id}`); // ✅ Correct usage
+
+// Import multiple users
+export const importUser = (data) => postData(config.importUsers,data);
+
+// Delete user by ID
+export const deleteUser = (id) => deleteData(`${config.deleteUser}/${id}`);
+

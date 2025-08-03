@@ -15,9 +15,15 @@ export const config = {
   sendOtp: `${host}/user/send-otp`,
   verifyOtp: `${host}/user/verify-otp`,
   getUser: `${host}/user/getUser`,
+  getUsers: `${host}/user/getUsers`,
+  getProject: `${host}/user/project`,
+  importUsers: `${host}/user/import`,
+  getUsersByProject: (projectId) => `${host}/user/by-project/${projectId}`,
+
   emailExist : `${host}/user/check-email`,
   
   updateUsers: `${host}/user/updateUser`,
+  deleteUser :`${host}/user`,
 
   // LEADS
   getLeads: `${host}/api/leads`,                           // GET all leads

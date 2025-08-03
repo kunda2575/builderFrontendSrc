@@ -1,5 +1,6 @@
+import { getProjectDetails } from '../../../api/updateApis/userMasterApi';
 import './login.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { postData } from '../../../api/api';
 import { config } from '../../../api/config';
@@ -16,36 +17,67 @@ const Login = () => {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [disabled, setDisabled] = useState(false);
+  const [projectId, setProjectId] = useState("");
+  const [projects, setProjects] = useState([]);
+
+
+
+  useEffect(() => {
+    getProjectDetails()
+      .then((res) => {
+        // Ensure it returns an array
+        if (Array.isArray(res)) {
+          setProjects(res);
+        } else if (Array.isArray(res?.data)) {
+          setProjects(res.data);
+        } else if (Array.isArray(res?.projects)) {
+          setProjects(res.projects);
+        } else {
+          console.error("Unexpected project data structure:", res);
+          setProjects([]);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to fetch projects", err);
+        toast.error("Failed to load projects");
+        setProjects([]);
+      });
+  }, []);
 
   const loginHandler = async (e) => {
     e.preventDefault();
     setDisabled(true);
-  
+
     try {
       const loginPayload = {
         email: identifier.includes("@") ? identifier : "",
         mobilenumber: /^\d+$/.test(identifier) ? identifier : "",
         username: !identifier.includes("@") && !/^\d+$/.test(identifier) ? identifier : "",
         password,
+        projectId, // ✅ add this
       };
-  
+
+
       const userDetails = await postData(config.login, loginPayload);
       // console.log("🧪 Raw API Response:", userDetails);
-  
+
       const token = userDetails?.token;
       const user = userDetails?.user;
       const success = userDetails?.success;
-  
+
       if ((success === true || success === "Login successful") && token) {
         // login(token);
-         login(token, user?.profile); // ✅ Pass token and profile
+        login(token, user?.profile); // ✅ Pass token and profile
         localStorage.setItem("fullname", user?.fullname || "User");
         localStorage.setItem("profile", user?.profile || "");
-  
+        // localStorage.setItem("ProjectId", user?.projectId || "");
+    localStorage.setItem("selectedProject", JSON.stringify(user.projects[0]));
+
+
         toast.success(`Hi! ${user?.fullname || "User"}`, { autoClose: 3000 });
-  
+
         setIdentifier("");
         setPassword("");
         navigate("/");
@@ -53,17 +85,17 @@ const Login = () => {
         console.warn("❌ Login condition failed. Response:", userDetails);
         toast.error(userDetails?.message || "Invalid login details", { autoClose: 3000 });
       }
-  
+
     } catch (err) {
       console.error("🚨 Login failed:", err);
       toast.error("Login Failed: " + (err?.message || "Something went wrong"), { autoClose: 3000 });
     } finally {
       setDisabled(false);
     }
-  
+
     return false;
   };
-      
+
 
   return (
     <div className="container min-vh-100 d-flex  align-items-center justify-content-center py-4">
@@ -126,6 +158,31 @@ const Login = () => {
               </div>
             </div>
 
+
+            {/* Project Selection */}
+            <div className="mb-4">
+              <div className="input-group">
+                <span className="input-group-text bg-white border-0 border-bottom border-2 border-dark rounded-0 text-dark">
+                  <i className="pi pi-building"></i>
+                </span>
+                <select
+                  className="form-control border-0 border-bottom border-2 shadow-none border-dark rounded-0"
+                  value={projectId}
+                  onChange={(e) => setProjectId(e.target.value)}
+                  required
+                >
+                  <option value="">Select Project</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.projectName}
+                    </option>
+                  ))}
+                </select>
+
+              </div>
+            </div>
+
+
             {/* Login Button */}
             <div className="text-center mt-4">
               <button type="submit" className="btn btn-primary btn-sm w-100" disabled={disabled}>
@@ -137,7 +194,7 @@ const Login = () => {
           {/* Help Links */}
           <div className="text-center text-muted mt-4">
             <p>Forgot your password? <Link to="/forgotpassword" className="text-primary fw-bold">Reset it here</Link></p>
-            <p>New here? <Link to="/signup" className="text-primary fw-bold">Create an account</Link></p>
+            {/* <p>New here? <Link to="/signup" className="text-primary fw-bold">Create an account</Link></p> */}
           </div>
         </div>
       </div>

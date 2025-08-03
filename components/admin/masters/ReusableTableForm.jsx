@@ -1,3 +1,4 @@
+import ImportErrorModal from '../resusableComponents/ImportErrorModal';
 import React, { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { Dropdown } from 'primereact/dropdown';
@@ -5,19 +6,22 @@ import { Link } from 'react-router-dom';
 import { MultiSelect } from 'primereact/multiselect';
 import { FileUpload } from 'primereact/fileupload'; // ✅ Make sure this is imported
 import { Paginator } from 'primereact/paginator';
-
-
-
+import ExportCSVButton from './ExportCSVButton'; // Adjust path
+import ImportCSVButton from './ImportCSVButton';
 const ReusableTableForm = ({
     title,
+    backend,
     fields,
     fetchData,
     createData,
     updateData,
     deleteData,
+    importData,
     fcolumnClass = "mb-2 col-lg-4",
     tcolumnClass = "mb-2 col-lg-8",
-    ccolumnClass = "mb-2 col-lg-12"
+    ccolumnClass = "mb-2 col-lg-12",
+    onEditUser,
+    tableData
 
 }) => {
     const initialFormState = Object.fromEntries(fields.map(f => [f.name, f.type === 'checkbox' ? false : '']));
@@ -33,6 +37,11 @@ const ReusableTableForm = ({
 
     const [selectedItem, setSelectedItem] = useState(null);
     const [showModal, setShowModal] = useState(false);
+
+
+
+    const [importErrors, setImportErrors] = useState([]);
+    const [showErrorModal, setShowErrorModal] = useState(false);
 
 
     // ✅ MISSING STATES FIXED:
@@ -58,23 +67,36 @@ const ReusableTableForm = ({
     );
 
 
-    useEffect(() => {
-        getData();
-    }, []);
+
     useEffect(() => {
         setCurrentPage(1);
     }, [rowsPerPage, items.length]);
+    const getItemId = (item) => item?.userId ?? item?.id ?? item?.customerId;
 
-    const getItemId = (item) => item?.id ?? item?.customerId;
 
     const getData = async () => {
         try {
-            const res = await fetchData();
-            setItems(res.data);
+            const res = await fetchData();  // Should return { data: [...] }
+            const data = Array.isArray(res.data) ? res.data : [];
+
+            setItems(data);
+            return data; // ✅ Return the data here
         } catch (error) {
             toast.error(`Failed to fetch ${title}`);
+            setItems([]);
+            return []; // ✅ Return an empty array to avoid undefined
         }
     };
+
+
+    useEffect(() => {
+        if (Array.isArray(tableData)) {
+            setItems(tableData);
+        } else {
+            getData(); // fallback
+        }
+    }, [tableData, localStorage.getItem('projectId')]);
+
 
     const handleFileSelect = (event, field) => {
         const newFiles = event.files || [];
@@ -165,7 +187,6 @@ const ReusableTableForm = ({
 
         try {
             const data = new FormData();
-            const filesToUpload = [];
             const docTypesForUpload = [];
             const retainedFileKeys = [];
 
@@ -174,11 +195,15 @@ const ReusableTableForm = ({
                     const selected = selectedFiles[field.name] || [];
 
                     selected.forEach(fileObj => {
-                        if (fileObj.file) {
-                            filesToUpload.push(fileObj.file);
+                        const file = fileObj.file;
+
+                        if (file instanceof File) {
+                            data.append('documents', file); // ✅ attach real file
                             docTypesForUpload.push(fileObj.documentType || 'unknown');
                         } else if (fileObj.uploadedFileName) {
                             retainedFileKeys.push(fileObj.uploadedFileName);
+                        } else {
+                            console.warn("⚠️ Skipping invalid file:", fileObj);
                         }
                     });
                 } else {
@@ -186,14 +211,17 @@ const ReusableTableForm = ({
                 }
             });
 
-            // Append files and document types
-            filesToUpload.forEach(file => data.append('documents', file));
             data.append('documentTypes', JSON.stringify(docTypesForUpload));
             data.append('retainedFiles', JSON.stringify(retainedFileKeys));
 
+            // ✅ Debugging: View FormData content
+            for (let [key, value] of data.entries()) {
+                console.log(`${key}:`, value);
+            }
+
             const id = form.id ?? form.customerId;
             const res = id ? await updateData(id, data) : await createData(data);
-
+            console.log(" errrrrrrrrrrrrr", res)
             if (!res.success) {
                 toast.error(res.message || "Something went wrong");
                 return;
@@ -212,8 +240,14 @@ const ReusableTableForm = ({
 
             getData();
         } catch (err) {
-            toast.error("Unexpected error during submit");
-            console.error("Form Submit Error:", err);
+            const res = id ? await updateData(id, data) : await createData(data);
+            console.log(" errrrrrrrrrrrrr", res);
+
+            if (!res.success) {
+                toast.error(res.message || "Something went wrong");
+                return;
+            }
+
         } finally {
             setLoading(false);
         }
@@ -344,192 +378,194 @@ const ReusableTableForm = ({
 
             {/* Form Column */}
 
+            {(title || '').toLowerCase() !== 'users' && (
+                <div className={fcolumnClass}>
+                    <div className="card">
+                        <div className="card-header text-center">
+                            <h4>{title} Master</h4>
+                        </div>
+                        <form onSubmit={handleSubmit} encType="multipart/form-data">
+                            <div className="card-body">
+                                <div className="row">
+                                    {fields
+                                        .filter((field) => field.showInForm !== false)
+                                        .map((field) => {
+                                            if (field.type === 'file') {
+                                                return (
 
-            <div className={fcolumnClass}>
-                <div className="card">
-                    <div className="card-header text-center">
-                        <h4>{title} Master</h4>
-                    </div>
-                    <form onSubmit={handleSubmit} encType="multipart/form-data">
-                        <div className="card-body">
-                            <div className="row">
-                                {fields
-                                    .filter((field) => field.showInForm !== false)
-                                    .map((field) => {
-                                        if (field.type === 'file') {
-                                            return (
+                                                    <div className="row">
+                                                        {fields
+                                                            .filter(field => field.type === 'file' && field.showInForm !== false)
+                                                            .map(field => {
+                                                                return (
+                                                                    <div className=" row mb-3" key={field.name}>
+                                                                        <div className="row mb-3">
+                                                                            <div className="col-6 d-flex align-items-center">
+                                                                                <label className="me-3 mb-0">{field.label}</label>
+                                                                                <Dropdown
+                                                                                    value={form.documentType}
+                                                                                    options={[
+                                                                                        { label: 'Aadhaar', value: 'aadhaar' },
+                                                                                        { label: 'PAN', value: 'pan' },
+                                                                                        { label: 'Voter ID', value: 'voterId' },
+                                                                                        { label: 'Other', value: 'other' }
+                                                                                    ]}
+                                                                                    onChange={(e) => setForm(prev => ({ ...prev, documentType: e.value }))}
+                                                                                    placeholder="Document Type"
+                                                                                    className="w-100"
+                                                                                />
+                                                                            </div>
 
-                                                <div className="row">
-                                                    {fields
-                                                        .filter(field => field.type === 'file' && field.showInForm !== false)
-                                                        .map(field => {
-                                                            return (
-                                                                <div className=" row mb-3" key={field.name}>
-                                                                    <div className="row mb-3">
-                                                                        <div className="col-5 d-flex align-items-center">
-                                                                            <label >{field.label}</label>
-                                                                            <Dropdown
-                                                                                value={form.documentType}
-                                                                                options={[
-                                                                                    { label: 'Aadhaar', value: 'aadhaar' },
-                                                                                    { label: 'PAN', value: 'pan' },
-                                                                                    { label: 'Voter ID', value: 'voterId' },
-                                                                                    { label: 'Other', value: 'other' }
-                                                                                ]}
-                                                                                onChange={(e) => setForm(prev => ({ ...prev, documentType: e.value }))}
-                                                                                placeholder="Document Type"
-                                                                                className="w-100"
-                                                                            />
+                                                                            <div className="col-6 d-flex align-items-center">
+                                                                                <FileUpload
+                                                                                    name={field.name}
+                                                                                    customUpload
+                                                                                    multiple={true}
+                                                                                    // Add to your accept list:
+                                                                                    accept=".pdf,.jpg,.jpeg,.png,.csv,.xls,.xlsx"
+
+                                                                                    onSelect={(e) => handleFileSelect(e, field)}
+                                                                                    ref={(el) => (fileInputRefs.current[field.name] = el)}
+                                                                                    auto={false}
+                                                                                    chooseLabel={!hasUploadedFirstFile[field.name] ? "Browse File" : "Add +"}
+                                                                                    showUploadButton={false}
+                                                                                    showCancelButton={false}
+                                                                                    mode="basic"
+                                                                                    className="btn btn-sm"
+                                                                                />
+                                                                            </div>
                                                                         </div>
 
-                                                                        <div className="col-6 d-flex align-items-center">
-                                                                            <FileUpload
-                                                                                name={field.name}
-                                                                                customUpload
-                                                                                multiple={true}
-                                                                                accept="*"
-                                                                                onSelect={(e) => handleFileSelect(e, field)}
-                                                                                ref={(el) => (fileInputRefs.current[field.name] = el)}
-                                                                                auto={false}
-                                                                                chooseLabel={!hasUploadedFirstFile[field.name] ? "Browse File" : "Add +"}
-                                                                                showUploadButton={false}
-                                                                                showCancelButton={false}
-                                                                                mode="basic"
-                                                                                className="btn btn-sm"
-                                                                            />
-                                                                        </div>
+                                                                        {/* Uploaded File List */}
+                                                                        {selectedFiles[field.name]?.length > 0 && (
+                                                                            <div className="mt-2">
+                                                                                <label className="form-label fw-bold">Uploaded Files:</label>
+                                                                                <ul className="list-unstyled border rounded p-2">
+                                                                                    {selectedFiles[field.name].map((fileObj, idx) => {
+                                                                                        const fileName = fileObj?.file?.name || fileObj?.name || fileObj?.uploadedFileName || 'unknown-file';
+                                                                                        return (
+                                                                                            <li key={`file-${idx}`} className="d-flex align-items-center justify-content-between py-1 border-bottom">
+                                                                                                <div className="text-truncate" style={{ maxWidth: '75%' }} title={fileName}>
+                                                                                                    📄 <strong>
+
+                                                                                                        {fileName}
+                                                                                                    </strong>
+                                                                                                    <span className="text-muted small ms-2">({fileObj.documentType})</span>
+                                                                                                </div>
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    className="btn btn-sm btn-outline-danger ms-2"
+                                                                                                    onClick={() => handleRemoveFile(field.name, idx)}
+                                                                                                >
+                                                                                                    ❌
+                                                                                                </button>
+                                                                                            </li>
+                                                                                        );
+                                                                                    })}
+                                                                                </ul>
+
+                                                                            </div>
+                                                                        )}
                                                                     </div>
-
-                                                                    {/* Uploaded File List */}
-                                                                    {selectedFiles[field.name]?.length > 0 && (
-                                                                        <div className="mt-2">
-                                                                            <label className="form-label fw-bold">Uploaded Files:</label>
-                                                                            <ul className="list-unstyled border rounded p-2">
-                                                                                {selectedFiles[field.name].map((fileObj, idx) => {
-                                                                                    const fileName = fileObj?.file?.name || fileObj?.name || fileObj?.uploadedFileName || 'unknown-file';
-                                                                                    return (
-                                                                                        <li key={`file-${idx}`} className="d-flex align-items-center justify-content-between py-1 border-bottom">
-                                                                                            <div className="text-truncate" style={{ maxWidth: '75%' }} title={fileName}>
-                                                                                                📄 <strong>
-
-                                                                                                    {fileName}
-                                                                                                </strong>
-                                                                                                <span className="text-muted small ms-2">({fileObj.documentType})</span>
-                                                                                            </div>
-                                                                                            <button
-                                                                                                type="button"
-                                                                                                className="btn btn-sm btn-outline-danger ms-2"
-                                                                                                onClick={() => handleRemoveFile(field.name, idx)}
-                                                                                            >
-                                                                                                ❌
-                                                                                            </button>
-                                                                                        </li>
-                                                                                    );
-                                                                                })}
-                                                                            </ul>
-
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                </div>
+                                                                );
+                                                            })}
+                                                    </div>
 
 
-                                            );
-                                        }
-                                        else if (field.type === 'select') {
-                                            return (
-                                                <div key={field.name} className={ccolumnClass}>
-                                                    <label className="form-label">{field.label}</label>
-                                                    {field.multiple ? (
-                                                        <MultiSelect
-                                                            value={form[field.name] || []}
-                                                            options={field.options || []}
-                                                            onChange={(e) => {
-                                                                const selectedValues = e.value;
-                                                                if (field.onChange) {
-                                                                    field.onChange(selectedValues, null, setForm); // Adjust if you need more details
-                                                                } else {
-                                                                    setForm({ ...form, [field.name]: selectedValues });
-                                                                }
-                                                            }}
-                                                            optionLabel="label"
-                                                            placeholder={`Select ${field.label}`}
-                                                            className="w-100"
-                                                            display="chip"
+                                                );
+                                            }
+                                            else if (field.type === 'select') {
+                                                return (
+                                                    <div key={field.name} className={ccolumnClass}>
+                                                        <label className="form-label">{field.label}</label>
+                                                        {field.multiple ? (
+                                                            <MultiSelect
+                                                                value={form[field.name] || []}
+                                                                options={field.options || []}
+                                                                onChange={(e) => {
+                                                                    const selectedValues = e.value;
+                                                                    if (field.onChange) {
+                                                                        field.onChange(selectedValues, null, setForm); // Adjust if you need more details
+                                                                    } else {
+                                                                        setForm({ ...form, [field.name]: selectedValues });
+                                                                    }
+                                                                }}
+                                                                optionLabel="label"
+                                                                placeholder={`Select ${field.label}`}
+                                                                className="w-100"
+                                                                display="chip"
+                                                            />
+                                                        ) : (
+                                                            <Dropdown
+                                                                value={form[field.name] || null}
+                                                                options={field.options || []}
+                                                                onChange={(e) => {
+                                                                    const selectedValue = e.value;
+                                                                    const selectedObj = field.options?.find(opt => opt.value === selectedValue);
+
+                                                                    if (field.onChange) {
+                                                                        field.onChange(selectedValue, selectedObj, setForm);
+                                                                    } else {
+                                                                        setForm({ ...form, [field.name]: selectedValue });
+                                                                    }
+                                                                }}
+                                                                optionLabel="label"
+                                                                placeholder={`Select ${field.label}`}
+                                                                className="w-100"
+                                                            />
+                                                        )}
+
+
+                                                    </div>
+                                                );
+                                            }
+                                            else if (field.type === 'textarea') {
+                                                return (
+                                                    <div className={ccolumnClass} key={field.name}>
+                                                        <label className="form-label">{field.label}</label>
+                                                        <textarea
+                                                            placeholder={field.label}
+                                                            name={field.name}
+                                                            value={form[field.name]}
+                                                            onChange={(e) => handleChange(e, field)}
+                                                            className="form-control mb-2"
+                                                            required={field.required}
+                                                            rows={1}
                                                         />
-                                                    ) : (
-                                                        <Dropdown
-                                                            value={form[field.name] || null}
-                                                            options={field.options || []}
-                                                            onChange={(e) => {
-                                                                const selectedValue = e.value;
-                                                                const selectedObj = field.options?.find(opt => opt.value === selectedValue);
-
-                                                                if (field.onChange) {
-                                                                    field.onChange(selectedValue, selectedObj, setForm);
-                                                                } else {
-                                                                    setForm({ ...form, [field.name]: selectedValue });
-                                                                }
-                                                            }}
-                                                            optionLabel="label"
-                                                            placeholder={`Select ${field.label}`}
-                                                            className="w-100"
+                                                    </div>
+                                                );
+                                            } else {
+                                                return (
+                                                    <div className={ccolumnClass} key={field.name}>
+                                                        <label className="form-label">{field.label}</label>
+                                                        <input
+                                                            type={field.type || "text"}
+                                                            placeholder={field.label}
+                                                            name={field.name}
+                                                            value={form[field.name]}
+                                                            onChange={(e) => handleChange(e, field)}
+                                                            className="form-control mb-2"
+                                                            required={field.required}
+                                                            disabled={field.disabled || false}
                                                         />
-                                                    )}
+                                                    </div>
+                                                );
+                                            }
+                                        })}
 
-
-                                                </div>
-                                            );
-                                        }
-                                        else if (field.type === 'textarea') {
-                                            return (
-                                                <div className={ccolumnClass} key={field.name}>
-                                                    <label className="form-label">{field.label}</label>
-                                                    <textarea
-                                                        placeholder={field.label}
-                                                        name={field.name}
-                                                        value={form[field.name]}
-                                                        onChange={(e) => handleChange(e, field)}
-                                                        className="form-control mb-2"
-                                                        required={field.required}
-                                                        rows={1}
-                                                    />
-                                                </div>
-                                            );
-                                        } else {
-                                            return (
-                                                <div className={ccolumnClass} key={field.name}>
-                                                    <label className="form-label">{field.label}</label>
-                                                    <input
-                                                        type={field.type || "text"}
-                                                        placeholder={field.label}
-                                                        name={field.name}
-                                                        value={form[field.name]}
-                                                        onChange={(e) => handleChange(e, field)}
-                                                        className="form-control mb-2"
-                                                        required={field.required}
-                                                        disabled={field.disabled || false}
-                                                    />
-                                                </div>
-                                            );
-                                        }
-                                    })}
+                                </div>
 
                             </div>
-
-                        </div>
-                        <div className="card-footer text-center">
-                            <button type="submit" className="btn btn-success btn-md col-3" disabled={loading}>
-                                {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
-                            </button>
-                        </div>
-                    </form>
+                            <div className="card-footer text-center">
+                                <button type="submit" className="btn btn-success btn-md col-4" disabled={loading}>
+                                    {loading ? 'Processing...' : form.id ? 'Update' : 'Create'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
 
-
+            )}
 
             {/* Table Column for modal */}
 
@@ -565,7 +601,7 @@ const ReusableTableForm = ({
                                         return filesArray.map((file, idx) => {
                                             const fileUrl = file.startsWith('http')
                                                 ? file
-                                                : `https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/${file}`;
+                                                : `https://pub-e302b8d3d26f46dbb628164c5af04d61.r2.dev/${file}`;
 
                                             // Get filename or fallback to file key
                                             const urlParts = fileUrl.split('/');
@@ -580,7 +616,7 @@ const ReusableTableForm = ({
                                                         rel="noopener noreferrer"
                                                         className="btn btn-sm btn-outline-primary"
                                                     >
-                                                        {fileName}
+                                                        {file}
                                                     </a>
                                                 </div>
                                             );
@@ -620,8 +656,9 @@ const ReusableTableForm = ({
             <div className={tcolumnClass}>
                 <div className="card p-2">
 
-                    <div className="d-flex justify-content-between  align-items-center">
-                        <div>
+
+                    <div className='row'>
+                        <div className='col-6'>
                             <h4 className='text-center'>
                                 Displaying
 
@@ -629,7 +666,47 @@ const ReusableTableForm = ({
 
                             </h4>
                         </div>
-                        <div>
+                        <div className="col-lg-6 text-end">
+                            <ExportCSVButton
+                                data={items}
+                                fields={fields}
+                                fileName={(title || 'export').toLowerCase()}
+                            />
+
+                            {(backend || '').toLowerCase() !== 'documents' && (
+                                <>
+                                    <ImportCSVButton
+                                        fields={fields}
+                                        fileName={(title || 'import').toLowerCase()}
+                                        dataKey={(backend || '').toLowerCase()}
+                                        uploadData={async (data) => {
+                                            const [key, rows] = Object.entries(data)[0];
+                                            const res = await importData({ [key]: rows });
+
+                                            if (res.success) {
+                                                toast.success(res.data?.message || "Import successful");
+                                                getData?.();
+                                                return res;
+                                            } else {
+                                                toast.error(res.message || "Import failed");
+
+                                                // 🧠 Show modal for field-level errors
+                                                if (res.data?.errors?.length) {
+                                                    setImportErrors(res.data.errors);
+                                                    setShowErrorModal(true);
+                                                }
+                                            }
+                                        }}
+                                    />
+
+                                    <ImportErrorModal
+                                        show={showErrorModal}
+                                        errors={importErrors}
+                                        onClose={() => setShowErrorModal(false)}
+                                    />
+                                </>
+                            )}
+
                             <button
                                 className="btn btn-danger btn-sm"
                                 onClick={handleBulkDelete}
@@ -638,16 +715,17 @@ const ReusableTableForm = ({
                                 Delete Selected
                             </button>
                         </div>
+
                     </div>
 
-                    <div className="card-body p-0" >
+                    <div className="card-body pt-2" >
                         <div className="table-responsive">
                             <table className="table table-bordered">
                                 <thead className="table-secondary text-center" style={{ whiteSpace: 'nowrap' }}>
                                     <tr>
                                         <th>
                                             <input
-                                                title='Select All'
+                                                title="Select All"
                                                 type="checkbox"
                                                 onChange={(e) => {
                                                     if (e.target.checked) {
@@ -660,82 +738,92 @@ const ReusableTableForm = ({
                                             />
                                         </th>
                                         {fields
-                                            .filter(field => field.type !== 'file') // exclude file fields like documents
-                                            .map(field => (
+                                            .filter((field) => field.type !== 'file') // exclude file fields
+                                            .map((field) => (
                                                 <th key={field.name}>{field.label}</th>
                                             ))}
-
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
+
                                 <tbody style={{ whiteSpace: 'nowrap' }}>
-                                    {paginatedItems.map(item => (
-                                        <tr key={item.id}>
-                                            <td className='text-center'>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedItems.some(i => i.id === item.id)}
-                                                    onChange={(e) => {
-                                                        if (e.target.checked) {
-                                                            setSelectedItems(prev => [...prev, item]);
-                                                        } else {
-                                                            setSelectedItems(prev => prev.filter(i => i.id !== item.id));
-                                                        }
-                                                    }}
-                                                />
-                                            </td>
-                                            {fields
-                                                .filter(field => field.showInTable !== false) // hide if explicitly disabled
-                                                .map(field => (
-                                                    <td key={field.name}>
-                                                        {field.type === 'checkbox' ? (
-                                                            item[field.name] ? 'Yes' : 'No'
-                                                        ) : field.type === 'select' ? (
-                                                            field.multiple
-                                                                ? Array.isArray(item[field.name])
-                                                                    ? item[field.name].join(', ')
-                                                                    : String(item[field.name] || '') // fallback to string
-                                                                : field.options?.find(opt => opt.value === item[field.name])?.label || item[field.name]
-                                                        ) : field.type === 'date' ? (
-                                                            item[field.name]
-                                                                ? new Date(item[field.name]).toISOString().slice(0, 10)
-                                                                : ''
-                                                        ) : (
-                                                            item[field.name]
-                                                        )}
+                                    {paginatedItems.map((item) => {
+                                        const itemId = getItemId(item);
 
-                                                    </td>
-                                                ))}
+                                        return (
+                                            <tr key={itemId}>
+                                                <td className="text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedItems.some((i) => getItemId(i) === itemId)}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setSelectedItems((prev) => [...prev, item]);
+                                                            } else {
+                                                                setSelectedItems((prev) =>
+                                                                    prev.filter((i) => getItemId(i) !== itemId)
+                                                                );
+                                                            }
+                                                        }}
+                                                    />
+                                                </td>
+
+                                                {fields
+                                                    .filter((field) => field.showInTable !== false)
+                                                    .map((field) => (
+                                                        <td key={field.name}>
+                                                            {field.type === 'checkbox' ? (
+                                                                item[field.name] ? 'Yes' : 'No'
+                                                            ) : field.type === 'select' ? (
+                                                                field.multiple ? (
+                                                                    Array.isArray(item[field.name])
+                                                                        ? item[field.name].join(', ')
+                                                                        : String(item[field.name] || '')
+                                                                ) : (
+                                                                    field.options?.find((opt) => opt.value === item[field.name])?.label || item[field.name]
+                                                                )
+                                                            ) : field.type === 'date' ? (
+                                                                item[field.name]
+                                                                    ? new Date(item[field.name]).toISOString().slice(0, 10)
+                                                                    : ''
+                                                            ) : (
+                                                                item[field.name]
+                                                            )}
+                                                        </td>
+                                                    ))}
+
+                                                <td className="d-flex justify-content-center">
+                                                    <button
+                                                        className="btn btn-sm btn-outline-primary me-1 rounded-circle"
+                                                        onClick={() => {
+                                                            setSelectedItem(item);
+                                                            setShowModal(true);
+                                                        }}
+                                                    >
+                                                        <i className="pi pi-eye"></i>
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-sm btn-outline-info me-1 rounded-circle"
+                                                        onClick={() => {
+                                                            handleEdit(item);      // local handler
+                                                            onEditUser?.(item);    // external handler (optional chaining prevents error if undefined)
+                                                        }}
+                                                    >
+                                                        <i className="pi pi-pencil"></i>
+                                                    </button>
 
 
-                                            <td className='d-flex justify-content-center'>
-                                                <button
-                                                    className="btn btn-sm btn-outline-primary me-1 rounded-circle"
-                                                    onClick={() => {
-                                                        setSelectedItem(item);
-                                                        setShowModal(true);
-                                                    }}
-                                                >
-                                                    <i className='pi pi-eye'></i>
-                                                </button>
-                                                <button
-                                                    id="btn-focus"
-                                                    className="btn btn-sm btn-outline-info me-1 rounded-circle"
-                                                    onClick={() => handleEdit(item)}
-                                                >
-                                                    <i className='pi pi-pencil'></i>
-                                                </button>
-                                                <button
-                                                    className="btn btn-sm btn-outline-danger rounded-circle"
-                                                    onClick={() => handleSingleDelete(item)}
-                                                >
-                                                    <i className='pi pi-trash'></i>
-                                                </button>
+                                                    <button
+                                                        className="btn btn-sm btn-outline-danger rounded-circle"
+                                                        onClick={() => handleSingleDelete(item)}
+                                                    >
+                                                        <i className="pi pi-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
 
-
-                                            </td>
-                                        </tr>
-                                    ))}
                                     {paginatedItems.length === 0 && (
                                         <tr>
                                             <td colSpan="12" className="text-center">
@@ -745,6 +833,7 @@ const ReusableTableForm = ({
                                     )}
                                 </tbody>
                             </table>
+
                         </div>
                     </div>
                     {/* Pagination Footer */}

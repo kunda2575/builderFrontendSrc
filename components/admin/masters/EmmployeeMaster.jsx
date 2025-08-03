@@ -3,7 +3,8 @@ import {
   getEmployeeDetails,
   createEmployeeDetails,
   updateEmployeeDetails,
-  deleteEmployeeDetails
+  deleteEmployeeDetails,
+  importEmployeeDetails
 } from '../../../api/updateApis/employeeApi'; // Your API functions
 import ReusableTableForm from './ReusableTableForm';
 
@@ -31,11 +32,13 @@ const EmployeeMaster = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Employee"
+           backend="employee"
         fields={fields}
         fetchData={getEmployeeDetails}
         createData={createEmployeeDetails}
         updateData={updateEmployeeDetails}
         deleteData={deleteEmployeeDetails}
+         importData={importEmployeeDetails}
          fcolumnClass="mb-2 col-lg-12"
         tcolumnClass=" mb-2 col-lg-12"
         ccolumnClass="mb-2 col-lg-4"

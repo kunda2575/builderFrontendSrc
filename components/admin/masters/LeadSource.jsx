@@ -4,7 +4,8 @@ import {
   getLeadSources,
   createLeadSource,
   updateLeadSource,
-  deleteLeadSource
+  deleteLeadSource,
+  importLeadSource
 } from '../../../api/updateApis/leadSourceApi'; // Your API functions
 
 const fields = [
@@ -19,11 +20,13 @@ const LeadSource = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Lead Source"
+         backend="sources"
         fields={fields}
         fetchData={getLeadSources}
         createData={createLeadSource}
         updateData={updateLeadSource}
         deleteData={deleteLeadSource}
+         importData={importLeadSource}
       />
     </div>
   );

@@ -4,7 +4,8 @@ import {
   getExpenseCategorys,
   createExpenseCategory,
   updateExpenseCategory,
-  deleteExpenseCategory
+  deleteExpenseCategory,
+  importExpenseCategory
 } from '../../../api/updateApis/expenseCategoryApi'; // Your API functions
 
 const fields = [
@@ -20,11 +21,13 @@ const ExpenseCategoryMaster = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Expense Category"
+        backend="category"
         fields={fields}
         fetchData={getExpenseCategorys}
         createData={createExpenseCategory}
         updateData={updateExpenseCategory}
         deleteData={deleteExpenseCategory}
+         importData={importExpenseCategory}
       />
     </div>
   );

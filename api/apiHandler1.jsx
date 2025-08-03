@@ -3,76 +3,73 @@ import axios from "axios";
 
 // Common function to handle errors
 const handleErrors = (error) => {
+  console.error("📦 Axios Error:", error.response?.data);
+
   if (!error.response) {
     return { success: false, message: "Network error" };
   }
 
   const status = error.response.status;
-  const responseData = error.response.data;
-  let message = "Unexpected error occurred!";
+  const backendMessage = error.response.data?.message || error.response.data?.error;
+  const detail = error.response.data?.detail;
 
-  // Extract detailed validation errors if available
-  if (status === 400 || status === 422) {
-    if (responseData?.errors) {
-      // If backend returns validation errors as an array or object
-      const errors = Array.isArray(responseData.errors)
-        ? responseData.errors.join(", ")
-        : Object.values(responseData.errors).join(", ");
-      return { success: false, message: errors };
-    }
+  let message = backendMessage || "Unexpected error occurred!";
+  switch (status) {
+    case 400: message = "Invalid input! Please check your details."; break;
+    case 401: message = "Unauthorized! Please log in."; break;
+    case 403: message = "Access Denied!"; break;
+    case 404: message = "Resource not found!"; break;
+    case 409: message = backendMessage || "Conflict! Resource already exists."; break;
+    case 500: message = backendMessage || "Something went wrong! Please try again later."; break;
+    case 503: message = "Service temporarily unavailable."; break;
+  }
 
-    // Or if it's a simple message string
-    if (responseData?.message) {
-      return { success: false, message: responseData.message };
-    }
+  return { success: false, message, detail }; // ✅ return `detail`
+};
 
-    message = "Invalid input! Please check your details.";
-  } else {
-    switch (status) {
-      case 401:
-        message = "Unauthorized! Please log in.";
-        window.location.href = "/login";
-        break;
-      case 403:
-        message = "Access Denied! You don't have permission.";
-        break;
-      case 404:
-        message = "Resource not found!";
-        break;
-      case 500:
-        message = "Something went wrong! Please try again later.";
-        break;
-      case 503:
-        message = "Service temporarily unavailable. Try again later.";
-        break;
-      default:
-        message = "Unexpected error occurred!";
+
+
+const getAuthHeaders = (isFormData = false) => {
+  const token = localStorage.getItem('loginToken');
+  const selectedProject = localStorage.getItem('selectedProject');
+
+  let projectId = null;
+  let projectName = null;
+
+  if (selectedProject) {
+    try {
+      const parsed = JSON.parse(selectedProject);
+      projectId = parsed?.id;
+      projectName = parsed?.projectName; // ✅ Extract
+    } catch (err) {
+      console.error("Invalid project object in localStorage:", err);
     }
   }
 
-  return { success: false, message };
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    ...(projectId && { 'project-id': projectId }),
+    ...(projectName && { 'project-name': projectName }) // ✅ Include
+  };
+
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  return headers;
 };
 
 
 
-const getAuthHeaders = () => ({
-  'Authorization': `Bearer ${localStorage.getItem('loginToken')}`
-});
 const apiCall = async (method, url, data = null) => {
   try {
-   const isFormData = data instanceof FormData;
-const headers = {
-  ...getAuthHeaders(),
-  ...(isFormData ? {} : { 'Content-Type': 'application/json' })
-};
-
+    const isFormData = data instanceof FormData;
+    const headers = getAuthHeaders(isFormData); // ✅ Pass context here
 
     const config = {
       method,
       url,
       headers,
-      // ⚠️ don't send withCredentials: true unless you're using cookies — for token-based auth it's not needed
-      // withCredentials: true, // ← remove this unless absolutely needed
       ...(data !== null && { data }),
     };
 
@@ -82,6 +79,7 @@ const headers = {
     return handleErrors(error);
   }
 };
+
 
 
 

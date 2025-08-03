@@ -4,7 +4,8 @@ import {
   getpaymentTypes,
   createpaymentType,
   updatepaymentType,
-  deletepaymentType
+  deletepaymentType,
+  importPaymentType
 } from '../../../api/updateApis/paymentTypeApi'; // Your API functions
 
 const fields = [
@@ -33,11 +34,13 @@ const PaymentType = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Payment Type"
+            backend="paymenttypes"
         fields={fields}
         fetchData={getpaymentTypes}
         createData={createpaymentType}
         updateData={updatepaymentType}
         deleteData={deletepaymentType}
+        importData={importPaymentType}
       />
     </div>
   );

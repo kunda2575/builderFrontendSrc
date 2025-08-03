@@ -13,6 +13,8 @@ import { Paginator } from 'primereact/paginator';
 import moment from 'moment';
 import ExportInventorysButton from '../reusableExportData/ExportInventoryButton';
 import ImportData from '../resusableComponents/ResuableImportData';
+import ImportErrorModal from '../resusableComponents/ImportErrorModal';
+
 const InventoryEntryTable = () => {
     const [loading, setLoading] = useState(true);
 
@@ -20,6 +22,9 @@ const InventoryEntryTable = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [deleteType, setDeleteType] = useState(null);
+
+    const [importErrors, setImportErrors] = useState([]);
+    const [showErrorModal, setShowErrorModal] = useState(false);
 
 
     const [filteredInventory, setFilteredInventory] = useState([]);
@@ -60,8 +65,19 @@ const InventoryEntryTable = () => {
     const handleExcelImport = async (data) => {
         try {
             const response = await postData(config.createInventoryImport, { inventorys: data }); // ✅ send inventorys in body
-            toast.success("Inventorys imported successfully!");
+            if (response.success) {
+                toast.success("inventorys imported successfully!");
 
+                getInventory()
+            } else {
+                toast.error(response.message || "Failed to import inventorys .");
+
+                // Optional: show backend validation errors
+                if (response.data?.errors?.length) {
+                    setImportErrors(response.data.errors);
+                    setShowErrorModal(true);
+                }
+            }
         } catch (err) {
             console.error(err);
             toast.error(err.response?.data?.error || "Failed to import inventorys.");
@@ -161,8 +177,7 @@ const InventoryEntryTable = () => {
                         title={fileName}
                     >
                         <i className="pi pi-download me-1" />
-                        {/* {docType} {files.length > 1 ? i + 1 : ''} */}
-                        {fileName}
+                       {url}
                     </a>
                 );
             });
@@ -241,6 +256,11 @@ const InventoryEntryTable = () => {
 
     return (
         <div className="container-fluid mt-2">
+            <ImportErrorModal
+                show={showErrorModal}
+                errors={importErrors}
+                onClose={() => setShowErrorModal(false)}
+            />
             <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"></i>  Back </Link>
             <h3 className="text-center mb-3">Inventory Management</h3>
 
@@ -312,7 +332,13 @@ const InventoryEntryTable = () => {
             )}
             {/* View Modal */}
             {viewData && (
-                <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center z-3">
+                <div
+                    className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+                    style={{
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        zIndex: 1055
+                    }}
+                >
                     <div className="bg-white p-4 rounded shadow w-75 max-h-75 overflow-auto">
                         <div className="d-flex justify-content-between align-items-center mb-3">
                             <h5 className="mb-0">Inventory Details</h5>
@@ -331,6 +357,7 @@ const InventoryEntryTable = () => {
                     </div>
                 </div>
             )}
+
 
 
             <DataTable
@@ -446,6 +473,9 @@ const InventoryEntryTable = () => {
                     header="Actions"
                     body={(rowData) => (
                         <div className="d-flex gap-2 justify-content-center">
+                            <button className="btn btn-outline-primary btn-sm" onClick={() => setViewData(rowData)}>
+                                <i className="pi pi-eye"></i>
+                            </button>
                             <Link to={`/inventoryEntryForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                                 <i className="pi pi-pencil"></i>
                             </Link>
@@ -456,9 +486,7 @@ const InventoryEntryTable = () => {
                             }}>
                                 <i className="pi pi-trash"></i>
                             </button>
-                            <button className="btn btn-outline-primary btn-sm" onClick={() => setViewData(rowData)}>
-                                <i className="pi pi-eye"></i>
-                            </button>
+
                         </div>
                     )}
                 />

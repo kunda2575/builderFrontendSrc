@@ -4,7 +4,8 @@ import {
   getVendors,
   createVendor,
   updateVendor,
-  deleteVendor
+  deleteVendor,
+  importVendor
 } from '../../../api/updateApis/vendorsApi'; // Your API functions
 
 const fields = [
@@ -32,10 +33,12 @@ const VendorMaster = () => {
       <ReusableTableForm
         title="Vendor"
         fields={fields}
+          backend="vendors"
         fetchData={getVendors}
         createData={createVendor}
         updateData={updateVendor}
         deleteData={deleteVendor}
+         importData={importVendor}
       />
     </div>
   );

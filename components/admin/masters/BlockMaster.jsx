@@ -4,7 +4,8 @@ import {
   getBlockDetails,
   createBlockDetails,
   updateBlockDetails,
-  deleteBlockDetails
+  deleteBlockDetails,
+  importBlockDetails
 } from '../../../api/updateApis/blocksApi'; // Your API functions
 
 const fields = [
@@ -19,11 +20,13 @@ const BlockMaster = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Block"
+         backend="block"
         fields={fields}
         fetchData={getBlockDetails}
         createData={createBlockDetails}
         updateData={updateBlockDetails}
         deleteData={deleteBlockDetails}
+         importData={importBlockDetails}
       />
     </div>
   );

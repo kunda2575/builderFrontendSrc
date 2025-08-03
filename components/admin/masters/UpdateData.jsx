@@ -34,7 +34,7 @@ const UpdateData = () => {
     user?.profile === "Admin"
       ? allData.filter(
           (item) =>
-            !["Builder Master","Bank Master","Block Master", "User Master","Roles Master","Fund Purpose", "Project Master","Fund Source"].includes(item.name)
+            !["Bank Master","Block Master", "User Master","Roles Master","Fund Purpose", "Project Master","Fund Source"].includes(item.name)
         )
       : allData;
 

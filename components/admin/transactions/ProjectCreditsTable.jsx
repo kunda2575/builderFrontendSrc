@@ -1,18 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ReusableDataTable from './ReusableDataTable ';
-import { fetchData, deleteData,postData } from '../../../api/apiHandler';
+import { fetchData, deleteData, postData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import ExportProjectCreditsButton from '../reusableExportData/ExportProjectCreditsButton';
-    import ImportData from '../resusableComponents/ResuableImportData';
+import ImportData from '../resusableComponents/ResuableImportData';
 import { toast } from 'react-toastify';
+import ImportErrorModal from '../resusableComponents/ImportErrorModal';
+
 const ProjectCreditsTable = () => {
     const [source, setSource] = useState([]);
     const [purpose, setPurpose] = useState([]);
     const [paymentMode, setPaymentMode] = useState([]);
     const [depositeBank, setDepositeBank] = useState([]);
-const [exportData, setExportData] = useState([]);
+    const [exportData, setExportData] = useState([]);
 
+    const [importErrors, setImportErrors] = useState([]);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+
+
+    const tableRef = useRef();
     useEffect(() => {
         fetchData(config.getSource).then(res => setSource(res.data || []));
         fetchData(config.getPurpose).then(res => setPurpose(res.data || []));
@@ -22,43 +29,57 @@ const [exportData, setExportData] = useState([]);
     }, []);
 
 
-      const [projectCredits, setProjectCredits] = useState([]);
+    const [projectCredits, setProjectCredits] = useState([]);
 
     const handleExcelImport = async (data) => {
         try {
-            const response = await postData(config.createProjectCreditImport, { projectCredits: data }); // ✅ send projectCredits in body
-            toast.success("ProjectCredits imported successfully!");
+            const response = await postData(config.createProjectCreditImport, { projectCredits: data });
 
+            if (response.success) {
+                toast.success("Project credits imported successfully!");
+                if (tableRef.current) {
+                    tableRef.current.refresh(); // ✅ Refresh the table data
+                }
+            } else {
+                toast.error(response.message || "Failed to import project credits.");
+
+                // Optional: show backend validation errors
+                if (response.data?.errors?.length) {
+                    setImportErrors(response.data.errors);
+                    setShowErrorModal(true);
+                }
+            }
         } catch (err) {
             console.error(err);
-            toast.error(err.response?.data?.error || "Failed to import projectCredits.");
+            toast.error(err.response?.data?.error || "Failed to import project credits.");
         }
     };
 
-    
- const ProjectCreditImportButton = () => (
-    <ImportData
-        headers={[
-            "date",
-            "source",
-            "amount_inr",
-            "payment_mode",
-            "purpose",
-            "deposit_bank",
-        ]}
-        fileName="ProjectCredit"
-        uploadData={handleExcelImport}
-    />
-);
+
+
+    const ProjectCreditImportButton = () => (
+        <ImportData
+            headers={[
+                "date",
+                "source",
+                "amount_inr",
+                "payment_mode",
+                "purpose",
+                "deposit_bank",
+            ]}
+            fileName="ProjectCredit"
+            uploadData={handleExcelImport}
+        />
+    );
 
 
     const fetchProjectCredits = async ({ source, deposite_bank, purpose, payment_mode, skip, limit }) => {
-       
+
         const url = `${config.getProjectCredits}?source=${source || ''}&purpose=${purpose || ''}&payment_mode=${payment_mode || ''}&deposite_bank=${deposite_bank || ''}&skip=${skip}&limit=${limit}`;
         const res = await fetchData(url);
         const data = res.data?.projectCreditsDetails || [];
-         if (skip === 0) {
-        setExportData(data); // ✅ Save first page for export
+        if (skip === 0) {
+            setExportData(data); // ✅ Save first page for export
         }
         return {
             data,
@@ -70,13 +91,18 @@ const [exportData, setExportData] = useState([]);
     return (
         <div>
             {/* Action Buttons */}
-
+            <ImportErrorModal
+                show={showErrorModal}
+                errors={importErrors}
+                onClose={() => setShowErrorModal(false)}
+            />
             <ReusableDataTable
                 title="Project Credits Table"
+                ref={tableRef}
                 fetchFunction={fetchProjectCredits}
-                 exportData={exportData}
-                   ImportButtonComponent={ProjectCreditImportButton}
-            ExportButtonComponent={ExportProjectCreditsButton}
+                exportData={exportData}
+                ImportButtonComponent={ProjectCreditImportButton}
+                ExportButtonComponent={ExportProjectCreditsButton}
                 deleteFunction={(id) => deleteData(config.deleteProjectCredits(id))}
                 filters={[
                     {
@@ -121,14 +147,14 @@ const [exportData, setExportData] = useState([]);
                 ]}
                 actions={(rowData, { onDelete, onView }) => (
                     <>
+                        <button className="btn btn-outline-primary btn-sm" onClick={() => onView(rowData)}>
+                            <i className="pi pi-eye" />
+                        </button>
                         <Link to={`/stockAvailabilityForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                             <i className="pi pi-pencil" />
                         </Link>
                         <button className="btn btn-outline-danger btn-sm" onClick={() => onDelete(rowData.id)}>
                             <i className="pi pi-trash" />
-                        </button>
-                        <button className="btn btn-outline-primary btn-sm" onClick={() => onView(rowData)}>
-                            <i className="pi pi-eye" />
                         </button>
                     </>
                 )}

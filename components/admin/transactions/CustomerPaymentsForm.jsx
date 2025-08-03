@@ -220,6 +220,29 @@ const CustomerPaymentsForm = () => {
             return updated;
         });
     };
+const resetForm = {
+  customer_id: "",
+  customer_name: "",
+  contact_number: "",
+  email: "",
+  profession: "",
+  native_language: [],
+  project_name: "",
+  block_name: "",
+  flat_no: "",
+  agreed_price: "",
+  installment_no: "",
+  amount_received: "",
+  payment_mode: "",
+  payment_type: "",
+  verified_by: "",
+  funding_bank: "",
+  documents: "",
+  flat_hand_over_date: "",
+  flat_area: "",
+  no_of_bhk: "",
+  id: null
+};
 
     // 🆕 Handle form submit
     const handleSubmit = async (e) => {
@@ -263,7 +286,30 @@ const CustomerPaymentsForm = () => {
             if (response.success) {
                 toast.success(form.id ? "Updated successfully!" : "Created successfully!");
                 // Reset
-                setForm({ ...initialFormState });
+                setForm({
+                     customer_id: "",
+  customer_name: "",
+  contact_number: "",
+  email: "",
+  profession: "",
+  native_language: [],
+  project_name: "",
+  block_name: "",
+  flat_no: "",
+  agreed_price: "",
+  installment_no: "",
+  amount_received: "",
+  payment_mode: "",
+  payment_type: "",
+  verified_by: "",
+  funding_bank: "",
+  documents: "",
+  flat_hand_over_date: "",
+  flat_area: "",
+  no_of_bhk: "",
+  id: null
+                 });
+                
                 setSelectedFiles({});
                 setRetainedDocuments([]);
                 setDocumentTypes([]);

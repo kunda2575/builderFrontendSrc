@@ -3,7 +3,8 @@ import {
   getProjects,
   createProject,
   updateProject,
-  deleteProject
+  deleteProject,
+  importProject
 } from '../../../api/updateApis/projectMaterialApi'; // Your API functions
 import ReusableTableForm from './ReusableTableForm';
 
@@ -31,14 +32,16 @@ const ProjectMaster = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Project"
+           backend="projects"
         fields={fields}
         fetchData={getProjects}
         createData={createProject}
         updateData={updateProject}
         deleteData={deleteProject}
+         importData={importProject}
          fcolumnClass="mb-2 col-lg-12"
-        tcolumnClass=" mb-2 col-lg-12"
-        ccolumnClass="mb-2 col-lg-4"
+        tcolumnClass=" mb-2 col-lg-12 "
+        ccolumnClass="mb-2 col-lg-4 "
       />
     </div>
   );

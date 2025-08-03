@@ -11,5 +11,6 @@ const BASE_URL =`${host}/api/leadStages`;
 
 export const getLeadStages = () => fetchData(BASE_URL);
 export const createLeadStage = (data) => postData(BASE_URL, data);
+export const importLeadStage = (data) => postData(`${BASE_URL}/import`, data);
 export const updateLeadStage = (id, data) => putData(`${BASE_URL}/${id}`, data);
 export const deleteLeadStage = (id) => deleteData(`${BASE_URL}/${id}`); // ✅ Correct usage

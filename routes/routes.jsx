@@ -12,7 +12,7 @@ import UpdateData from "../components/admin/masters/UpdateData";
 import ProtectedRoute from "./privateRoutes";
 import Transaction from "../components/admin/transactions/Transaction";
 import BlockMaster from "../components/admin/masters/BlockMaster";
-import BuilderMaster from "../components/admin/masters/BuilderMaster";
+
 import BankMaster from "../components/admin/masters/BankMaster";
 import DepartmentMaster from "../components/admin/masters/DepartmentMaster";
 
@@ -22,7 +22,7 @@ import EmployeeMaster from "../components/admin/masters/EmmployeeMaster";
 import ExpenseCategoryMaster from "../components/admin/masters/ExpenseCategoryMaster";
 import FundPurpose from "../components/admin/masters/FundPurpose";
 import FundSource from "../components/admin/masters/FundSource";
-import LeadSource from "../components/admin/masters/leadSource";
+import LeadSource from "../components/admin/masters/LeadSource";
 import LeadStage from "../components/admin/masters/LeadStage";
 import LostReason from "../components/admin/masters/LostReasons";
 import MaterialMaster from "../components/admin/masters/MaterialMaster";
@@ -88,7 +88,7 @@ const AppRoutes = () => (
 
     {/* master routes */}
     <Route path="/blockMaster" element={<BlockMaster />} />
-    <Route path="/builderMaster" element={<BuilderMaster />} />
+  
     <Route path="/bankMaster" element={<BankMaster />} />
     <Route path="/customerMaster" element={<CustomerMaster />} />
     <Route path="/departmentMaster" element={<DepartmentMaster />} />
@@ -108,6 +108,8 @@ const AppRoutes = () => (
     <Route path="/unitType" element={<UnitTypeMaster />} />
     <Route path="/vendorMaster" element={<VendorMaster />} />
     <Route path="/userMaster" element={<UserMaster />} />
+    <Route path="/users/project/:projectId" element={<UserMaster />} />
+
     <Route path="/documents" element={<DocumentsMaster/>} />
 
 <Route path="/edit-profile/:userId" element={<EditProfile />} />

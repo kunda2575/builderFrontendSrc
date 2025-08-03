@@ -1,15 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ReusableDataTable from './ReusableDataTable ';
-import { fetchData, deleteData,postData } from '../../../api/apiHandler';
+import { fetchData, deleteData, postData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import { Link } from 'react-router-dom';
 import ExportMaterialsButton from '../reusableExportData/ExportMaterialsButton';
 import ImportData from '../resusableComponents/ResuableImportData';
 import { toast } from 'react-toastify';
+import ImportErrorModal from '../resusableComponents/ImportErrorModal';
+
 const StockAvailabilityTable = () => {
     const [materialDetails, setMaterialDetails] = useState([]);
     const [unitTypes, setUnitTypes] = useState([]);
     const [exportData, setExportData] = useState([]);
+
+    
+        const [importErrors, setImportErrors] = useState([]);
+        const [showErrorModal, setShowErrorModal] = useState(false);
+    
+    const tableRef = useRef();
     useEffect(() => {
         fetchData(config.material).then(res => setMaterialDetails(res.data || []));
         fetchData(config.unitType).then(res => setUnitTypes(res.data || []));
@@ -21,7 +29,7 @@ const StockAvailabilityTable = () => {
         const data = res.data?.materialDetails || [];
 
         if (skip === 0) {
-            setExportData(data); // ✅ Save first page for export
+            setExportData(data); // Save first page for export
         }
 
         return {
@@ -37,8 +45,20 @@ const StockAvailabilityTable = () => {
     const handleExcelImport = async (data) => {
         try {
             const response = await postData(config.createStockAvailabilityImport, { stockAvailability: data }); // ✅ send stockAvailability in body
-            toast.success("StockAvailabilitys imported successfully!");
+            if (response.success) {
+                toast.success("Project Debits imported successfully!");
+                if (tableRef.current) {
+                    tableRef.current.refresh(); //  Refresh the table data
+                }
+            } else {
+                toast.error(response.message || "Failed to import project Debits.");
 
+                // Optional: show backend validation errors
+                if (response.data?.errors?.length) {
+                   setImportErrors(response.data.errors);
+                setShowErrorModal(true);
+                }
+            }
         } catch (err) {
             console.error(err);
             toast.error(err.response?.data?.error || "Failed to import stockAvailability.");
@@ -59,9 +79,16 @@ const StockAvailabilityTable = () => {
         />
     );
     return (
+ <div>
+            <ImportErrorModal
+                show={showErrorModal}
+                errors={importErrors}
+                onClose={() => setShowErrorModal(false)}
+            />
 
         <ReusableDataTable
             title="Stock Availability Management"
+            ref={tableRef}
             fetchFunction={fetchStocks}
             exportData={exportData}
             ImportButtonComponent={StockAvailabilityImportButton}
@@ -92,6 +119,7 @@ const StockAvailabilityTable = () => {
             addButtonLink="/stockAvailabilityForm"
             backButtonLink="/transaction"
         />
+        </div>
     );
 };
 

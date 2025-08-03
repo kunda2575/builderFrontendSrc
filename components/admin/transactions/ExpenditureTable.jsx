@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ReusableDataTable from './ReusableDataTable ';
 import { fetchData, deleteData ,postData} from '../../../api/apiHandler';
@@ -6,20 +6,38 @@ import { config } from '../../../api/config';
 import ExportExpendituresButton from '../reusableExportData/ExportExpendituresButton';
 import ImportData from '../resusableComponents/ResuableImportData';
 import { toast } from 'react-toastify';
+import ImportErrorModal from '../resusableComponents/ImportErrorModal';
+
 const ExpenditureTable = () => {
     const [vendorName, setVendorName] = useState([]);
     const [expenseHead, setExpenseHead] = useState([]);
     const [paymentMode, setPaymentMode] = useState([]);
     const [paymentBank, setPaymentBank] = useState([]);
-    const [exportData, setExportData] = useState([]); // ✅ Track data for export
+    const [exportData, setExportData] = useState([]); //  Track data for export
 
+    const [importErrors, setImportErrors] = useState([]);
+        const [showErrorModal, setShowErrorModal] = useState(false);
+    
+const tableRef = useRef(); 
  const [expenditures, setExpenditures] = useState([]);
 
     const handleExcelImport = async (data) => {
         try {
             const response = await postData(config.createExpenditureImport, { expenditures: data }); // ✅ send expenditures in body
-            toast.success("Expenditures imported successfully!");
-
+            if (response.success) {
+                       toast.success("Expenditure imported successfully!");
+                       if (tableRef.current) {
+                           tableRef.current.refresh(); //  Refresh the table data
+                       }
+                   } else {
+                       toast.error(response.message || "Failed to import Expenditure .");
+           
+                       // Optional: show backend validation errors
+                       if (response.data?.errors?.length) {
+                            setImportErrors(response.data.errors);
+                setShowErrorModal(true);
+                       }
+                   }
         } catch (err) {
             console.error(err);
             toast.error(err.response?.data?.error || "Failed to import expenditures.");
@@ -37,8 +55,8 @@ const ExpenditureTable = () => {
                 "invoice_number",
                 "payment_mode",
                 "payment_bank",
-                "payment_reference",
-                "payment_evidence",
+                // "payment_reference",
+                // "payment_evidence",
                
             ]}
             fileName="Expenditure"
@@ -92,9 +110,15 @@ const ExpenditureTable = () => {
     return (
         <div className="mt-3">
            
+             <ImportErrorModal
+                show={showErrorModal}
+                errors={importErrors}
+                onClose={() => setShowErrorModal(false)}
+            />
             
             <ReusableDataTable
                 title="Expenditure Table"
+                 ref={tableRef}
                 fetchFunction={fetchExpenditure}
                 exportData={exportData}
                  ImportButtonComponent={ExpenditureImportButton}
@@ -153,143 +177,144 @@ const ExpenditureTable = () => {
                     {
                         field: 'payment_reference',
                         header: 'Payment Reference',
-                        body: (rowData) => {
-                            const files = typeof rowData.payment_reference === 'string'
-                                ? rowData.payment_reference.split(',').map(f => f.trim())
-                                : rowData.payment_reference || [];
+                        // body: (rowData) => {
+                        //     const files = typeof rowData.payment_reference === 'string'
+                        //         ? rowData.payment_reference.split(',').map(f => f.trim())
+                        //         : rowData.payment_reference || [];
 
-                            if (!files.length) return <span className="text-muted">N/A</span>;
+                        //     if (!files.length) return <span className="text-muted">N/A</span>;
 
-                            const sanitizeUrl = (url) => {
-                                const r2Prefix = 'https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/';
-                                if (!url) return '';
+                        //     const sanitizeUrl = (url) => {
+                        //         const r2Prefix = 'https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/';
+                        //         if (!url) return '';
 
-                                // Remove double prefix
-                                let cleaned = url.replace(`${r2Prefix}${r2Prefix}`, r2Prefix);
+                        //         // Remove double prefix
+                        //         let cleaned = url.replace(`${r2Prefix}${r2Prefix}`, r2Prefix);
 
-                                // If it's a partial path (e.g., just the filename), prepend prefix
-                                if (!/^https?:\/\//.test(cleaned)) {
-                                    cleaned = r2Prefix + cleaned;
-                                }
+                        //         // If it's a partial path (e.g., just the filename), prepend prefix
+                        //         if (!/^https?:\/\//.test(cleaned)) {
+                        //             cleaned = r2Prefix + cleaned;
+                        //         }
 
-                                return cleaned;
-                            };
+                        //         return cleaned;
+                        //     };
 
-                            return (
-                                <div className="d-flex flex-wrap gap-2">
-                                    {files.map((fileUrl, index) => {
-                                        const url = sanitizeUrl(fileUrl);
-                                        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
-                                        const isPDF = /\.pdf$/i.test(url);
+                        //     return (
+                        //         <div className="d-flex flex-wrap gap-2">
+                        //             {files.map((fileUrl, index) => {
+                        //                 const url = sanitizeUrl(fileUrl);
+                        //                 const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+                        //                 const isPDF = /\.pdf$/i.test(url);
 
-                                        if (isImage) {
-                                            return (
-                                                <div key={index} className="text-center" style={{ width: '100px' }}>
-                                                    <a href={url} target="_blank" rel="noopener noreferrer">
-                                                        <img
-                                                            src={url}
-                                                            alt={`Preview ${index + 1}`}
-                                                            className="img-thumbnail"
-                                                            style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
-                                                        />
-                                                    </a>
-                                                </div>
-                                            );
-                                        }
+                        //                 if (isImage) {
+                        //                     return (
+                        //                         <div key={index} className="text-center" style={{ width: '100px' }}>
+                        //                             <a href={url} target="_blank" rel="noopener noreferrer">
+                        //                                 <img
+                        //                                     src={url}
+                        //                                     alt={`Preview ${index + 1}`}
+                        //                                     className="img-thumbnail"
+                        //                                     style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                        //                                 />
+                        //                             </a>
+                        //                         </div>
+                        //                     );
+                        //                 }
 
-                                        return (
-                                            <a
-                                                key={index}
-                                                href={url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="btn btn-sm btn-outline-primary"
-                                            >
-                                                {isPDF ? `Download PDF ${index + 1}` : `Download File ${index + 1}`}
-                                            </a>
-                                        );
-                                    })}
-                                </div>
-                            );
-                        }
+                        //                 return (
+                        //                     <a
+                        //                         key={index}
+                        //                         href={url}
+                        //                         target="_blank"
+                        //                         rel="noopener noreferrer"
+                        //                         className="btn btn-sm btn-outline-primary"
+                        //                     >
+                        //                         {isPDF ? `Download PDF ${index + 1}` : `Download File ${index + 1}`}
+                        //                     </a>
+                        //                 );
+                        //             })}
+                        //         </div>
+                        //     );
+                        // }
                     },
                     {
                         field: 'payment_evidence',
                         header: 'Payment Evidence',
-                        body: (rowData) => {
-                            const files = typeof rowData.payment_evidence === 'string'
-                                ? rowData.payment_evidence.split(',').map(f => f.trim())
-                                : rowData.payment_evidence || [];
+                        // body: (rowData) => {
+                        //     const files = typeof rowData.payment_evidence === 'string'
+                        //         ? rowData.payment_evidence.split(',').map(f => f.trim())
+                        //         : rowData.payment_evidence || [];
 
-                            if (!files.length) return <span className="text-muted">N/A</span>;
+                        //     if (!files.length) return <span className="text-muted">N/A</span>;
 
-                            const sanitizeUrl = (url) => {
-                                const r2Prefix = 'https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/';
-                                if (!url) return '';
+                        //     const sanitizeUrl = (url) => {
+                        //         const r2Prefix = 'https://pub-029295a7436d410e9cb079b9c6f2c11c.r2.dev/';
+                        //         if (!url) return '';
 
-                                // Remove double prefix
-                                let cleaned = url.replace(`${r2Prefix}${r2Prefix}`, r2Prefix);
+                        //         // Remove double prefix
+                        //         let cleaned = url.replace(`${r2Prefix}${r2Prefix}`, r2Prefix);
 
-                                // If it's a partial path (e.g., just the filename), prepend prefix
-                                if (!/^https?:\/\//.test(cleaned)) {
-                                    cleaned = r2Prefix + cleaned;
-                                }
+                        //         // If it's a partial path (e.g., just the filename), prepend prefix
+                        //         if (!/^https?:\/\//.test(cleaned)) {
+                        //             cleaned = r2Prefix + cleaned;
+                        //         }
 
-                                return cleaned;
-                            };
+                        //         return cleaned;
+                        //     };
 
-                            return (
-                                <div className="d-flex flex-wrap gap-2">
-                                    {files.map((fileUrl, index) => {
-                                        const url = sanitizeUrl(fileUrl);
-                                        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
-                                        const isPDF = /\.pdf$/i.test(url);
+                        //     return (
+                        //         <div className="d-flex flex-wrap gap-2">
+                        //             {files.map((fileUrl, index) => {
+                        //                 const url = sanitizeUrl(fileUrl);
+                        //                 const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+                        //                 const isPDF = /\.pdf$/i.test(url);
 
-                                        if (isImage) {
-                                            return (
-                                                <div key={index} className="text-center" style={{ width: '100px' }}>
-                                                    <a href={url} target="_blank" rel="noopener noreferrer">
-                                                        <img
-                                                            src={url}
-                                                            alt={`Preview ${index + 1}`}
-                                                            className="img-thumbnail"
-                                                            style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
-                                                        />
-                                                    </a>
-                                                </div>
-                                            );
-                                        }
+                        //                 if (isImage) {
+                        //                     return (
+                        //                         <div key={index} className="text-center" style={{ width: '100px' }}>
+                        //                             <a href={url} target="_blank" rel="noopener noreferrer">
+                        //                                 <img
+                        //                                     src={url}
+                        //                                     alt={`Preview ${index + 1}`}
+                        //                                     className="img-thumbnail"
+                        //                                     style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                        //                                 />
+                        //                             </a>
+                        //                         </div>
+                        //                     );
+                        //                 }
 
-                                        return (
-                                            <a
-                                                key={index}
-                                                href={url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="btn btn-sm btn-outline-primary"
-                                            >
-                                                {isPDF ? `Download PDF ${index + 1}` : `Download File ${index + 1}`}
-                                            </a>
-                                        );
-                                    })}
-                                </div>
-                            );
-                        }
+                        //                 return (
+                        //                     <a
+                        //                         key={index}
+                        //                         href={url}
+                        //                         target="_blank"
+                        //                         rel="noopener noreferrer"
+                        //                         className="btn btn-sm btn-outline-primary"
+                        //                     >
+                        //                         {isPDF ? `Download PDF ${index + 1}` : `Download File ${index + 1}`}
+                        //                     </a>
+                        //                 );
+                        //             })}
+                        //         </div>
+                        //     );
+                        // }
                     }
 
 
                 ]}
                 actions={(rowData, { onDelete, onView }) => (
                     <>
+                     <button className="btn btn-outline-primary btn-sm" onClick={() => onView(rowData)}>
+                            <i className="pi pi-eye" />
+                        </button>
                         <Link to={`/expenditureForm?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                             <i className="pi pi-pencil" />
                         </Link>
                         <button className="btn btn-outline-danger btn-sm" onClick={() => onDelete(rowData.id)}>
                             <i className="pi pi-trash" />
                         </button>
-                        <button className="btn btn-outline-primary btn-sm" onClick={() => onView(rowData)}>
-                            <i className="pi pi-eye" />
-                        </button>
+                       
                     </>
                 )}
                 addButtonLink="/expenditureForm"

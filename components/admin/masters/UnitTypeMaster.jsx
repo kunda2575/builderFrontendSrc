@@ -4,7 +4,8 @@ import {
   getUnitTypes,
   createUnitType,
   updateUnitType,
-  deleteUnitType
+  deleteUnitType,
+  importUnitType
 } from '../../../api/updateApis/unitTypeApi'; // Your API functions
 
 const fields = [
@@ -21,11 +22,13 @@ const UnitTypeMaster = () => {
     <div className="container-fluid">
       <ReusableTableForm
         title="Unit"
+             backend="unittypes"
         fields={fields}
         fetchData={getUnitTypes}
         createData={createUnitType}
         updateData={updateUnitType}
         deleteData={deleteUnitType}
+         importData={importUnitType}
       />
     </div>
   );

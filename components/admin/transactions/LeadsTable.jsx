@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import ImportData from '../resusableComponents/ResuableImportData';
-import { fetchData, deleteData,postData } from '../../../api/apiHandler';
+import { fetchData, deleteData, postData } from '../../../api/apiHandler';
 import { config } from '../../../api/config';
 import { Paginator } from 'primereact/paginator';
 import moment from 'moment';
@@ -17,6 +17,7 @@ import { Button } from 'primereact/button'; // Optional for styled export button
 import axios from 'axios';
 import ExportLeadsButton from '../reusableExportData/ExportLeadsButton';
 
+import ImportErrorModal from '../resusableComponents/ImportErrorModal';
 
 const LeadsTable = () => {
     const [loading, setLoading] = useState(true)
@@ -25,6 +26,10 @@ const LeadsTable = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [deleteType, setDeleteType] = useState(null);
+
+
+    const [showErrorModal, setShowErrorModal] = useState(false);
+
 
     const [filteredLeads, setFilteredLeads] = useState([]);
     const [leadSource, setLeadSource] = useState([]);          // get the data from backend
@@ -57,6 +62,10 @@ const LeadsTable = () => {
 
     const [viewData, setViewData] = useState(null);
 
+
+    const [importErrors, setImportErrors] = useState([]);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+
     const onPageChange = (event) => {
         setFirst(event.first);
         setRows(event.rows);
@@ -74,34 +83,26 @@ const LeadsTable = () => {
         getTeamMembers();
     }, []);
 
+    const handleExcelImport = async (data) => {
+        
+            const response = await postData(config.createIMport, { leads: data });
+
+            if (response.success) {
+                toast.success(response.data?.message || "Leads imported successfully!");
+                getLeadDetails?.(); // ✅ Refresh the leads table
+            } else {
+                toast.error(response.message || "Failed to import leads.");
+
+                if (response.data?.errors?.length) {
+                    setImportErrors(response.data.errors);
+                    setShowErrorModal(true);
+                }
+            }
+         
+    };
 
 
-    const [leads, setLeads] = useState([]);
 
-   const handleExcelImport = async (data) => {
-    try {
-        const response = await postData(config.createIMport, { leads: data }); // ✅ send leads in body
-        toast.success("Leads imported successfully!");
-        // getLeadDetails(); 
-    } catch (err) {
-        console.error(err);
-        toast.error(err.response?.data?.error || "Failed to import leads.");
-    }
-};
-
-
-    // const fetchLeads = async () => {
-    //     try {
-    //         const res = await axios.get(`${API_BASE_URL}/leads`);
-    //         setLeads(res.data.leadDetails);
-    //     } catch (err) {
-    //         console.error("Failed to fetch leads:", err);
-    //     }
-    // };
-
-    // useEffect(() => {
-    //     fetchLeads();
-    // }, []);
 
 
     const getLeadDetails = async () => {
@@ -205,7 +206,7 @@ const LeadsTable = () => {
         setLoading(true);
         try {
             const res = await deleteData(config.deleteLead(confirmDeleteId));
-            toast.success(res.data?.message || "Material deleted successfully.");
+            toast.success(res.data?.message || "Leads deleted successfully.");
             getLeadDetails(); // Refresh data
         } catch (error) {
             toast.error("Failed to delete material");
@@ -219,6 +220,12 @@ const LeadsTable = () => {
 
     return (
         <div className="container-fluid mt-2">
+            <ImportErrorModal
+                show={showErrorModal}
+                errors={importErrors}
+                onClose={() => setShowErrorModal(false)}
+            />
+
             <Link className="text-decoration-none text-primary" to="/transaction"> <i className="pi pi-arrow-left"></i>  Back </Link>
             <h3 className="text-center mb-3">Leads Management</h3>
             <div className="d-flex justify-content-end flex-wrap gap-2 my-2">
@@ -555,6 +562,9 @@ const LeadsTable = () => {
                     header="Actions"
                     body={(rowData) => (
                         <div className="d-flex gap-2 justify-content-center">
+                            <button className="btn btn-outline-primary btn-sm" onClick={() => setViewData(rowData)}>
+                                <i className="pi pi-eye"></i>
+                            </button>
                             <Link to={`/leads?id=${rowData.id}`} className="btn btn-outline-info btn-sm">
                                 <i className="pi pi-pencil"></i>
                             </Link>
@@ -565,9 +575,7 @@ const LeadsTable = () => {
                             }}>
                                 <i className="pi pi-trash"></i>
                             </button>
-                            <button className="btn btn-outline-primary btn-sm" onClick={() => setViewData(rowData)}>
-                                <i className="pi pi-eye"></i>
-                            </button>
+
                         </div>
                     )}
                     style={{ minWidth: '7rem' }}

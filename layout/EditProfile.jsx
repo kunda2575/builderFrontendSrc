@@ -27,6 +27,10 @@ const EditProfile = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [mode, setMode] = useState("create");
 
+    const [allProjects, setAllProjects] = useState([]); // renamed for clarity
+    const [projectId, setProjectId] = useState("");
+    const [projectName, setProjectName] = useState("");
+
     const [otp, setOtp] = useState("");
     const [otpSent, setOtpSent] = useState(false);
     const [otpVerified, setOtpVerified] = useState(false);
@@ -56,20 +60,45 @@ const EditProfile = () => {
 
     const resolvedUserId = state?.userData?.userId || userId;
 
+
     useEffect(() => {
         if (state.mode === "edit" && state.userData) {
-            const { fullname, mobilenumber, email, profile, password } = state.userData;
+            const {
+                fullname,
+                mobilenumber,
+                email,
+                profile,
+                password,
+                projectId,
+                projectName
+            } = state.userData;
+
             setfullname(fullname || '');
             setmobilenumber(mobilenumber || '');
             setEmail(email || '');
             setProfile(profile || '');
             setPassword(password || '');
             setConfirmPassword(password || '');
+            setProjectId(projectId || '');
+            setProjectName(projectName || '');
             setMode("edit");
 
             console.log("🟢 Loaded edit profile data:", { resolvedUserId });
         }
     }, [state]);
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const res = await fetchData(config.getProject);
+                setAllProjects(res.data || []);
+            } catch (err) {
+                console.error("Error fetching project", err);
+            }
+        };
+
+        fetchProjects();
+    }, []);
 
     console.log("userId from URL:", userId);
 
@@ -152,15 +181,18 @@ const EditProfile = () => {
                     fullname,
                     mobilenumber,
                     email,
-                    profile,
+                    profile: state?.userData?.profile || profile,
+                    project: Number(state?.userData?.projectId || projectId), // ✅ send under 'project'
                     password,
                 });
 
+
+
                 if (response.success) {
                     toast.success("Profile updated successfully! Redirecting to login...");
-  localStorage.removeItem('loginToken');
-    localStorage.removeItem('fullname');
-    localStorage.removeItem('profile');
+                    localStorage.removeItem('loginToken');
+                    localStorage.removeItem('fullname');
+                    localStorage.removeItem('profile');
 
                     setTimeout(() => {
                         navigate("/login");
@@ -257,23 +289,50 @@ const EditProfile = () => {
                                         </div>
                                         <div className="m-auto col-lg-7 ">
                                             <select
-
                                                 className="form-select"
                                                 value={profile}
                                                 onChange={(e) => setProfile(e.target.value)}
+                                                disabled={mode === "edit"} // ✅ disable in edit mode
                                                 required
                                             >
                                                 <option hidden value="">-- Select Role --</option>
-
                                                 <option value="user">User</option>
                                                 <option value="Admin">Admin</option>
                                                 <option value="Super Admin">Super Admin</option>
-
                                             </select>
+
                                         </div>
                                     </div>
 
-
+                                    <div className="row mb-3">
+                                        <div className="col-lg-4 m-auto">
+                                            Project
+                                        </div>
+                                        <div className="col-lg-7 m-auto">
+                                            {mode === "edit" ? (
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={projectName}
+                                                    disabled
+                                                />
+                                            ) : (
+                                                <select
+                                                    className="form-select"
+                                                    value={projectId}
+                                                    onChange={(e) => setProjectId(e.target.value)}
+                                                    required
+                                                >
+                                                    <option hidden value="">-- Select Project --</option>
+                                                    {allProjects.map((project) => (
+                                                        <option key={project.id} value={project.id}>
+                                                            {project.projectName}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
+                                    </div>
                                     <div className="row mb-3">
                                         <div className="col-lg-4 m-auto">
                                             Password
@@ -294,6 +353,8 @@ const EditProfile = () => {
                                             ></i>
                                         </div>
                                     </div>
+
+
 
                                     <div className="row mb-3">
                                         <div className="col-lg-4 m-auto">

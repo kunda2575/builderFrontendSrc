@@ -37,6 +37,8 @@ const Navbar = () => {
     localStorage.removeItem('loginToken');
     localStorage.removeItem('fullname');
     localStorage.removeItem('profile');
+
+    localStorage.removeItem('selectedProject');
     toast.success('Logout Successfully!');
     navigate('/');
   };
@@ -64,7 +66,7 @@ const Navbar = () => {
 
             {/* Profile Dropdown */}
             <li className="nav-item dropdown ms-3">
-              
+
               <button
                 className="btn nav-link dropdown-toggle d-flex align-items-center gap-2 text-white"
                 type="button"
@@ -97,11 +99,17 @@ const Navbar = () => {
                     Profile: {user.profile}
                   </li>
                 )}
-                {user?.password && (
+                {user?.projects?.length > 0 && (
+                  <li className="dropdown-item text-muted">
+                    Project: {user.projects[0]?.projectName}
+                  </li>
+                )}
+
+                {/* {user?.password && (
                   <li className="dropdown-item text-muted">
                     Password: {user.password}
                   </li>
-                )}
+                )} */}
 
                 <li><hr className="dropdown-divider" /></li>
 
@@ -109,7 +117,6 @@ const Navbar = () => {
                 {user && (
                   <Link
                     to={`/edit-profile/${user.userId}`}
-                    className="dropdown-item"
                     state={{
                       mode: "edit",
                       userData: {
@@ -117,10 +124,15 @@ const Navbar = () => {
                         mobilenumber: user.mobilenumber,
                         email: user.email,
                         profile: user.profile,
-                        id: user.userId
+                        // password: user.password,
+                        projectId: user.projects?.[0]?.UserProjects?.projectId || "",
+                        projectName: user.projects?.[0]?.projectName || "",
+                        userId: user.userId
                       }
                     }}
+                     style={{ textDecoration: "none" }} // 👈 removes underline from Link
                   >
+
                     <i className="pi pi-user-edit me-2"></i> Edit Profile
                   </Link>
                 )}
